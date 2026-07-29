@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Soft Skill Zone — Animations
+   Keyframes + scroll-reveal classes driven by js/core/utils.js observeReveal()
+   ========================================================================== */
+
+@keyframes ssz-spin { to { transform: rotate(360deg); } }
+
+@keyframes ssz-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes ssz-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ssz-fade-up {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ssz-fade-down {
+  from { opacity: 0; transform: translateY(-26px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ssz-fade-left {
+  from { opacity: 0; transform: translateX(-34px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ssz-fade-right {
+  from { opacity: 0; transform: translateX(34px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ssz-zoom-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ssz-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+
+@keyframes ssz-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.45); }
+  70%  { box-shadow: 0 0 0 16px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+@keyframes ssz-live-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+
+@keyframes ssz-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes ssz-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@keyframes ssz-toast-in {
+  from { opacity: 0; transform: translateX(110%) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes ssz-toast-out {
+  to { opacity: 0; transform: translateX(110%) scale(0.96); }
+}
+
+@keyframes ssz-blob {
+  0%, 100% { border-radius: 62% 38% 46% 54% / 55% 48% 52% 45%; }
+  33%      { border-radius: 40% 60% 62% 38% / 42% 60% 40% 58%; }
+  66%      { border-radius: 55% 45% 35% 65% / 60% 38% 62% 40%; }
+}
+
+@keyframes ssz-count-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   Scroll reveal
+   Add data-reveal="up|down|left|right|zoom|fade" (+ optional data-reveal-delay="150")
+   IntersectionObserver in utils.js adds .is-revealed.
+   ========================================================================== */
+[data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+[data-reveal].is-revealed {
+  opacity: 1;
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: both;
+}
+[data-reveal="up"].is-revealed    { animation-name: ssz-fade-up; }
+[data-reveal="down"].is-revealed  { animation-name: ssz-fade-down; }
+[data-reveal="left"].is-revealed  { animation-name: ssz-fade-left; }
+[data-reveal="right"].is-revealed { animation-name: ssz-fade-right; }
+[data-reveal="zoom"].is-revealed  { animation-name: ssz-zoom-in; }
+[data-reveal="fade"].is-revealed  { animation-name: ssz-fade-in; }
+
+/* Fallback: if JS is disabled, show everything */
+.no-js [data-reveal] { opacity: 1; }
+
+/* ---------- Utility animation classes ---------- */
+.anim-float      { animation: ssz-float 6s var(--ease-in-out) infinite; }
+.anim-float-slow { animation: ssz-float 9s var(--ease-in-out) infinite; }
+.anim-pulse-ring { animation: ssz-pulse-ring 2s var(--ease-out) infinite; }
+.anim-live-dot   { animation: ssz-live-dot 1.4s var(--ease-in-out) infinite; }
+.anim-blob       { animation: ssz-blob 14s var(--ease-in-out) infinite; }
+.anim-gradient {
+  background-size: 220% 220%;
+  animation: ssz-gradient-shift 9s var(--ease-in-out) infinite;
+}
+.anim-count { animation: ssz-count-pop var(--dur-base) var(--ease-spring); }
+
+/* Staggered children — parent gets .stagger */
+.stagger > *          { animation-delay: 0ms; }
+.stagger > *:nth-child(1) { animation-delay: 60ms; }
+.stagger > *:nth-child(2) { animation-delay: 130ms; }
+.stagger > *:nth-child(3) { animation-delay: 200ms; }
+.stagger > *:nth-child(4) { animation-delay: 270ms; }
+.stagger > *:nth-child(5) { animation-delay: 340ms; }
+.stagger > *:nth-child(6) { animation-delay: 410ms; }
+.stagger > *:nth-child(7) { animation-delay: 480ms; }
+.stagger > *:nth-child(8) { animation-delay: 550ms; }
+
+/* Marquee strip (partner logos / announcements) */
+.marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.marquee__track { display: flex; width: max-content; animation: ssz-marquee 32s linear infinite; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+
+/* Hover lift used across cards / tiles */
+.hover-lift { transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.hover-lift:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+
+/* Decorative background blobs for hero sections */
+.deco-blob {
+  position: absolute;
+  filter: blur(60px);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="dark"] .deco-blob { opacity: 0.35; }

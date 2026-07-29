@@ -1,0 +1,279 @@
+rules_version = '2';
+
+/* ==========================================================================
+   Soft Skill Zone Institute — Firestore Security Rules
+   --------------------------------------------------------------------------
+   This file is the ONLY thing standing between your data and the internet.
+   The app is 100% client-side, so anyone can open the browser console and
+   call Firestore directly — these rules, not the UI, decide what is allowed.
+
+   HOW TO PUBLISH
+   Firebase Console -> Firestore Database -> Rules -> paste this file -> Publish
+
+   IMPORTANT — WHY THE FIELD NAMES MATTER
+   For a *list* query Firestore does not read the documents first. It checks
+   that the query itself can only ever return documents the rule allows. So a
+   rule must reference exactly the same field the app filters on:
+
+     app:  where("isApproved", "==", true)
+     rule: resource.data.isApproved == true      <- must match, or it is denied
+
+   Every rule below is written against the actual queries in js/ — if you
+   change a query, change the matching rule too.
+
+   MODEL
+   - users/{uid}          one doc per login, holds `role`
+   - admin               can read and write everything
+   - student             can read their own rows and the shared study material
+   - visitor (no login)  can read published public content, submit an
+                         admission or an enquiry, verify a certificate
+   ========================================================================== */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------------------------------------------------------------- helpers */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasUserDoc() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return hasUserDoc() && userDoc().role == 'admin';
+    }
+
+    function isActive() {
+      return hasUserDoc() && userDoc().get('status', 'active') == 'active';
+    }
+
+    function isStudent() {
+      return hasUserDoc() && userDoc().role == 'student' && isActive();
+    }
+
+    /* The studentId the admin linked to this login. Empty until then. */
+    function myStudentId() {
+      return hasUserDoc() ? userDoc().get('studentId', '') : '';
+    }
+
+    function hasStudentId() {
+      return isStudent() && myStudentId() != '';
+    }
+
+    /* The batch of the signed-in student — used by batch-wide notifications. */
+    function myBatchId() {
+      return exists(/databases/$(database)/documents/students/$(myStudentId()))
+        ? get(/databases/$(database)/documents/students/$(myStudentId())).data.get('batchId', '')
+        : '';
+    }
+
+    /* Rows tagged with this student's id. Written as a plain field comparison
+       (not .get()) so list queries filtered on studentId are allowed. */
+    function ownsRow() {
+      return hasStudentId() && resource.data.studentId == myStudentId();
+    }
+
+    /* Fields a user must never be able to set or change on themselves. */
+    function keepsOwnPrivileges() {
+      return !request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasAny(['role', 'status', 'studentId']);
+    }
+
+    /* A login may claim a Student ID at signup ONLY if the student record the
+       admin created carries the same email address. Without this, anyone
+       could type someone else's Student ID and read their fees. */
+    function mayClaimStudentId() {
+      return request.resource.data.get('studentId', '') == ''
+        || (
+             request.auth.token.email != null
+             && exists(/databases/$(database)/documents/students/$(request.resource.data.studentId))
+             && get(/databases/$(database)/documents/students/$(request.resource.data.studentId))
+                  .data.get('email', '') == request.auth.token.email
+           );
+    }
+
+    /* ------------------------------------------------------------------ users */
+    match /users/{uid} {
+      allow get: if request.auth.uid == uid || isAdmin();
+      allow list: if isAdmin();
+
+      // Signup creates the caller's own profile — always as a plain student.
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == 'student'
+        && request.resource.data.get('status', 'active') == 'active'
+        && mayClaimStudentId();
+
+      allow update: if isAdmin()
+        || (request.auth.uid == uid && keepsOwnPrivileges())
+        // profile edit may attach a Student ID, same email check as signup
+        || (request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentId'])
+            && mayClaimStudentId());
+
+      allow delete: if isAdmin();
+    }
+
+    /* ------------------------------------------------------------ admissions */
+    // Anyone may submit the public admission form. Nobody but admin may read
+    // them back — they hold phone numbers, addresses and documents.
+    match /admissions/{appId} {
+      allow create: if request.resource.data.get('status', '') == 'pending'
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 1
+        && request.resource.data.mobile is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    /* -------------------------------------------------------------- enquiries */
+    match /enquiries/{id} {
+      allow create: if request.resource.data.name is string
+        && request.resource.data.name.size() > 1
+        && request.resource.data.get('isRead', true) == false;
+      allow read, update, delete: if isAdmin();
+    }
+
+    /* --------------------------------------------------------------- students */
+    // js/dashboard/student-data.js reads the student's own record two ways:
+    // by document id (= studentId) and, as a fallback, where("uid","==",myUid).
+    match /students/{studentId} {
+      allow get: if isAdmin()
+        || (hasStudentId() && studentId == myStudentId())
+        || (isSignedIn() && resource.data.get('uid', '') == request.auth.uid);
+      allow list: if isAdmin()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    /* --------------------- rows a student may read about themselves ---------- */
+    // Each of these is queried as where("studentId","==",myStudentId).
+    match /fees/{id} {
+      allow read: if isAdmin() || ownsRow();
+      // A student may attach a payment proof and reference — nothing else.
+      allow update: if isAdmin()
+        || (ownsRow() && request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly(['proofURL', 'txnRef', 'status', 'updatedAt'])
+            && request.resource.data.get('status', '') != 'paid');
+      allow create, delete: if isAdmin();
+    }
+
+    match /attendance/{id} {
+      allow read: if isAdmin() || ownsRow();
+      allow write: if isAdmin();
+    }
+
+    match /submissions/{id} {
+      allow read: if isAdmin() || ownsRow();
+      allow create: if isAdmin()
+        || (hasStudentId() && request.resource.data.studentId == myStudentId());
+      // A submission may be edited until it has been marked.
+      allow update: if isAdmin()
+        || (ownsRow() && resource.data.get('marks', null) == null);
+      allow delete: if isAdmin();
+    }
+
+    /* ----------------------------------------------------------- certificates */
+    // Verification is public but NOT browsable: you must already know the
+    // certificate number or the verify code (see certificateCodes below).
+    match /certificates/{id} {
+      allow get: if true;
+      allow list: if isAdmin() || ownsRow();
+      allow write: if isAdmin();
+    }
+
+    // Tiny lookup doc: id = verifyCode, value = { certificateId }.
+    // Knowing a code lets you resolve it; you cannot list them.
+    match /certificateCodes/{code} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    /* ---------------------------------------------------------- notifications */
+    // js/dashboard/student-data.js runs three separate queries, filtered on
+    // `audience`. The rules mirror those filters exactly.
+    match /notifications/{id} {
+      allow read: if isAdmin()
+        || (isStudent() && resource.data.audience == 'all')
+        || (hasStudentId() && resource.data.audience == 'batch'
+            && resource.data.batchId == myBatchId())
+        || (hasStudentId() && resource.data.audience == 'student'
+            && resource.data.studentId == myStudentId());
+      allow write: if isAdmin();
+    }
+
+    /* ------------------- study material — any signed-in student -------------- */
+    match /liveClasses/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /assignments/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+
+    match /notes/{id} {
+      allow read: if isSignedIn();
+      // The download counter is bumped from the student dashboard.
+      allow update: if isAdmin()
+        || (isStudent() && request.resource.data.diff(resource.data)
+              .affectedKeys().hasOnly(['downloads']));
+      allow create, delete: if isAdmin();
+    }
+
+    /* ------------------------- public website content ------------------------ */
+    // Batches are read by the public admission form (batch picker).
+    match /batches/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /courses/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /faculty/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /gallery/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /faq/{id}      { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // Blog is queried as where("isPublished","==",true); admin sees drafts too.
+    match /blog/{id} {
+      // `get` may hit a doc with the field missing, so it needs the safe .get();
+      // `list` must mirror the query filter exactly or Firestore refuses it.
+      allow get:  if resource.data.get('isPublished', false) == true || isAdmin();
+      allow list: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Reviews are queried as where("isApproved","==",true). A signed-in
+    // student may submit one, but it stays hidden until admin approves it.
+    match /reviews/{id} {
+      allow get:  if resource.data.get('isApproved', false) == true || isAdmin();
+      allow list: if resource.data.isApproved == true || isAdmin();
+      allow create: if isStudent()
+        && request.resource.data.get('isApproved', true) == false;
+      allow update, delete: if isAdmin();
+    }
+
+    /* ------------------------------ ID counters ------------------------------ */
+    // Application no / student ID / receipt no / certificate no are minted in a
+    // transaction against counters/{name}. Names look like:
+    //   admissions-2026 · students-2026-DCA · receipts-2026 · certificates-2026
+    // A visitor submitting the admission form must be able to bump the
+    // admissions counter — by exactly one, and only that counter.
+    match /counters/{name} {
+      allow read: if true;
+      allow create: if isAdmin()
+        || (name.matches('admissions-[0-9]{4}')
+            && request.resource.data.value is int
+            && request.resource.data.value == 1);
+      allow update: if isAdmin()
+        || (name.matches('admissions-[0-9]{4}')
+            && request.resource.data.value is int
+            && request.resource.data.value == resource.data.value + 1);
+      allow delete: if false;
+    }
+
+    /* --------------------------------- default -------------------------------- */
+    // Anything not matched above is denied. Never remove this.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

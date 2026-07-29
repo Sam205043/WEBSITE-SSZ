@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Soft Skill Zone — Auth pages (student login/signup, forgot, admin login)
+   Split layout: brand panel left, form right. Mobile: form only.
+   ========================================================================== */
+
+.auth-wrap {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  padding-top: var(--navbar-h);
+}
+@media (min-width: 992px) { .auth-wrap { grid-template-columns: 1fr 1.1fr; } }
+
+/* ---------- Brand panel ---------- */
+.auth-brand {
+  display: none;
+  position: relative;
+  background: var(--grad-brand);
+  color: #fff;
+  padding: clamp(2.5rem, 5vw, 4.5rem);
+  overflow: hidden;
+}
+@media (min-width: 992px) { .auth-brand { display: flex; flex-direction: column; justify-content: center; } }
+.auth-brand::before,
+.auth-brand::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.10);
+}
+.auth-brand::before { width: 340px; height: 340px; top: -120px; right: -100px; }
+.auth-brand::after  { width: 260px; height: 260px; bottom: -100px; left: -80px; }
+.auth-brand > * { position: relative; z-index: 1; }
+
+.auth-brand h2 { color: #fff; margin: 1.25rem 0 .75rem; }
+.auth-brand p { color: rgba(255,255,255,.88); max-width: 46ch; }
+
+.auth-brand__points { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 1rem; }
+.auth-brand__points li { display: flex; gap: .8rem; align-items: flex-start; font-size: var(--fs-sm); color: rgba(255,255,255,.92); }
+.auth-brand__points svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+
+/* ---------- Form panel ---------- */
+.auth-panel {
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 4vw, 3.5rem) var(--container-pad);
+}
+.auth-card { width: min(460px, 100%); }
+.auth-card__head { text-align: center; margin-bottom: var(--sp-8); }
+.auth-card__head h1 { font-size: var(--fs-2xl); margin: 0 0 .5rem; }
+.auth-card__head p { font-size: var(--fs-sm); color: var(--text-muted); margin: 0; }
+
+.auth-badge {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .35rem .85rem;
+  border-radius: var(--r-pill);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  margin-bottom: var(--sp-4);
+}
+.auth-badge svg { width: 14px; height: 14px; }
+.auth-badge--admin { background: var(--danger-soft); color: var(--danger-ink); }
+
+.auth-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3); flex-wrap: wrap;
+  margin: calc(-1 * var(--sp-2)) 0 var(--sp-5);
+  font-size: var(--fs-sm);
+}
+.auth-alt { text-align: center; margin-top: var(--sp-6); font-size: var(--fs-sm); color: var(--text-muted); }
+
+/* Inline alert used for auth errors / notices */
+.auth-alert {
+  display: none;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--sp-5);
+  border: 1px solid transparent;
+}
+.auth-alert.is-visible { display: flex; animation: ssz-fade-up var(--dur-base) var(--ease-out); }
+.auth-alert svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+.auth-alert--error   { background: var(--danger-soft);  color: var(--danger-ink);  border-color: color-mix(in srgb, var(--danger) 25%, transparent); }
+.auth-alert--success { background: var(--success-soft); color: var(--success-ink); border-color: color-mix(in srgb, var(--success) 25%, transparent); }
+.auth-alert--info    { background: var(--info-soft);    color: var(--info-ink);    border-color: color-mix(in srgb, var(--info) 25%, transparent); }
+
+/* Password strength meter (signup) */
+.pw-meter { display: flex; gap: 5px; margin-top: .5rem; }
+.pw-meter span {
+  height: 5px; flex: 1;
+  border-radius: var(--r-pill);
+  background: var(--bg-surface-3);
+  transition: background var(--dur-base) var(--ease-out);
+}
+.pw-meter[data-level="1"] span:nth-child(-n+1) { background: var(--danger); }
+.pw-meter[data-level="2"] span:nth-child(-n+2) { background: var(--warning); }
+.pw-meter[data-level="3"] span:nth-child(-n+3) { background: var(--success); }
+.pw-meter[data-level="4"] span:nth-child(-n+4) { background: var(--success); }
+.pw-meter__label { font-size: var(--fs-xs); color: var(--text-muted); margin-top: .35rem; }

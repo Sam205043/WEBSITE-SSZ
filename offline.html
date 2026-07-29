@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline | Soft Skill Zone Institute</title>
+<meta name="robots" content="noindex">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);})();
+</script>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="icon" href="images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="images/logo/apple-touch-icon.png">
+<link rel="canonical" href="https://softskillzone.in/offline.html">
+</head>
+<body>
+<main style="min-height:100dvh;display:grid;place-items:center;padding:2rem">
+  <div style="text-align:center;max-width:460px">
+    <div style="width:76px;height:76px;margin:0 auto 1.5rem;border-radius:20px;display:grid;place-items:center;
+                background:var(--warning-soft);color:var(--warning)">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.58 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>
+      </svg>
+    </div>
+    <h1 style="font-size:1.5rem;margin-bottom:.6rem">Internet nahi hai</h1>
+    <p style="margin-bottom:1.75rem">
+      Aap abhi offline hain. Jo pages pehle khole the wo phir bhi khul jaayenge —
+      aur saare <strong>free tools</strong> bina internet ke bhi chalte hain.
+    </p>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn-ssz btn-primary-ssz" type="button" onclick="location.reload()">Dobara try karein</button>
+      <a class="btn-ssz btn-secondary-ssz" href="pages/tools.html">Free Tools kholein</a>
+      <a class="btn-ssz btn-ghost-ssz" href="index.html">Home</a>
+    </div>
+  </div>
+</main>
+
+<script>
+/* PWA: install the service worker so the site opens fast and the free
+   tools keep working on weak mobile data. Fails silently on file://. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

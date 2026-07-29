@@ -1,0 +1,123 @@
+{
+  "_comment": [
+    "Composite indexes for Soft Skill Zone.",
+    "",
+    "Firestore needs one of these whenever a query filters on one field and",
+    "sorts on another. You do NOT have to create them by hand: the first time",
+    "such a query runs, the browser console prints an error with a link like",
+    "  https://console.firebase.google.com/.../firestore/indexes?create_composite=...",
+    "Click that link and press Create — Firebase builds the index in a minute.",
+    "",
+    "This file lists them all up front so nothing surprises you later, and so",
+    "they can be deployed in one shot with:",
+    "  firebase deploy --only firestore:indexes",
+    "",
+    "Each entry notes which screen needs it."
+  ],
+
+  "indexes": [
+    {
+      "_where": "Blog listing + article page — where isPublished == true, newest first",
+      "collectionGroup": "blog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublished", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Home page + reviews page — approved reviews, newest first",
+      "collectionGroup": "reviews",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isApproved", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — my attendance, newest first",
+      "collectionGroup": "attendance",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "studentId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — my fee receipts, newest first",
+      "collectionGroup": "fees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "studentId", "order": "ASCENDING" },
+        { "fieldPath": "paidOn", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — my batch's live classes",
+      "collectionGroup": "liveClasses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "startsAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — my batch's assignments",
+      "collectionGroup": "assignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — notes for my course",
+      "collectionGroup": "notes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "courseId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — broadcast notifications",
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "audience", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — notifications for my batch",
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "audience", "order": "ASCENDING" },
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Student dashboard — notifications addressed to me",
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "audience", "order": "ASCENDING" },
+        { "fieldPath": "studentId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_where": "Admin — attendance register for a batch on a date",
+      "collectionGroup": "attendance",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
+    }
+  ],
+
+  "fieldOverrides": []
+}

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Test Data Cleanup | Soft Skill Zone</title>
+
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="icon" href="images/logo/favicon.svg" type="image/svg+xml">
+
+<style>
+  body { padding: var(--sp-8) var(--sp-4); }
+  .wrap { max-width: 780px; margin-inline: auto; }
+  .head { text-align: center; margin-bottom: var(--sp-6); }
+  .head h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); margin-bottom: .5rem; }
+  .head p { color: var(--text-muted); }
+
+  .card {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg); padding: var(--sp-5); margin-bottom: var(--sp-5);
+    box-shadow: var(--shadow-sm);
+  }
+  .card h2 { font-size: var(--fs-md); margin-bottom: var(--sp-4); }
+
+  .item {
+    display: flex; gap: var(--sp-3); align-items: flex-start;
+    padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-subtle);
+    font-size: var(--fs-sm);
+  }
+  .item:last-child { border-bottom: none; }
+  .item input { margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; accent-color: var(--brand); }
+  .item__id { font-family: var(--font-mono); font-size: .8em; color: var(--text-muted); display: block; }
+  .item b { display: block; }
+
+  .group-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: var(--sp-5) 0 var(--sp-2); font-weight: var(--fw-semibold);
+    font-size: var(--fs-sm);
+  }
+  .group-head span:last-child { color: var(--text-muted); font-weight: var(--fw-normal); }
+
+  .warn {
+    padding: var(--sp-4); border-radius: var(--r-md);
+    background: var(--danger-soft); color: var(--danger-ink);
+    font-size: var(--fs-sm); margin-bottom: var(--sp-5);
+  }
+  .info {
+    padding: var(--sp-4); border-radius: var(--r-md);
+    background: var(--info-soft); color: var(--text-secondary);
+    font-size: var(--fs-sm); margin-bottom: var(--sp-5);
+  }
+  .log { font-family: var(--font-mono); font-size: .78rem; line-height: 1.7; }
+  .log .ok { color: var(--success-ink); }
+  .log .bad { color: var(--danger-ink); }
+  .actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-5); }
+</style>
+</head>
+
+<body data-depth="0">
+<div class="wrap">
+
+  <div class="head">
+    <h1>Test Data Cleanup</h1>
+    <p>Setup ke dauraan bana test data ek jagah — dekhein, chunein, hata dein.</p>
+  </div>
+
+  <div class="warn">
+    <strong>Delete permanent hai.</strong> Jo hataya jaayega wo wapas nahi aayega.
+    Isliye kuch bhi apne aap delete nahi hota — neeche list dekhein, jo hatana ho wahi tick
+    rehne dein, aur tabhi button dabayein. <strong>Aapka admin account (<code>users</code>)
+    is page ko chhune ki ijaazat hi nahi hai.</strong>
+  </div>
+
+  <!-- ------------------------------------------------ login -->
+  <div class="card" id="loginCard">
+    <h2>Pehle admin login karein</h2>
+    <p style="font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:var(--sp-4)">
+      Delete karne ki permission sirf admin ke paas hai. Password seedha Firebase ko jaata hai.
+    </p>
+    <div class="field">
+      <label class="field__label" for="cEmail">Email</label>
+      <input class="input-ssz" id="cEmail" type="email" autocomplete="username">
+    </div>
+    <div class="field">
+      <label class="field__label" for="cPass">Password</label>
+      <input class="input-ssz" id="cPass" type="password" autocomplete="current-password">
+    </div>
+    <div id="loginMsg" style="font-size:var(--fs-sm);margin-bottom:var(--sp-3)"></div>
+    <button class="btn-ssz btn-primary-ssz" type="button" id="btnLogin">Login</button>
+  </div>
+
+  <!-- ------------------------------------------------ scan -->
+  <div class="card" id="scanCard" hidden>
+    <h2>Kya-kya mila</h2>
+    <div id="scanBody"><p style="color:var(--text-muted)">Dhoondh raha hoon…</p></div>
+    <div class="actions" id="scanActions" hidden>
+      <button class="btn-ssz btn-secondary-ssz" type="button" id="btnNone">Sab untick karein</button>
+      <button class="btn-ssz btn-primary-ssz" type="button" id="btnDelete"
+              style="background:var(--danger);border-color:var(--danger)">
+        Ticked cheezein delete karein
+      </button>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------ result -->
+  <div class="card" id="resultCard" hidden>
+    <h2>Result</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="info">
+    <strong>Storage ki files yahan se nahi hatengi.</strong> Photos aur documents delete karne ke liye
+    Firebase Console → <strong>Storage → Files</strong> me jaakar <code>admissions/</code> folder
+    ke andar wale folders select karke delete kar dein — wahan se ek saath ho jaate hain.
+  </div>
+
+</div>
+
+<script type="module">
+/* ==========================================================================
+   Test-data cleanup.
+
+   Deliberately conservative:
+   - nothing happens without an admin login and an explicit click
+   - every candidate is listed with its own checkbox before anything is deleted
+   - the users collection is never touched, so the admin account cannot be lost
+   - counters are reset to 0 rather than deleted, so numbering restarts at 1
+   ========================================================================== */
+
+const $ = (s) => document.querySelector(s);
+const logBox = $("#log");
+const say = (msg, cls = "") => {
+  const line = document.createElement("div");
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  logBox.appendChild(line);
+};
+
+let db, auth, fs;
+let found = { admissions: [], students: [], fees: [], enquiries: [], counters: [] };
+
+const LABELS = {
+  admissions: "Admissions (application forms)",
+  students:   "Students (approved records)",
+  fees:       "Fees (receipts / dues)",
+  enquiries:  "Enquiries (contact form)",
+  counters:   "Counters — value 0 par reset honge, delete nahi"
+};
+
+/* ------------------------------------------------------------------ login */
+$("#btnLogin").addEventListener("click", async () => {
+  const btn = $("#btnLogin");
+  const msg = $("#loginMsg");
+  btn.disabled = true; msg.textContent = "Login ho raha hai…"; msg.style.color = "";
+
+  try {
+    const init = await import("./firebase/firebase-init.js");
+    const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js");
+    fs = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+    auth = init.auth; db = init.db;
+
+    await signInWithEmailAndPassword(auth, $("#cEmail").value.trim(), $("#cPass").value);
+
+    // confirm the account really is an admin before showing anything
+    const me = await fs.getDoc(fs.doc(db, "users", auth.currentUser.uid));
+    if (!me.exists() || me.data().role !== "admin") {
+      msg.style.color = "var(--danger-ink)";
+      msg.textContent = "Ye account admin nahi hai — cleanup sirf admin kar sakta hai.";
+      btn.disabled = false;
+      return;
+    }
+
+    $("#loginCard").hidden = true;
+    $("#scanCard").hidden = false;
+    await scan();
+  } catch (err) {
+    msg.style.color = "var(--danger-ink)";
+    msg.textContent = err?.code === "auth/invalid-credential"
+      ? "Email ya password galat hai."
+      : `Login nahi hua: ${err?.code || err.message}`;
+    btn.disabled = false;
+  }
+});
+
+/* ------------------------------------------------------------------- scan */
+async function scan() {
+  const body = $("#scanBody");
+  const grab = async (name) => {
+    try {
+      const snap = await fs.getDocs(fs.query(fs.collection(db, name), fs.limit(300)));
+      return snap.docs.map((d) => ({ id: d.id, data: d.data() }));
+    } catch (err) {
+      say(`${name} padha nahi ja saka: ${err.code || err.message}`, "bad");
+      return [];
+    }
+  };
+
+  found.admissions = await grab("admissions");
+  found.students   = await grab("students");
+  found.fees       = await grab("fees");
+  found.enquiries  = await grab("enquiries");
+  found.counters   = await grab("counters");
+
+  const total = Object.values(found).reduce((n, a) => n + a.length, 0);
+  if (!total) {
+    body.innerHTML = '<p style="color:var(--success-ink)">Kuch nahi mila — database pehle se saaf hai.</p>';
+    return;
+  }
+
+  body.innerHTML = "";
+  const describe = (coll, row) => {
+    const d = row.data || {};
+    if (coll === "admissions") return `${d.fullName || "—"} · ${d.courseName || ""} · ${d.status || ""}`;
+    if (coll === "students")   return `${d.fullName || "—"} · ${d.courseName || ""}`;
+    if (coll === "fees")       return `${d.studentName || d.studentId || "—"} · ${d.mode || ""} · ${d.amount ?? ""}`;
+    if (coll === "enquiries")  return `${d.name || "—"} · ${d.subject || ""}`;
+    if (coll === "counters")   return `abhi value: ${d.value ?? "—"}`;
+    return "";
+  };
+
+  Object.entries(found).forEach(([coll, list]) => {
+    if (!list.length) return;
+    const head = document.createElement("div");
+    head.className = "group-head";
+    head.innerHTML = `<span>${LABELS[coll]}</span><span>${list.length}</span>`;
+    body.appendChild(head);
+
+    list.forEach((row) => {
+      const wrap = document.createElement("label");
+      wrap.className = "item";
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = true;
+      cb.dataset.coll = coll; cb.dataset.id = row.id;
+      const txt = document.createElement("span");
+      txt.innerHTML = `<b></b><span class="item__id"></span>`;
+      txt.querySelector("b").textContent = describe(coll, row);
+      txt.querySelector(".item__id").textContent = row.id;
+      wrap.append(cb, txt);
+      body.appendChild(wrap);
+    });
+  });
+
+  $("#scanActions").hidden = false;
+}
+
+$("#btnNone").addEventListener("click", () => {
+  document.querySelectorAll("#scanBody input[type=checkbox]").forEach((c) => { c.checked = false; });
+});
+
+/* ----------------------------------------------------------------- delete */
+$("#btnDelete").addEventListener("click", async () => {
+  const picked = [...document.querySelectorAll("#scanBody input[type=checkbox]")].filter((c) => c.checked);
+  if (!picked.length) { alert("Kuch bhi ticked nahi hai."); return; }
+
+  const btn = $("#btnDelete");
+  btn.disabled = true;
+  btn.textContent = "Chal raha hai…";
+  $("#resultCard").hidden = false;
+  logBox.innerHTML = "";
+
+  let done = 0, failed = 0;
+
+  for (const cb of picked) {
+    const { coll, id } = cb.dataset;
+    try {
+      if (coll === "counters") {
+        await fs.updateDoc(fs.doc(db, coll, id), { value: 0 });
+        say(`reset  ${coll}/${id} -> 0`, "ok");
+      } else {
+        await fs.deleteDoc(fs.doc(db, coll, id));
+        say(`deleted ${coll}/${id}`, "ok");
+      }
+      done++;
+      cb.closest(".item").style.opacity = ".4";
+      cb.checked = false;
+    } catch (err) {
+      failed++;
+      say(`FAILED  ${coll}/${id} — ${err.code || err.message}`, "bad");
+    }
+  }
+
+  say("");
+  say(failed ? `${done} ho gaye, ${failed} fail. Upar laal lines dekhein.`
+             : `Sab ho gaya — ${done} cheezein saaf.`, failed ? "bad" : "ok");
+  say("Ab Storage ki files Firebase Console se hata dein (neeche note me likha hai).");
+
+  btn.textContent = "Ho gaya";
+});
+</script>
+</body>
+</html>

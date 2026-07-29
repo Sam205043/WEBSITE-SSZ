@@ -1,0 +1,265 @@
+/* ==========================================================================
+   Soft Skill Zone — Base: reset, typography, theme surface, utilities
+   Loads AFTER Bootstrap so our tokens win where they overlap.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--navbar-h) + 16px);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-normal);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  transition: background-color var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out);
+}
+
+/* Ambient brand mesh behind every page */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--grad-mesh);
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+/* ---------- Typography ---------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+h1 { font-size: var(--fs-3xl); }
+h2 { font-size: var(--fs-2xl); }
+h3 { font-size: var(--fs-xl); }
+h4 { font-size: var(--fs-lg); }
+h5 { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+h6 { font-size: var(--fs-base); font-weight: var(--fw-semibold); letter-spacing: var(--ls-snug); }
+
+p  { color: var(--text-secondary); text-wrap: pretty; }
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--brand-hover); }
+
+small { font-size: var(--fs-sm); }
+strong, b { font-weight: var(--fw-semibold); color: var(--text-primary); }
+code, kbd, pre { font-family: var(--font-mono); font-size: 0.92em; }
+
+ul, ol { padding-left: 1.25rem; }
+img, svg, video, canvas { display: block; max-width: 100%; height: auto; }
+button, input, select, textarea { font: inherit; color: inherit; }
+hr { border: 0; border-top: 1px solid var(--border-subtle); opacity: 1; margin: var(--sp-6) 0; }
+
+/* The hidden attribute must always win — component display rules (e.g.
+   .btn-ssz { display:inline-flex }) would otherwise override the UA default. */
+[hidden] { display: none !important; }
+
+/* ---------- Focus (accessible, not ugly) ---------- */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+/* ---------- Selection ---------- */
+::selection { background: var(--brand-solid); color: var(--brand-contrast); }
+
+/* ---------- Scrollbar ---------- */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--r-pill);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); background-clip: content-box; }
+
+/* ---------- Text helpers ---------- */
+.text-gradient {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.text-primary-c   { color: var(--text-primary) !important; }
+.text-secondary-c { color: var(--text-secondary) !important; }
+.text-muted-c     { color: var(--text-muted) !important; }
+.text-brand-c     { color: var(--brand) !important; }
+.text-balance     { text-wrap: balance; }
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.line-clamp-1, .line-clamp-2, .line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-1 { -webkit-line-clamp: 1; }
+.line-clamp-2 { -webkit-line-clamp: 2; }
+.line-clamp-3 { -webkit-line-clamp: 3; }
+
+/* ---------- Surface helpers ---------- */
+.bg-surface   { background: var(--bg-surface); }
+.bg-surface-2 { background: var(--bg-surface-2); }
+.border-subtle{ border: 1px solid var(--border-subtle); }
+.radius-md { border-radius: var(--r-md); }
+.radius-lg { border-radius: var(--r-lg); }
+.radius-xl { border-radius: var(--r-xl); }
+.shadow-soft { box-shadow: var(--shadow-md); }
+
+/* ---------- Accessibility ---------- */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute;
+  top: -100px; left: var(--sp-4);
+  z-index: var(--z-loader);
+  padding: var(--sp-3) var(--sp-5);
+  background: var(--brand-solid);
+  color: var(--brand-contrast);
+  border-radius: var(--r-sm);
+  font-weight: var(--fw-semibold);
+  transition: top var(--dur-base) var(--ease-out);
+}
+.skip-link:focus { top: var(--sp-4); color: var(--brand-contrast); }
+
+/* ---------- Motion preference ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Print ---------- */
+@media print {
+  .no-print, .navbar, .footer, .ssz-toast-stack, .theme-toggle { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  body::before { display: none; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #555; }
+  .print-block { display: block !important; }
+  @page { margin: 14mm; }
+}
+
+/* ---------- Bootstrap bridge: map BS variables onto our tokens ---------- */
+:root {
+  --bs-body-bg: var(--bg-body);
+  --bs-body-color: var(--text-primary);
+  --bs-primary: var(--brand);
+  --bs-border-color: var(--border-default);
+  --bs-link-color: var(--brand);
+  --bs-link-hover-color: var(--brand-hover);
+  --bs-font-sans-serif: var(--font-sans);
+  --bs-border-radius: var(--r-md);
+}
+.container, .container-fluid, .container-lg, .container-xl {
+  padding-left: var(--container-pad);
+  padding-right: var(--container-pad);
+}
+
+/* Prose blocks — the global `* { margin: 0 }` reset means multi-paragraph
+   text needs its rhythm restored explicitly. */
+.prose > p { margin-bottom: 1rem; }
+.prose > p:last-child { margin-bottom: 0; }
+
+
+/* --------------------------------------------------------------------------
+   Links inside running text must be distinguishable without colour alone
+   (WCAG 1.4.1). Buttons, cards and nav links opt out — they already have a
+   shape of their own.
+   -------------------------------------------------------------------------- */
+.prose a,
+.legal p a,
+.auth-alt a,
+.form-check a,
+.form-check span a,
+label a,
+.field__hint a,
+p:not([class]) a:not(.btn-ssz) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.prose a:hover,
+.legal p a:hover,
+.auth-alt a:hover,
+.form-check a:hover,
+label a:hover,
+p:not([class]) a:not(.btn-ssz):hover { text-decoration-thickness: 2px; }
+
+/* Screen-reader-only text (table action columns, icon-only controls). */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* --------------------------------------------------------------------------
+   Performance — sections below the fold are skipped during the first paint
+   and rendered as they approach the viewport. contain-intrinsic-size keeps
+   the scrollbar honest so the page does not jump while scrolling.
+   -------------------------------------------------------------------------- */
+.section,
+.section-sm,
+.section-alt,
+.dash-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+/* The first screen must never be deferred. */
+.hero,
+main > .section:first-of-type,
+.page-hero { content-visibility: visible; }
+
+/* Printing needs every deferred section laid out. */
+@media print {
+  .section, .section-sm, .section-alt, .dash-section { content-visibility: visible; }
+}

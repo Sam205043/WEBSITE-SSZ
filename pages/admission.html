@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Online Admission | Soft Skill Zone Institute</title>
+<meta name="description" content="Soft Skill Zone Institute, Ara me online admission lein — 5 minute ka form, photo aur documents upload karein, turant application number paayein.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Soft Skill Zone Institute">
+<meta property="og:image" content="https://softskillzone.in/images/logo/og-cover.jpg">
+<meta property="og:url" content="https://softskillzone.in/pages/admission.html">
+<meta property="og:title" content="Online Admission | Soft Skill Zone Institute">
+<meta property="og:description" content="5 minute ka online admission form — ghar baithe seat book karein.">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/animations.css">
+<link rel="stylesheet" href="../css/pages.css">
+<link rel="stylesheet" href="../css/admission.css">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="../images/logo/apple-touch-icon.png">
+<link rel="canonical" href="https://softskillzone.in/pages/admission.html">
+
+<script type="application/ld+json" id="ssz-static-ld">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://softskillzone.in/index.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Online Admission",
+      "item": "https://softskillzone.in/pages/admission.html"
+    }
+  ]
+}
+</script>
+<link rel="modulepreload" href="../js/core/dom.js">
+<link rel="modulepreload" href="../js/core/routes.js">
+<link rel="modulepreload" href="../js/core/include.js">
+<link rel="modulepreload" href="../js/core/theme.js">
+<link rel="modulepreload" href="../js/core/utils.js">
+<link rel="modulepreload" href="../js/core/icons.js">
+</head>
+
+<body data-depth="1">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-include="navbar"></div>
+
+<main id="main">
+
+  <section class="page-hero">
+    <div class="ssz-container">
+      <span class="eyebrow">Admission Open</span>
+      <h1 style="margin:.6rem 0 .75rem">Online <span class="text-gradient">Admission</span></h1>
+      <p style="max-width:62ch;margin-inline:auto">
+        5 minute ka form — bharte jaayein, draft apne aap save hota rahega.
+        Submit hote hi aapko application number mil jaayega.
+      </p>
+      <nav class="breadcrumb-ssz" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a><span>/</span><span aria-current="page">Admission</span>
+      </nav>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container">
+      <div class="adm-layout">
+
+        <!-- ============================ Wizard ============================ -->
+        <div class="adm-card" id="admCard">
+
+          <div class="adm-card__head">
+            <div class="stepper" id="admStepper" aria-label="Form steps"></div>
+          </div>
+
+          <form id="admForm" novalidate>
+            <div class="adm-card__body">
+
+              <!-- STEP 1 — Personal -->
+              <div class="adm-step" data-step="1">
+                <h2 class="adm-step__title">Personal jaankari</h2>
+                <p class="adm-step__sub">Naam waisa hi likhein jaisa aap certificate par chahte hain.</p>
+
+                <div class="field">
+                  <label class="field__label" for="fFullName">Full Name <span class="req">*</span></label>
+                  <input class="input-ssz" id="fFullName" name="fullName" type="text" placeholder="Jaise: Rahul Kumar" autocomplete="name">
+                  <div class="field__error"></div>
+                </div>
+
+                <div class="adm-row">
+                  <div class="field">
+                    <label class="field__label" for="fFather">Father's Name <span class="req">*</span></label>
+                    <input class="input-ssz" id="fFather" name="fatherName" type="text" placeholder="Pita ka naam">
+                    <div class="field__error"></div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="fMother">Mother's Name <span class="req">*</span></label>
+                    <input class="input-ssz" id="fMother" name="motherName" type="text" placeholder="Mata ka naam">
+                    <div class="field__error"></div>
+                  </div>
+                </div>
+
+                <div class="adm-row">
+                  <div class="field">
+                    <label class="field__label" for="fDob">Date of Birth <span class="req">*</span></label>
+                    <input class="input-ssz" id="fDob" name="dob" type="date">
+                    <div class="field__error"></div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="fMobile">Gender <span class="req">*</span></label>
+                    <div class="adm-choices" id="genderChoices" role="radiogroup" aria-label="Gender"></div>
+                    <div class="field__error" id="genderError">Gender chunein.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 2 — Contact & qualification -->
+              <div class="adm-step" data-step="2">
+                <h2 class="adm-step__title">Contact aur qualification</h2>
+                <p class="adm-step__sub">Isi number par admission ki confirmation aayegi.</p>
+
+                <div class="adm-row">
+                  <div class="field">
+                    <label class="field__label" for="fMobile">Mobile Number <span class="req">*</span></label>
+                <input class="input-ssz" id="fMobile" name="mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit" autocomplete="tel">
+                    <div class="field__error"></div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="fWhatsapp">WhatsApp Number <span class="req">*</span></label>
+                    <input class="input-ssz" id="fWhatsapp" name="whatsapp" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit">
+                    <label class="check-ssz" style="margin-top:.5rem">
+                      <input type="checkbox" id="sameAsMobile"> Mobile wala hi number hai
+                    </label>
+                    <div class="field__error"></div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="field__label" for="fEmail">Email</label>
+                  <input class="input-ssz" id="fEmail" name="email" type="email" placeholder="optional — dashboard login ke liye kaam aayega" autocomplete="email">
+                  <div class="field__error"></div>
+                </div>
+
+                <div class="field">
+                  <label class="field__label" for="fAddress">Address <span class="req">*</span></label>
+                  <textarea class="textarea-ssz" id="fAddress" name="address" style="min-height:84px" placeholder="Ghar ka pata — gaon/mohalla, post, thana"></textarea>
+                  <div class="field__error"></div>
+                </div>
+
+                <div class="adm-row">
+                  <div class="field">
+                    <label class="field__label" for="fCity">City / District <span class="req">*</span></label>
+                    <input class="input-ssz" id="fCity" name="city" type="text" placeholder="Jaise: Ara, Bhojpur" value="Ara">
+                    <div class="field__error"></div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="fPincode">Pincode <span class="req">*</span></label>
+                    <input class="input-ssz" id="fPincode" name="pincode" type="text" inputmode="numeric" maxlength="6" placeholder="802301">
+                    <div class="field__error"></div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="field__label" for="fQualification">Highest Qualification <span class="req">*</span></label>
+                  <select class="select-ssz" id="fQualification" name="qualification">
+                    <option value="">Chunein</option>
+                    <option>8th pass</option>
+                    <option>10th pass</option>
+                    <option>12th pass</option>
+                    <option>Graduation (pursuing)</option>
+                    <option>Graduate</option>
+                    <option>Post Graduate</option>
+                    <option>Other</option>
+                  </select>
+                  <div class="field__error"></div>
+                </div>
+              </div>
+
+              <!-- STEP 3 — Course & batch -->
+              <div class="adm-step" data-step="3">
+                <h2 class="adm-step__title">Course aur batch</h2>
+                <p class="adm-step__sub">Confuse hain? Form ke baad hum call karke bhi guide kar denge.</p>
+
+                <div class="field">
+                  <label class="field__label" for="fBatch">Course chunein <span class="req">*</span></label>
+                  <div class="adm-choices" id="courseChoices" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))" role="radiogroup" aria-label="Course"></div>
+                  <div class="field__error" id="courseError">Course chunein.</div>
+                </div>
+
+                <div class="field" style="margin-top:1rem">
+                  <label class="field__label">Batch timing preference <span class="req">*</span></label>
+                  <div class="adm-choices" id="batchChoices" role="radiogroup" aria-label="Batch preference"></div>
+                  <div class="field__error" id="batchError">Batch timing chunein.</div>
+                </div>
+
+                <div class="field" id="liveBatchField" hidden>
+                  <label class="field__label" for="fBatch">Available batch (optional)</label>
+                <select class="select-ssz" id="fBatch" name="batchId"></select>
+                  <p class="field__hint">Agar sure nahi hain to khaali chhod dein — admin aapke liye best batch chun dega.</p>
+                </div>
+              </div>
+
+              <!-- STEP 4 — Uploads -->
+              <div class="adm-step" data-step="4">
+                <h2 class="adm-step__title">Photo aur documents</h2>
+                <p class="adm-step__sub">Mobile se photo kheench kar bhi upload kar sakte hain. Har file max 5 MB.</p>
+
+                <div class="field">
+                  <label class="field__label">Passport-size Photo <span class="req">*</span></label>
+                  <div class="adm-photo">
+                    <div class="adm-photo__preview" id="photoPreview">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div style="flex:1;min-width:220px">
+                      <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp" class="visually-hidden">
+                      <button class="btn-ssz btn-secondary-ssz" type="button" id="photoBtn">Photo chunein</button>
+                      <p class="field__hint" style="margin-top:.6rem">JPG/PNG, saaf chehra, seedha samne se. Upload se pehle hum ise compress kar dete hain.</p>
+                      <div class="field__error" id="photoError">Photo upload karna zaroori hai.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field" style="margin-top:1.5rem">
+                  <label class="field__label">Documents <span class="req">*</span></label>
+                  <p class="field__hint" style="margin-bottom:.6rem">Aadhaar card aur last qualification ki marksheet — photo ya PDF, dono chalega.</p>
+                  <div class="dropzone" id="docDrop" role="button" tabindex="0" aria-label="Documents upload karein">
+                    <div class="dropzone__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></svg>
+                    </div>
+                    <p style="margin:0;font-weight:600;font-size:.9rem">Files yahan drop karein ya click karein</p>
+                    <p class="field__hint">PDF, JPG, PNG — max 5 MB per file, max 5 files</p>
+                  </div>
+                  <input type="file" id="fDocs" multiple accept="application/pdf,image/jpeg,image/png" class="visually-hidden">
+                  <div id="docList"></div>
+                  <div class="field__error" id="docError">Kam se kam 1 document (Aadhaar ya marksheet) upload karein.</div>
+                </div>
+              </div>
+
+              <!-- STEP 5 — Review -->
+              <div class="adm-step" data-step="5">
+                <h2 class="adm-step__title">Ek baar check kar lein</h2>
+                <p class="adm-step__sub">Kuch galat hai to "Edit" dabakar sudhaar lein — submit ke baad admin hi badal sakta hai.</p>
+                <div class="adm-review" id="admReview"></div>
+
+                <label class="check-ssz" style="margin-top:1.5rem">
+                  <input type="checkbox" id="fDeclare">
+                  <span>Main ghoshit karta/karti hoon ki upar di gayi saari jaankari sahi hai.
+                  Maine <a href="legal/terms.html" target="_blank">Terms</a> aur
+                  <a href="legal/refund.html" target="_blank">Refund Policy</a> padh li hai.</span>
+                </label>
+                <div class="field__error" id="declareError" style="margin-top:.4rem">Aage badhne ke liye declaration tick karein.</div>
+              </div>
+
+            </div>
+
+            <div class="adm-foot">
+              <button class="btn-ssz btn-secondary-ssz" type="button" id="btnPrev">Peechhe</button>
+              <button class="btn-ssz btn-primary-ssz" type="button" id="btnNext">Aage badhein</button>
+              <button class="btn-ssz btn-primary-ssz" type="submit" id="btnSubmit" hidden>Application Submit Karein</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ============================ Sidebar ============================ -->
+        <aside class="adm-side">
+          <div class="card-ssz"><div class="card-ssz__body">
+            <h2 style="margin-bottom:1rem;font-size:1.05rem">Kya-kya taiyaar rakhein</h2>
+            <ul class="adm-side__list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Passport-size photo (ya mobile se saaf selfie)</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Aadhaar card ki photo/PDF</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Last qualification ki marksheet</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Apna mobile paas rakhein — WhatsApp par confirmation aayegi</span></li>
+            </ul>
+          </div></div>
+
+          <div class="card-ssz"><div class="card-ssz__body">
+            <h2 style="margin-bottom:.6rem;font-size:1.05rem">Form ke baad kya hoga?</h2>
+            <p style="font-size:.85rem;margin:0">
+              Admin aapki application check karke <strong>24 ghante ke andar</strong> approve
+              karega. Aapko Student ID aur dashboard login mil jaayega, aur pehli class
+              ki jaankari WhatsApp par aayegi.
+            </p>
+          </div></div>
+
+          <div class="card-ssz"><div class="card-ssz__body">
+            <h2 style="margin-bottom:.6rem;font-size:1.05rem">Form me dikkat aa rahi hai?</h2>
+            <p style="font-size:.85rem;margin-bottom:1rem">Koi baat nahi — WhatsApp par message karein, hum form aapke liye bhar denge.</p>
+            <a class="btn-ssz btn-secondary-ssz btn-sm-ssz" id="admWhatsapp" href="#" target="_blank" rel="noopener">WhatsApp par baat karein</a>
+          </div></div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div data-include="footer"></div>
+
+<script type="module" src="../js/app.js"></script>
+<script type="module" src="../js/pages/admission.js"></script>
+
+<script>
+/* PWA: install the service worker so the site opens fast and the free
+   tools keep working on weak mobile data. Fails silently on file://. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

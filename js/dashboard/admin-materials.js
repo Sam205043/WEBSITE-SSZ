@@ -1,0 +1,368 @@
+/* ==========================================================================
+   Soft Skill Zone — Admin: Materials (Assignments + Notes)
+   Create assignments (optional question file), view/grade submissions,
+   upload notes per course.
+   ========================================================================== */
+
+import { $, el, on, render } from "../core/dom.js";
+import { icon } from "../core/icons.js";
+import { formatDate, formatDateTime, dateTimeLocal } from "../core/utils.js";
+import { formatBytes, validateFile } from "../core/files.js";
+import { open as openModal, confirm as confirmModal } from "../core/modal.js";
+import { createValidator, rules } from "../core/validators.js";
+import { initAdminShell } from "./admin-shell.js";
+import { DEMO_BATCHES } from "./admin-demo.js";
+import { DEMO_ASSIGNMENTS, DEMO_SUBMISSIONS, DEMO_NOTES } from "./demo-data.js";
+import { COLLECTIONS, STORAGE_PATHS } from "../core/constants.js";
+import { COURSES } from "../config/site-data.js";
+import toast from "../core/toast.js";
+
+let mode = "preview", assignments = [], notes = [], batches = [], tab = "assignments";
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+function paintTabs() {
+  render($("#matTabs"),
+    el("button", { type: "button", class: `chip${tab === "assignments" ? " is-active" : ""}`, dataset: { tab: "assignments" } },
+      `Assignments (${assignments.length})`),
+    el("button", { type: "button", class: `chip${tab === "notes" ? " is-active" : ""}`, dataset: { tab: "notes" } },
+      `Notes (${notes.length})`)
+  );
+  $("#tabAssignments").hidden = tab !== "assignments";
+  $("#tabNotes").hidden = tab !== "notes";
+}
+
+/* ==========================================================================
+   Assignments
+   ========================================================================== */
+function asgRow(a) {
+  return el("div", { class: "card-ssz" },
+    el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
+      el("span", { class: "stat-tile__icon", html: icon("clipboard", { size: 20 }) }),
+      el("span", { style: { flex: 1, minWidth: "220px" } },
+        el("strong", { style: { display: "block", fontSize: ".93rem" } }, a.title),
+        el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
+          `${batches.find((b) => b.id === a.batchId)?.name || a.batchId} · Due ${formatDate(a.dueDate)} · ${a.totalMarks} marks`)),
+      el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { subs: a.id } }, "Submissions"),
+      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delAsg: a.id } }, "Delete")
+    ));
+}
+
+function paintAsg() {
+  render($("#asgAdminList"), assignments.length ? assignments.map(asgRow)
+    : el("div", { class: "card-ssz" }, el("div", { class: "card-ssz__body" },
+        el("p", { style: { margin: 0, fontSize: ".88rem", color: "var(--text-muted)" } },
+          "Abhi koi assignment nahi — upar se banayein."))));
+}
+
+function asgForm() {
+  const form = el("form", { novalidate: true });
+  form.innerHTML = `
+    <div class="field">
+      <label class="field__label">Title <span class="req">*</span></label>
+      <input class="input-ssz" name="title" type="text" placeholder="Jaise: Excel Practice Sheet 5">
+      <div class="field__error"></div>
+    </div>
+    <div class="field">
+      <label class="field__label">Instructions</label>
+      <textarea class="textarea-ssz" name="description" style="min-height:80px" placeholder="Students ko kya karna hai"></textarea>
+    </div>
+    <div class="adm-row">
+      <div class="field">
+        <label class="field__label">Batch <span class="req">*</span></label>
+        <select class="select-ssz" name="batchId"></select>
+        <div class="field__error"></div>
+      </div>
+      <div class="field">
+        <label class="field__label">Marks</label>
+        <input class="input-ssz" name="totalMarks" type="number" min="1" value="10">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field__label">Due date <span class="req">*</span></label>
+      <input class="input-ssz" name="dueDate" type="datetime-local">
+      <div class="field__error"></div>
+    </div>
+    <div class="field">
+      <label class="field__label">Question file (optional)</label>
+      <input class="input-ssz" name="file" type="file" style="padding:.6rem">
+    </div>`;
+
+  const bSel = form.querySelector('[name="batchId"]');
+  bSel.appendChild(el("option", { value: "" }, "Chunein"));
+  batches.filter((b) => b.status !== "completed").forEach((b) => bSel.appendChild(el("option", { value: b.id }, b.name)));
+  const due = new Date(Date.now() + 3 * 86400000); due.setHours(23, 59, 0, 0);
+  form.elements.dueDate.value = dateTimeLocal(due);
+
+  const validator = createValidator(form, {
+    title:   [rules.required(), rules.minLen(4)],
+    batchId: [rules.required("Batch chunein.")],
+    dueDate: [rules.required("Due date chunein.")]
+  });
+
+  const saveBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, "Assignment Dein");
+  const cancelBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Cancel");
+  const m = openModal({ title: "Naya Assignment", size: "lg", body: form, footer: [cancelBtn, saveBtn] });
+  cancelBtn.addEventListener("click", () => m.close());
+
+  saveBtn.addEventListener("click", async () => {
+    if (!validator.validate()) return;
+    const batch = batches.find((b) => b.id === bSel.value);
+    const data = {
+      title: form.elements.title.value.trim(),
+      description: form.elements.description.value.trim(),
+      batchId: bSel.value,
+      courseId: batch?.courseId || "",
+      totalMarks: Number(form.elements.totalMarks.value) || 10,
+      dueDate: new Date(form.elements.dueDate.value),
+      fileURL: "", fileName: ""
+    };
+    const file = form.elements.file.files[0];
+    if (file) {
+      const check = validateFile(file, "material");
+      if (!check.ok) return toast.error(check.error);
+    }
+
+    if (mode === "preview") {
+      assignments.unshift({ id: `tmp-${Date.now()}`, ...data, fileName: file?.name || "" });
+      m.close(); paintTabs(); paintAsg();
+      toast.info("Preview mode: Firebase ke baad asli upload hoga.");
+      return;
+    }
+
+    try {
+      saveBtn.disabled = true;
+      const { create, update } = await import("../../firebase/db-service.js");
+      const id = await create(COLLECTIONS.ASSIGNMENTS, data);
+      if (file) {
+        const { uploadFile } = await import("../../firebase/storage-service.js");
+        const up = await uploadFile(file, STORAGE_PATHS.assignments(id), { kind: "material" });
+        await update(COLLECTIONS.ASSIGNMENTS, id, { fileURL: up.url, fileName: file.name });
+        data.fileURL = up.url; data.fileName = file.name;
+      }
+      assignments.unshift({ id, ...data });
+      m.close(); paintTabs(); paintAsg();
+      toast.success("Assignment de diya gaya — students ko dashboard me dikhega.");
+    } catch (err) {
+      saveBtn.disabled = false;
+      toast.error(err.message || "Fail ho gaya.");
+    }
+  });
+}
+
+async function showSubmissions(a) {
+  let subs = [];
+  if (mode === "preview") {
+    subs = DEMO_SUBMISSIONS.filter((s) => s.assignmentId === a.id).map((s) => ({ ...s }));
+  } else {
+    const { getMany } = await import("../../firebase/db-service.js");
+    subs = await getMany(COLLECTIONS.SUBMISSIONS, {
+      where: [["assignmentId", "==", a.id]], limit: 100, useCache: false
+    }).catch(() => []);
+  }
+
+  const body = el("div", {});
+  if (!subs.length) {
+    body.appendChild(el("p", { style: { margin: 0, color: "var(--text-muted)" } }, "Abhi kisi ne submit nahi kiya."));
+  } else {
+    subs.forEach((s) => {
+      const row = el("div", { class: "card-ssz", style: { marginBottom: ".75rem" } },
+        el("div", { class: "card-ssz__body", style: { padding: "1rem 1.25rem" } },
+          el("div", { class: "between", style: { flexWrap: "wrap", gap: ".5rem", marginBottom: ".5rem" } },
+            el("strong", { style: { fontSize: ".9rem" } }, `${s.studentName || s.studentId}`),
+            s.status === "graded"
+              ? el("span", { class: "badge-ssz badge-success" }, `${s.marks}/${a.totalMarks}`)
+              : el("span", { class: "badge-ssz badge-warning" }, "Grade baaki")),
+          el("p", { style: { fontSize: ".78rem", color: "var(--text-muted)", margin: "0 0 .6rem" } },
+            `${s.fileName || "file"} · ${formatDateTime(s.submittedAt)}`),
+          el("div", { class: "cluster" },
+            s.fileURL && s.fileURL !== "#" ? el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: s.fileURL, target: "_blank", rel: "noopener" }, "File kholein") : null,
+            el("input", { class: "input-ssz", type: "number", min: "0", max: String(a.totalMarks), placeholder: "Marks", value: s.marks ?? "", style: { maxWidth: "90px", minHeight: "36px", padding: ".4rem .6rem" }, dataset: { marks: s.id } }),
+            el("input", { class: "input-ssz", type: "text", placeholder: "Feedback (optional)", value: s.feedback || "", style: { flex: "1", minWidth: "160px", minHeight: "36px", padding: ".4rem .6rem" }, dataset: { fb: s.id } }),
+            el("button", { class: "btn-ssz btn-primary-ssz btn-sm-ssz", type: "button", dataset: { grade: s.id } }, "Save"))
+        ));
+      body.appendChild(row);
+    });
+  }
+
+  const closeBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Band karein");
+  const m = openModal({ title: `Submissions — ${a.title}`, size: "lg", body, footer: [closeBtn] });
+  closeBtn.addEventListener("click", () => m.close());
+
+  on(body, "click", "[data-grade]", async (e, btn) => {
+    const id = btn.dataset.grade;
+    const s = subs.find((x) => x.id === id);
+    const marks = Number(body.querySelector(`[data-marks="${id}"]`).value);
+    const feedback = body.querySelector(`[data-fb="${id}"]`).value.trim();
+    if (isNaN(marks) || marks < 0 || marks > a.totalMarks) return toast.warning(`Marks 0 se ${a.totalMarks} ke beech dein.`);
+
+    if (mode === "preview") { Object.assign(s, { marks, feedback, status: "graded" }); toast.info("Preview mode."); return; }
+    try {
+      const { update } = await import("../../firebase/db-service.js");
+      await update(COLLECTIONS.SUBMISSIONS, id, { marks, feedback, status: "graded" });
+      Object.assign(s, { marks, feedback, status: "graded" });
+      toast.success("Grade save ho gaya.");
+    } catch (err) { toast.error(err.message || "Fail ho gaya."); }
+  });
+}
+
+/* ==========================================================================
+   Notes
+   ========================================================================== */
+function noteRow(n) {
+  return el("div", { class: "card-ssz" },
+    el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
+      el("span", { class: "stat-tile__icon", html: icon("fileText", { size: 20 }) }),
+      el("span", { style: { flex: 1, minWidth: "220px" } },
+        el("strong", { style: { display: "block", fontSize: ".93rem" } }, n.title),
+        el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
+          `${COURSES.find((c) => c.id === n.courseId)?.shortTitle || n.courseId} · ${formatBytes(n.fileSize || 0)} · ${n.downloads || 0} downloads`)),
+      n.fileURL && n.fileURL !== "#" ? el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: n.fileURL, target: "_blank", rel: "noopener" }, "File") : null,
+      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delNote: n.id } }, "Delete")
+    ));
+}
+
+function paintNotes() {
+  render($("#noteAdminList"), notes.length ? notes.map(noteRow)
+    : el("div", { class: "card-ssz" }, el("div", { class: "card-ssz__body" },
+        el("p", { style: { margin: 0, fontSize: ".88rem", color: "var(--text-muted)" } },
+          "Abhi koi note nahi — upar se upload karein."))));
+}
+
+function noteForm() {
+  const form = el("form", { novalidate: true });
+  form.innerHTML = `
+    <div class="field">
+      <label class="field__label">Title <span class="req">*</span></label>
+      <input class="input-ssz" name="title" type="text" placeholder="Jaise: Tally Shortcuts — Chapter Notes">
+      <div class="field__error"></div>
+    </div>
+    <div class="field">
+      <label class="field__label">Description</label>
+      <input class="input-ssz" name="description" type="text" placeholder="Ek line me kya hai isme">
+    </div>
+    <div class="field">
+      <label class="field__label">Course <span class="req">*</span></label>
+      <select class="select-ssz" name="courseId"></select>
+      <div class="field__error"></div>
+    </div>
+    <div class="field">
+      <label class="field__label">File <span class="req">*</span></label>
+      <input class="input-ssz" name="file" type="file" style="padding:.6rem">
+      <p class="field__hint">PDF best rahega — max 25 MB.</p>
+    </div>`;
+
+  const cSel = form.querySelector('[name="courseId"]');
+  cSel.appendChild(el("option", { value: "" }, "Chunein"));
+  COURSES.forEach((c) => cSel.appendChild(el("option", { value: c.id }, c.title)));
+
+  const validator = createValidator(form, {
+    title:    [rules.required(), rules.minLen(4)],
+    courseId: [rules.required("Course chunein.")]
+  });
+
+  const saveBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, "Upload Karein");
+  const cancelBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Cancel");
+  const m = openModal({ title: "Naya Note", body: form, footer: [cancelBtn, saveBtn] });
+  cancelBtn.addEventListener("click", () => m.close());
+
+  saveBtn.addEventListener("click", async () => {
+    if (!validator.validate()) return;
+    const file = form.elements.file.files[0];
+    if (!file) return toast.warning("File chunein.");
+    const check = validateFile(file, "material");
+    if (!check.ok) return toast.error(check.error);
+
+    const data = {
+      title: form.elements.title.value.trim(),
+      description: form.elements.description.value.trim(),
+      courseId: cSel.value,
+      fileName: file.name, fileType: file.type, fileSize: file.size,
+      fileURL: "", downloads: 0, isPublic: false
+    };
+
+    if (mode === "preview") {
+      notes.unshift({ id: `tmp-${Date.now()}`, ...data, fileURL: "#" });
+      m.close(); paintTabs(); paintNotes();
+      toast.info("Preview mode: Firebase ke baad asli upload hoga.");
+      return;
+    }
+
+    try {
+      saveBtn.disabled = true;
+      const { uploadFile } = await import("../../firebase/storage-service.js");
+      const { create } = await import("../../firebase/db-service.js");
+      const up = await uploadFile(file, STORAGE_PATHS.notes(cSel.value), { kind: "material" });
+      data.fileURL = up.url;
+      const id = await create(COLLECTIONS.NOTES, data);
+      notes.unshift({ id, ...data });
+      m.close(); paintTabs(); paintNotes();
+      toast.success("Note upload ho gaya — students ko dikhne laga.");
+    } catch (err) {
+      saveBtn.disabled = false;
+      toast.error(err.message || "Upload fail ho gaya.");
+    }
+  });
+}
+
+/* ==========================================================================
+   Boot
+   ========================================================================== */
+const shell = await initAdminShell({ active: "materials", title: "Materials" });
+mode = shell.mode;
+
+if (mode === "preview") {
+  assignments = DEMO_ASSIGNMENTS.map((a) => ({ ...a }));
+  notes = DEMO_NOTES.map((n) => ({ ...n }));
+  batches = [...DEMO_BATCHES, { id: "DCA-MOR-JAN26", name: "DCA Morning (Jan 2026)", courseId: "ai-dca", status: "running" }]
+    .filter((b, i, arr) => arr.findIndex((x) => x.id === b.id) === i);
+} else {
+  const { getMany } = await import("../../firebase/db-service.js");
+  [assignments, notes, batches] = await Promise.all([
+    getMany(COLLECTIONS.ASSIGNMENTS, { orderBy: ["createdAt", "desc"], limit: 100, useCache: false }).catch(() => []),
+    getMany(COLLECTIONS.NOTES, { orderBy: ["createdAt", "desc"], limit: 100, useCache: false }).catch(() => []),
+    getMany(COLLECTIONS.BATCHES, { limit: 50 }).catch(() => [])
+  ]);
+}
+
+paintTabs(); paintAsg(); paintNotes();
+
+on($("#matTabs"), "click", ".chip", (e, chip) => { tab = chip.dataset.tab; paintTabs(); });
+$("#asgNew").addEventListener("click", asgForm);
+$("#noteNew").addEventListener("click", noteForm);
+
+on($("#asgAdminList"), "click", "[data-subs]", (e, btn) => {
+  const a = assignments.find((x) => x.id === btn.dataset.subs);
+  if (a) showSubmissions(a);
+});
+on($("#asgAdminList"), "click", "[data-delAsg]", async (e, btn) => {
+  const a = assignments.find((x) => x.id === btn.dataset.delAsg);
+  if (!a) return;
+  const ok = await confirmModal({ title: "Assignment delete karein?", message: `"${a.title}" students ke dashboard se hat jaayega.`, danger: true, confirmText: "Haan" });
+  if (!ok) return;
+  if (mode === "live") {
+    try {
+      const { remove } = await import("../../firebase/db-service.js");
+      await remove(COLLECTIONS.ASSIGNMENTS, a.id);
+    } catch (err) { return toast.error(err.message || "Fail ho gaya."); }
+  }
+  assignments = assignments.filter((x) => x.id !== a.id);
+  paintTabs(); paintAsg();
+  toast.success("Delete ho gaya.");
+});
+on($("#noteAdminList"), "click", "[data-delNote]", async (e, btn) => {
+  const n = notes.find((x) => x.id === btn.dataset.delNote);
+  if (!n) return;
+  const ok = await confirmModal({ title: "Note delete karein?", message: `"${n.title}" students ke Notes se hat jaayega.`, danger: true, confirmText: "Haan" });
+  if (!ok) return;
+  if (mode === "live") {
+    try {
+      const { remove } = await import("../../firebase/db-service.js");
+      await remove(COLLECTIONS.NOTES, n.id);
+    } catch (err) { return toast.error(err.message || "Fail ho gaya."); }
+  }
+  notes = notes.filter((x) => x.id !== n.id);
+  paintTabs(); paintNotes();
+  toast.success("Delete ho gaya.");
+});

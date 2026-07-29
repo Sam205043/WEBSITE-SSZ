@@ -1,0 +1,130 @@
+rules_version = '2';
+
+/* ==========================================================================
+   Soft Skill Zone Institute — Cloud Storage Security Rules
+   --------------------------------------------------------------------------
+   Publish: Firebase Console -> Storage -> Rules -> paste -> Publish
+            (or `firebase deploy --only storage`)
+
+   Folder map (js/core/constants.js -> STORAGE_PATHS)
+     admissions/{appNo}/…      photo + documents from the public form
+     students/{sid}/…          student documents
+     assignments/{aid}/…       question papers uploaded by admin
+     submissions/{aid}/{sid}/… student answer files
+     notes/{courseId}/…        downloadable notes
+     certificates/…            generated certificate PDFs
+     fees/proofs/{sid}/…       payment screenshots
+     public/…                  gallery, faculty photos, blog covers
+   ========================================================================== */
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /* ---------------------------------------------------------------- helpers */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return hasUserDoc() && role() == 'admin';
+    }
+
+    /* Guarded: firestore.get() on a missing document throws and denies the
+       whole rule, so every caller checks hasUserDoc() first. */
+    function hasUserDoc() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    function myStudentId() {
+      return hasUserDoc()
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid))
+            .data.get('studentId', '')
+        : '';
+    }
+
+    /* A student's own folder — empty studentId must never match an empty path. */
+    function ownsFolder(sid) {
+      return hasUserDoc() && myStudentId() != '' && sid == myStudentId();
+    }
+
+    // 5 MB ceiling; the app already compresses photos client-side.
+    function sizeOk() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isDocument() {
+      return isImage()
+        || request.resource.contentType == 'application/pdf'
+        || request.resource.contentType.matches('application/vnd.*')
+        || request.resource.contentType == 'application/msword';
+    }
+
+    /* ---------------------------------------------------- public admission form */
+    // A visitor with no account must be able to upload their photo and
+    // documents. They can write but never list or read the folder back.
+    match /admissions/{appNo}/{allPaths=**} {
+      allow read: if isAdmin();
+      // isAdmin() first: on a delete there is no request.resource, so calling
+      // isDocument() would throw and deny even the admin.
+      allow write: if isAdmin() || (isDocument() && sizeOk());
+    }
+
+    /* ------------------------------------------------------- student documents */
+    match /students/{sid}/{allPaths=**} {
+      allow read: if isAdmin() || ownsFolder(sid);
+      allow write: if isAdmin();
+    }
+
+    /* ------------------------------------------------------------ submissions */
+    match /submissions/{aid}/{sid}/{allPaths=**} {
+      allow read: if isAdmin() || ownsFolder(sid);
+      allow write: if isAdmin()
+        || (ownsFolder(sid) && isDocument() && sizeOk());
+    }
+
+    /* ------------------------------------------------------------ fee proofs */
+    match /fees/proofs/{sid}/{allPaths=**} {
+      allow read: if isAdmin() || ownsFolder(sid);
+      allow write: if isAdmin()
+        || (ownsFolder(sid) && isImage() && sizeOk());
+    }
+
+    /* --------------------------------- study material (signed-in students) --- */
+    match /notes/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /assignments/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /certificates/{allPaths=**} {
+      // Certificates are shared by link (employers verify them), so reading a
+      // known URL is public; only admin can create or replace one.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /* ------------------------------------------------ public website images --- */
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && sizeOk();
+    }
+
+    /* --------------------------------------------------------------- default -- */
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

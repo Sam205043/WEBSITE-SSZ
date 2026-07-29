@@ -1,0 +1,277 @@
+/* ==========================================================================
+   Soft Skill Zone — Design Tokens
+   Single source of truth for colour, type, space, motion and elevation.
+   Nothing else in the project should hard-code a colour or a pixel shadow.
+   ========================================================================== */
+
+:root {
+  /* ---------- Brand primitives ---------- */
+  --ssz-indigo-50:  #eef2ff;
+  --ssz-indigo-100: #e0e7ff;
+  --ssz-indigo-200: #c7d2fe;
+  --ssz-indigo-300: #a5b4fc;
+  --ssz-indigo-400: #818cf8;
+  --ssz-indigo-500: #6366f1;
+  --ssz-indigo-600: #4f46e5;
+  --ssz-indigo-700: #4338ca;
+  --ssz-indigo-800: #3730a3;
+  --ssz-indigo-900: #312e81;
+
+  --ssz-violet-400: #a78bfa;
+  --ssz-violet-500: #8b5cf6;
+  --ssz-violet-600: #7c3aed;
+  --ssz-violet-700: #6d28d9;
+
+  --ssz-cyan-300:   #67e8f9;
+  --ssz-cyan-400:   #22d3ee;
+  --ssz-cyan-500:   #06b6d4;
+  --ssz-cyan-600:   #0891b2;
+
+  --ssz-amber-400:  #fbbf24;
+  --ssz-amber-500:  #f59e0b;
+
+  --ssz-emerald-400:#34d399;
+  --ssz-emerald-500:#10b981;
+  --ssz-emerald-600:#059669;
+
+  --ssz-rose-400:   #fb7185;
+  --ssz-rose-500:   #f43f5e;
+  --ssz-rose-600:   #e11d48;
+
+  /* ---------- Neutrals ---------- */
+  --ssz-white:  #ffffff;
+  --ssz-n-25:   #fcfcfd;
+  --ssz-n-50:   #f8fafc;
+  --ssz-n-100:  #f1f5f9;
+  --ssz-n-200:  #e2e8f0;
+  --ssz-n-300:  #cbd5e1;
+  --ssz-n-400:  #94a3b8;
+  --ssz-n-500:  #64748b;
+  --ssz-n-600:  #475569;
+  --ssz-n-700:  #334155;
+  --ssz-n-800:  #1e293b;
+  --ssz-n-900:  #0f172a;
+  --ssz-n-950:  #060b18;
+
+  /* ---------- Semantic: LIGHT theme (default) ---------- */
+  --bg-body:        var(--ssz-n-50);
+  --bg-surface:     var(--ssz-white);
+  --bg-surface-2:   var(--ssz-n-100);
+  --bg-surface-3:   var(--ssz-n-200);
+  --bg-inverse:     var(--ssz-n-900);
+  --bg-hero:        linear-gradient(135deg, #eef2ff 0%, #faf5ff 45%, #ecfeff 100%);
+
+  --text-primary:   var(--ssz-n-900);
+  --text-secondary: var(--ssz-n-600);
+  --text-muted:     #596880;   /* AA-safe on white and on the tinted surfaces */
+  --text-inverse:   var(--ssz-white);
+  --text-brand:     var(--ssz-indigo-600);
+
+  --border-subtle:  rgba(15, 23, 42, 0.07);
+  --border-default: rgba(15, 23, 42, 0.12);
+  --border-strong:  rgba(15, 23, 42, 0.22);
+
+  --brand:          var(--ssz-indigo-600);
+  --brand-hover:    var(--ssz-indigo-700);
+  --brand-solid:    var(--ssz-indigo-600);
+  --brand-soft:     var(--ssz-indigo-50);
+  --brand-contrast: var(--ssz-white);
+  --accent:         var(--ssz-cyan-500);
+  --accent-soft:    #ecfeff;
+
+  --success:        var(--ssz-emerald-600);
+  --success-soft:   #ecfdf5;
+  --warning:        var(--ssz-amber-500);
+  --warning-soft:   #fffbeb;
+  --danger:         var(--ssz-rose-600);
+  --danger-soft:    #fff1f2;
+  --info:           var(--ssz-indigo-600);
+  --info-soft:      var(--ssz-indigo-50);
+
+  /* "Ink" = the text colour to use ON the matching -soft background.
+     The plain colours above are tuned for fills, borders and icons; on a
+     tinted background they fall below the WCAG AA 4.5:1 text threshold,
+     so small text uses these darker variants instead. */
+  --brand-ink:      var(--ssz-indigo-700);
+  --success-ink:    #047857;
+  --warning-ink:    #92400e;
+  --danger-ink:     #be123c;
+  --info-ink:       var(--ssz-indigo-700);
+  --accent-ink:     #0e7490;
+
+  /* ---------- Glassmorphism ---------- */
+  --glass-bg:       rgba(255, 255, 255, 0.62);
+  --glass-bg-solid: rgba(255, 255, 255, 0.86);
+  --glass-border:   rgba(255, 255, 255, 0.80);
+  --glass-blur:     18px;
+  --glass-shadow:   0 8px 32px rgba(15, 23, 42, 0.10);
+
+  /* ---------- Gradients ---------- */
+  --grad-brand:  linear-gradient(135deg, var(--ssz-indigo-600) 0%, var(--ssz-violet-600) 100%);
+  --grad-accent: linear-gradient(135deg, var(--ssz-cyan-500) 0%, var(--ssz-indigo-600) 100%);
+  --grad-warm:   linear-gradient(135deg, var(--ssz-amber-400) 0%, var(--ssz-rose-500) 100%);
+  --grad-mesh:
+    radial-gradient(at 12% 18%, rgba(99,102,241,0.16) 0px, transparent 55%),
+    radial-gradient(at 85% 8%,  rgba(6,182,212,0.14) 0px, transparent 50%),
+    radial-gradient(at 72% 88%, rgba(139,92,246,0.14) 0px, transparent 55%);
+  --grad-text:   linear-gradient(120deg, var(--ssz-indigo-600), var(--ssz-violet-600) 45%, var(--ssz-cyan-500));
+
+  /* ---------- Elevation ---------- */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.05);
+  --shadow-sm: 0 2px 6px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md: 0 6px 18px rgba(15,23,42,0.08), 0 2px 6px rgba(15,23,42,0.04);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,0.12), 0 4px 12px rgba(15,23,42,0.06);
+  --shadow-xl: 0 28px 64px rgba(15,23,42,0.16), 0 8px 20px rgba(15,23,42,0.08);
+  --shadow-brand: 0 10px 30px rgba(79,70,229,0.32);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.6);
+
+  /* ---------- Typography ---------- */
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Sora", "Plus Jakarta Sans", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Fluid type scale — mobile-first, scales with viewport, no media queries needed */
+  --fs-xs:   clamp(0.72rem, 0.70rem + 0.10vw, 0.78rem);
+  --fs-sm:   clamp(0.82rem, 0.79rem + 0.15vw, 0.90rem);
+  --fs-base: clamp(0.94rem, 0.90rem + 0.20vw, 1.02rem);
+  --fs-md:   clamp(1.05rem, 1.00rem + 0.25vw, 1.16rem);
+  --fs-lg:   clamp(1.20rem, 1.12rem + 0.40vw, 1.42rem);
+  --fs-xl:   clamp(1.44rem, 1.30rem + 0.70vw, 1.85rem);
+  --fs-2xl:  clamp(1.72rem, 1.48rem + 1.15vw, 2.45rem);
+  --fs-3xl:  clamp(2.05rem, 1.65rem + 1.95vw, 3.25rem);
+  --fs-4xl:  clamp(2.45rem, 1.80vw + 1.85rem, 4.20rem);
+
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+
+  --lh-tight: 1.15;
+  --lh-snug:  1.32;
+  --lh-normal:1.55;
+  --lh-loose: 1.75;
+
+  --ls-tight: -0.02em;
+  --ls-snug:  -0.01em;
+  --ls-wide:  0.02em;
+  --ls-caps:  0.09em;
+
+  /* ---------- Spacing (4px base) ---------- */
+  --sp-1: 0.25rem;  --sp-2: 0.5rem;   --sp-3: 0.75rem;  --sp-4: 1rem;
+  --sp-5: 1.25rem;  --sp-6: 1.5rem;   --sp-7: 1.75rem;  --sp-8: 2rem;
+  --sp-10: 2.5rem;  --sp-12: 3rem;    --sp-14: 3.5rem;  --sp-16: 4rem;
+  --sp-20: 5rem;    --sp-24: 6rem;    --sp-32: 8rem;
+
+  --section-y: clamp(3rem, 7vw, 6.5rem);
+  --container-max: 1240px;
+  --container-pad: clamp(1rem, 4vw, 2rem);
+
+  /* ---------- Radii ---------- */
+  --r-xs: 6px;   --r-sm: 10px;  --r-md: 14px;  --r-lg: 18px;
+  --r-xl: 24px;  --r-2xl: 32px; --r-pill: 999px;
+
+  /* ---------- Motion ---------- */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring:cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 150ms;
+  --dur-base: 260ms;
+  --dur-slow: 480ms;
+  --dur-slower: 800ms;
+  --t-fast: all var(--dur-fast) var(--ease-out);
+  --t-base: all var(--dur-base) var(--ease-out);
+
+  /* ---------- Layering ---------- */
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-navbar: 1000;
+  --z-backdrop: 1050;
+  --z-drawer: 1100;
+  --z-modal: 1300;
+  --z-toast: 1400;
+  --z-loader: 1500;
+
+  /* ---------- Layout constants ---------- */
+  --navbar-h: 68px;
+  --sidebar-w: 268px;
+  --sidebar-w-collapsed: 76px;
+}
+
+/* ==========================================================================
+   DARK THEME
+   Applied via <html data-theme="dark"> — toggled by js/core/theme.js
+   ========================================================================== */
+[data-theme="dark"] {
+  --bg-body:        var(--ssz-n-950);
+  --bg-surface:     #101a2e;
+  --bg-surface-2:   #17223a;
+  --bg-surface-3:   #1f2c47;
+  --bg-inverse:     var(--ssz-white);
+  --bg-hero:        linear-gradient(135deg, #060b18 0%, #121a33 50%, #0a1a24 100%);
+
+  --text-primary:   #eef2f8;
+  --text-secondary: #a8b6cc;
+  --text-muted:     #97a5bd;   /* AA-safe on the dark surfaces */
+  --text-inverse:   var(--ssz-n-900);
+  --text-brand:     var(--ssz-indigo-300);
+
+  --border-subtle:  rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.13);
+  --border-strong:  rgba(255, 255, 255, 0.26);
+
+  /* Dark theme: brand text must clear 4.5:1 on the dark surfaces, so the
+     brand colour itself is lifted a step. --brand-solid keeps the deeper
+     tone for fills that carry white text on top. */
+  --brand:          var(--ssz-indigo-400);
+  --brand-hover:    var(--ssz-indigo-300);
+  --brand-solid:    var(--ssz-indigo-600);
+  --brand-soft:     rgba(99, 102, 241, 0.16);
+  --brand-contrast: var(--ssz-white);
+  --accent:         var(--ssz-cyan-400);
+  --accent-soft:    rgba(34, 211, 238, 0.14);
+
+  --success:        var(--ssz-emerald-400);
+  --success-soft:   rgba(16, 185, 129, 0.15);
+  --warning:        var(--ssz-amber-400);
+  --warning-soft:   rgba(245, 158, 11, 0.15);
+  --danger:         var(--ssz-rose-400);
+  --danger-soft:    rgba(244, 63, 94, 0.15);
+  --info:           var(--ssz-indigo-400);
+  --info-soft:      rgba(99, 102, 241, 0.15);
+
+  /* Dark theme inks lighten instead of darken — same AA goal, opposite direction. */
+  --brand-ink:      #a5b4fc;
+  --success-ink:    #6ee7b7;
+  --warning-ink:    #fcd34d;
+  --danger-ink:     #fda4af;
+  --info-ink:       #a5b4fc;
+  --accent-ink:     #67e8f9;
+
+  --glass-bg:       rgba(23, 34, 58, 0.60);
+  --glass-bg-solid: rgba(16, 26, 46, 0.90);
+  --glass-border:   rgba(255, 255, 255, 0.10);
+  --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.45);
+
+  --grad-mesh:
+    radial-gradient(at 12% 18%, rgba(99,102,241,0.24) 0px, transparent 55%),
+    radial-gradient(at 85% 8%,  rgba(6,182,212,0.18) 0px, transparent 50%),
+    radial-gradient(at 72% 88%, rgba(139,92,246,0.20) 0px, transparent 55%);
+  --grad-text:  linear-gradient(120deg, var(--ssz-indigo-300), var(--ssz-violet-400) 45%, var(--ssz-cyan-300));
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.30);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.35);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.40);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.50);
+  --shadow-xl: 0 28px 64px rgba(0,0,0,0.60);
+  --shadow-brand: 0 10px 30px rgba(99,102,241,0.35);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* Respect OS preference before the user makes an explicit choice */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}

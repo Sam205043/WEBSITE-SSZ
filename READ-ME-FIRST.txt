@@ -1,0 +1,81 @@
+========================================================================
+  SOFT SKILL ZONE INSTITUTE — Website + ERP
+  Learn Today. Lead Tomorrow.
+  FINAL DELIVERY  (Phases 2-10, poora project)
+========================================================================
+
+ABHI KYA KAREIN — 3 STEP
+
+  1. Is ZIP ko  C:\Users\HP\WEBSITE SSZ  me extract karein.
+
+  2. index.html par double-click karke site dekh lein.
+     (Dashboards "Preview Mode" me sample data dikhayenge — ye normal hai.)
+
+  3. Fir teen file padhein, isi order me:
+        README.md                  — kya-kya bana hai, content kahan badalna hai
+        docs/FIREBASE-SETUP.md     — 20 minute me backend live (8 steps)
+        docs/DEPLOYMENT.md         — GitHub Pages par live karna
+
+------------------------------------------------------------------------
+LIVE KARNE SE PEHLE 3 CHEEZEIN ZAROORI HAIN
+------------------------------------------------------------------------
+
+  [1] APNA PHONE NUMBER DAALEIN
+      File: js/config/site-data.js  ->  INSTITUTE object
+      Abhi placeholder hai:  phone / whatsapp = "+91 00000 00000"
+      Isi jagah email, address, timings aur social links bhi hain.
+
+  [2] SITE KA URL SET KAREIN
+      Abhi placeholder hai: https://softskillzone.in
+      VS Code me Ctrl+Shift+H se replace karein,
+      ya:  node tools/set-site-url.mjs https://aapka-url
+      (Detail: docs/DEPLOYMENT.md ka pehla section)
+
+  [3] FIREBASE RULES PUBLISH KAREIN
+      firebase/firestore.rules  aur  firebase/storage.rules
+      Firebase Console me paste karke Publish karein.
+      Ye kiye bina site live mat karein — data sabke liye khul jayega.
+      (Detail: docs/FIREBASE-SETUP.md Step 6)
+
+------------------------------------------------------------------------
+FOLDER ME KYA HAI
+------------------------------------------------------------------------
+
+  index.html · 404.html · offline.html · manifest.json · sw.js
+  sitemap.xml · robots.txt · README.md
+
+  css/          12 stylesheets (ek design-token system)
+  components/   navbar + footer (har page me apne aap inject hote hain)
+  images/logo/  favicon, PWA icons, social share cover
+  js/           core · config · components · pages · dashboard · tools
+  firebase/     config, services aur SECURITY RULES
+  pages/        public · student/ · admin/ · tools/ · legal/
+  tools/        set-site-url.mjs (deploy helper)
+  docs/         ROADMAP · FIREBASE-SETUP · DEPLOYMENT
+
+------------------------------------------------------------------------
+BINA FIREBASE KE BHI KYA CHALTA HAI
+------------------------------------------------------------------------
+
+  - Poori public website (saare pages, dark mode, search, animations)
+  - Saare 10 free tools — GST, EMI, invoice, resume, typing, QR (offline bhi)
+  - Dono dashboards Preview Mode me — design aur flow dekhne ke liye
+
+  Firebase sirf inke liye chahiye: login, admission save, file upload,
+  fees/attendance/marks ka asli data.
+
+------------------------------------------------------------------------
+PHASE 10 ME KYA HUA (aakhri phase)
+------------------------------------------------------------------------
+
+  SEO         sitemap.xml (41 URLs), canonical + Open Graph har page par,
+              6 tarah ka structured data (Course, FAQ, Article, Breadcrumb,
+              LocalBusiness, WebSite search box)
+  PWA         mobile par install hota hai, offline chalta hai, Firebase
+              data kabhi cache nahi hota
+  Access      axe-core: 37 pages x light+dark = 203 problems se 0 par
+  Speed       off-screen sections defer, module preload, lazy images
+  QA          126 page-runs: 0 error, 0 overflow; 1003 links: 0 broken
+  Docs        README + Firebase setup + Deployment guide + security rules
+
+========================================================================

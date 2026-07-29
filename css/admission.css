@@ -1,0 +1,184 @@
+/* ==========================================================================
+   Soft Skill Zone — Online Admission page
+   Multi-step form layout. The stepper, fields, dropzone and progress bars
+   themselves live in components.css — this file only lays out the wizard.
+   ========================================================================== */
+
+.adm-layout {
+  display: grid;
+  gap: var(--sp-8);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 992px) { .adm-layout { grid-template-columns: 1fr 320px; } }
+
+/* ---------- Wizard card ---------- */
+.adm-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.adm-card__head {
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+}
+.adm-card__body { padding: var(--sp-6); }
+@media (max-width: 576px) { .adm-card__body { padding: var(--sp-5) var(--sp-4); } }
+
+/* Steps — only the active one is visible */
+.adm-step { display: none; }
+.adm-step.is-active { display: block; animation: ssz-fade-up var(--dur-base) var(--ease-out); }
+
+.adm-step__title { font-size: var(--fs-lg); margin-bottom: .35rem; }
+.adm-step__sub { font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: var(--sp-6); }
+
+/* Two-column field rows that collapse on mobile */
+.adm-row {
+  display: grid;
+  gap: 0 var(--sp-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .adm-row { grid-template-columns: 1fr 1fr; } }
+.adm-row--3 { grid-template-columns: 1fr; }
+@media (min-width: 640px) { .adm-row--3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+/* Radio-card groups (gender, batch preference) */
+.adm-choices {
+  display: grid;
+  gap: var(--sp-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+}
+
+/* Course picker cards */
+.adm-course {
+  position: relative;
+}
+.adm-course input { position: absolute; opacity: 0; pointer-events: none; }
+.adm-course__box {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: var(--t-fast);
+  height: 100%;
+}
+.adm-course__box:hover { border-color: var(--brand); }
+.adm-course input:checked + .adm-course__box {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+.adm-course input:focus-visible + .adm-course__box { outline: 2px solid var(--brand); outline-offset: 2px; }
+.adm-course__icon {
+  width: 38px; height: 38px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  color: #fff;
+}
+.adm-course__icon svg { width: 18px; height: 18px; }
+.adm-course__name { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-primary); line-height: 1.25; }
+.adm-course__meta { font-size: var(--fs-xs); color: var(--text-muted); }
+
+/* Photo preview */
+.adm-photo {
+  display: flex; align-items: center; gap: var(--sp-5);
+  flex-wrap: wrap;
+}
+.adm-photo__preview {
+  width: 116px; height: 140px;
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--border-strong);
+  background: var(--bg-surface-2);
+  display: grid; place-items: center;
+  color: var(--text-muted);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.adm-photo__preview img { width: 100%; height: 100%; object-fit: cover; }
+.adm-photo__preview svg { width: 30px; height: 30px; }
+
+/* Review step */
+.adm-review { display: grid; gap: var(--sp-5); }
+.adm-review__group {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.adm-review__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-surface-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.adm-review__edit {
+  background: none; border: none; cursor: pointer;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  color: var(--brand);
+  text-transform: none; letter-spacing: normal;
+}
+.adm-review__edit:hover { text-decoration: underline; }
+.adm-review__rows { padding: var(--sp-2) var(--sp-4); }
+.adm-review__row {
+  display: flex; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.adm-review__row:last-child { border-bottom: none; }
+.adm-review__row dt { color: var(--text-muted); flex-shrink: 0; }
+.adm-review__row dd { margin: 0; font-weight: var(--fw-semibold); color: var(--text-primary); text-align: right; word-break: break-word; }
+
+/* Wizard footer */
+.adm-foot {
+  display: flex; gap: var(--sp-3);
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-6);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+}
+@media (max-width: 576px) { .adm-foot { padding: var(--sp-4); } }
+
+/* Sidebar helper card */
+.adm-side { position: sticky; top: calc(var(--navbar-h) + var(--sp-5)); display: grid; gap: var(--sp-4); }
+.adm-side__list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-3); }
+.adm-side__list li { display: flex; gap: var(--sp-3); font-size: var(--fs-sm); color: var(--text-secondary); }
+.adm-side__list svg { width: 17px; height: 17px; color: var(--brand); flex-shrink: 0; margin-top: 3px; }
+
+/* Upload progress overlay while submitting */
+.adm-submitting { text-align: center; padding: var(--sp-10) var(--sp-5); }
+.adm-submitting .progress-ssz { max-width: 380px; margin: var(--sp-5) auto 0; }
+.adm-submitting__status { font-size: var(--fs-sm); color: var(--text-muted); margin-top: var(--sp-3); }
+
+/* Success screen */
+.adm-success { text-align: center; padding: var(--sp-10) var(--sp-5); }
+.adm-success__icon {
+  width: 84px; height: 84px;
+  margin: 0 auto var(--sp-5);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--success-soft);
+  color: var(--success);
+  animation: ssz-zoom-in var(--dur-slow) var(--ease-spring);
+}
+.adm-success__icon svg { width: 40px; height: 40px; }
+.adm-success__no {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--r-md);
+  background: var(--brand-soft);
+  color: var(--brand);
+  margin: var(--sp-4) 0;
+}

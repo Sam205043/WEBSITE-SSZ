@@ -1,0 +1,127 @@
+<!-- ==========================================================================
+     Soft Skill Zone — Navbar partial
+     Injected by js/core/include.js into <div data-include="navbar"></div>.
+     Links use data-href (root-relative); include.js rewrites them for the
+     current page depth so they work on GitHub Pages sub-paths.
+     ========================================================================== -->
+
+<header class="ssz-navbar" id="sszNavbar">
+  <div class="ssz-navbar__inner">
+
+    <!-- Brand -->
+    <a class="ssz-brand" data-href="index.html" aria-label="Soft Skill Zone Institute — Home">
+      <span class="ssz-brand__mark" aria-hidden="true">SSZ</span>
+      <span class="ssz-brand__text">
+        <span class="ssz-brand__name">Soft Skill Zone</span>
+        <span class="ssz-brand__tag">Learn Today. Lead Tomorrow.</span>
+      </span>
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="ssz-nav" aria-label="Main navigation">
+      <a class="ssz-nav__link" data-href="index.html">Home</a>
+      <a class="ssz-nav__link" data-href="pages/about.html">About</a>
+      <a class="ssz-nav__link" data-href="pages/courses.html">Courses</a>
+      <a class="ssz-nav__link" data-href="pages/faculty.html">Faculty</a>
+      <a class="ssz-nav__link" data-href="pages/reviews.html">Reviews</a>
+      <a class="ssz-nav__link" data-href="pages/gallery.html">Gallery</a>
+      <a class="ssz-nav__link" data-href="pages/tools.html">Free Tools</a>
+      <a class="ssz-nav__link" data-href="pages/blog.html">Blog</a>
+      <a class="ssz-nav__link" data-href="pages/contact.html">Contact</a>
+    </nav>
+
+    <!-- Actions -->
+    <div class="ssz-nav__actions">
+
+      <button class="icon-btn" type="button" data-search-open aria-label="Search karein">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </button>
+
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Dark mode on karein" aria-pressed="false">
+        <svg data-icon-moon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg data-icon-sun style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+      </button>
+
+      <!-- Swapped for a user chip when signed in (js/components/navbar.js) -->
+      <a class="btn-ssz btn-secondary-ssz btn-sm-ssz ssz-hide-mobile"
+         data-href="pages/student/login.html" data-auth-guest>Login</a>
+
+      <a class="btn-ssz btn-primary-ssz btn-sm-ssz ssz-hide-xs"
+         data-href="pages/admission.html">
+        Apply Now
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+      <button class="icon-btn ssz-burger" type="button" data-drawer-open
+              aria-label="Menu kholein" aria-expanded="false" aria-controls="sszDrawer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12h18M3 6h18M3 18h18"></path>
+        </svg>
+      </button>
+
+    </div>
+  </div>
+</header>
+
+<!-- Mobile drawer -->
+<div class="ssz-backdrop" data-drawer-close hidden></div>
+
+<aside class="ssz-drawer" id="sszDrawer" aria-label="Mobile navigation" aria-hidden="true" inert>
+  <div class="ssz-drawer__head">
+    <a class="ssz-brand" data-href="index.html">
+      <span class="ssz-brand__mark" aria-hidden="true">SSZ</span>
+      <span class="ssz-brand__text">
+        <span class="ssz-brand__name">Soft Skill Zone</span>
+        <span class="ssz-brand__tag">Learn Today. Lead Tomorrow.</span>
+      </span>
+    </a>
+    <button class="icon-btn" type="button" data-drawer-close aria-label="Menu band karein">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="ssz-drawer__body">
+    <p class="ssz-drawer__section">Menu</p>
+    <a class="ssz-drawer__link" data-href="index.html">Home</a>
+    <a class="ssz-drawer__link" data-href="pages/about.html">About</a>
+    <a class="ssz-drawer__link" data-href="pages/courses.html">Courses</a>
+    <a class="ssz-drawer__link" data-href="pages/faculty.html">Faculty</a>
+    <a class="ssz-drawer__link" data-href="pages/reviews.html">Student Reviews</a>
+    <a class="ssz-drawer__link" data-href="pages/gallery.html">Gallery</a>
+    <a class="ssz-drawer__link" data-href="pages/blog.html">Blog</a>
+    <a class="ssz-drawer__link" data-href="pages/contact.html">Contact</a>
+    <a class="ssz-drawer__link" data-href="pages/faq.html">FAQ</a>
+
+    <p class="ssz-drawer__section">Free Student Tools</p>
+    <a class="ssz-drawer__link" data-href="pages/tools.html">All Tools</a>
+    <a class="ssz-drawer__link" data-href="pages/tools/gst-calculator.html">GST Calculator</a>
+    <a class="ssz-drawer__link" data-href="pages/tools/invoice-generator.html">Invoice Generator</a>
+    <a class="ssz-drawer__link" data-href="pages/tools/emi-calculator.html">EMI Calculator</a>
+    <a class="ssz-drawer__link" data-href="pages/tools/resume-builder.html">Resume Builder</a>
+
+    <p class="ssz-drawer__section">Account</p>
+    <a class="ssz-drawer__link" data-href="pages/student/login.html">Student Login</a>
+    <a class="ssz-drawer__link" data-href="pages/admin/login.html">Admin Login</a>
+    <a class="ssz-drawer__link" data-href="pages/verify-certificate.html">Verify Certificate</a>
+
+    <a class="btn-ssz btn-primary-ssz btn-block-ssz" style="margin-top:1.25rem"
+       data-href="pages/admission.html">Online Admission</a>
+  </div>
+</aside>

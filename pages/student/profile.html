@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Profile | Soft Skill Zone Student</title>
+<meta name="robots" content="noindex">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/layout.css">
+<link rel="stylesheet" href="../../css/components.css">
+<link rel="stylesheet" href="../../css/animations.css">
+<link rel="stylesheet" href="../../css/pages.css">
+<link rel="stylesheet" href="../../css/auth.css">
+<link rel="stylesheet" href="../../css/dashboard.css">
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" href="../../images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="../../images/logo/apple-touch-icon.png">
+</head>
+
+<body data-depth="2">
+
+<div class="dash" id="dash">
+  <aside class="dash-side" id="dashSide"></aside>
+  <div class="dash-main">
+    <header class="dash-top" id="dashTop"></header>
+    <main class="dash-body" id="dashBody">
+
+      <div class="split split-6-5" style="align-items:start">
+        <section class="dash-section">
+          <div class="card-ssz">
+            <div class="card-ssz__head"><h2 style="margin:0;font-size:1.15rem">Meri Jaankari</h2></div>
+            <div class="card-ssz__body" id="profileInfo"></div>
+          </div>
+        </section>
+        <div class="stack" style="gap:1.5rem">
+          <section class="dash-section">
+            <div class="card-ssz">
+              <div class="card-ssz__head"><h2 style="margin:0;font-size:1.15rem">Contact Update Karein</h2></div>
+              <div class="card-ssz__body">
+                <form id="profileForm" novalidate>
+                  <div class="field">
+                    <label class="field__label" for="pName">Naam</label>
+                    <input class="input-ssz" id="pName" name="name" type="text">
+                    <div class="field__error"></div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="pPhone">Mobile</label>
+                    <input class="input-ssz" id="pPhone" name="phone" type="tel" inputmode="numeric" maxlength="10">
+                    <div class="field__error"></div>
+                  </div>
+                  <button class="btn-ssz btn-primary-ssz btn-block-ssz" type="submit" id="profileSave">Save Karein</button>
+                </form>
+              </div>
+            </div>
+          </section>
+          <section class="dash-section">
+            <div class="card-ssz">
+              <div class="card-ssz__head"><h2 style="margin:0;font-size:1.15rem">Password Badlein</h2></div>
+              <div class="card-ssz__body">
+                <form id="pwForm" novalidate>
+                  <div class="field">
+                    <label class="field__label" for="curPw">Abhi ka password</label>
+                    <input class="input-ssz" id="curPw" name="current" type="password" autocomplete="current-password">
+                    <div class="field__error"></div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="newPw">Naya password</label>
+                    <input class="input-ssz" id="newPw" name="next" type="password" autocomplete="new-password">
+                    <div class="field__error"></div>
+                  </div>
+                  <button class="btn-ssz btn-secondary-ssz btn-block-ssz" type="submit" id="pwSave">Password Update Karein</button>
+                </form>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script type="module" src="../../js/dashboard/student-profile.js"></script>
+</body>
+</html>

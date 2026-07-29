@@ -1,0 +1,18 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local secrets (NEVER commit real service-account keys)
+firebase/service-account*.json
+.env
+.env.local
+
+# Build / temp
+*.log
+tmp/

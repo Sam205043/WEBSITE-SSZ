@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Invoice Generator | Soft Skill Zone Institute</title>
+<meta name="description" content="Items daalein, GST apne aap lagega — invoice print ya PDF save karein.">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/layout.css">
+<link rel="stylesheet" href="../../css/components.css">
+<link rel="stylesheet" href="../../css/animations.css">
+<link rel="stylesheet" href="../../css/pages.css">
+<link rel="stylesheet" href="../../css/admission.css">
+<link rel="stylesheet" href="../../css/tools.css">
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" href="../../images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="../../images/logo/apple-touch-icon.png">
+<link rel="canonical" href="https://softskillzone.in/pages/tools/invoice-generator.html">
+
+<script type="application/ld+json" id="ssz-static-ld">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://softskillzone.in/index.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Free Student Tools",
+      "item": "https://softskillzone.in/pages/tools.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Invoice Generator",
+      "item": "https://softskillzone.in/pages/tools/invoice-generator.html"
+    }
+  ]
+}
+</script>
+<link rel="modulepreload" href="../../js/core/dom.js">
+<link rel="modulepreload" href="../../js/core/routes.js">
+<link rel="modulepreload" href="../../js/core/include.js">
+<link rel="modulepreload" href="../../js/core/theme.js">
+<link rel="modulepreload" href="../../js/core/utils.js">
+<link rel="modulepreload" href="../../js/core/icons.js">
+</head>
+
+<body data-depth="2">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-include="navbar"></div>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="ssz-container">
+      <span class="eyebrow">Free Tool</span>
+      <h1 style="margin:.6rem 0 .75rem">GST Invoice <span class="text-gradient">Generator</span></h1>
+      <p style="max-width:60ch;margin-inline:auto">Items daalein, GST apne aap lagega — invoice print ya PDF save karein.</p>
+      <nav class="breadcrumb-ssz" aria-label="Breadcrumb">
+        <a href="../../index.html">Home</a><span>/</span>
+        <a href="../tools.html">Free Tools</a><span>/</span>
+        <span aria-current="page">Invoice Generator</span>
+      </nav>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container">
+      <div class="tool-layout tool-layout--wide" style="gap:2rem">
+        <div class="tool-panel">
+          <div class="tool-panel__head">Invoice Details</div>
+          <div class="tool-panel__body">
+            <div class="adm-row">
+              <div class="field">
+                <label class="field__label" for="invSeller">Aapki firm ka naam</label>
+                <input class="input-ssz" id="invSeller" type="text" placeholder="Jaise: Soft Skill Zone Traders">
+              </div>
+              <div class="field">
+                <label class="field__label" for="invSellerGst">Aapka GSTIN</label>
+                <input class="input-ssz" id="invSellerGst" type="text" placeholder="10ABCDE1234F1Z5" style="text-transform:uppercase">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" for="invSellerAddr">Aapka pata</label>
+                <input class="input-ssz" id="invSellerAddr" type="text" placeholder="Dukaan/office ka pata">
+            </div>
+            <hr>
+            <div class="adm-row">
+              <div class="field">
+                <label class="field__label" for="invBuyer">Customer ka naam</label>
+                <input class="input-ssz" id="invBuyer" type="text" placeholder="Kharidar ka naam">
+              </div>
+              <div class="field">
+                <label class="field__label" for="invBuyerGst">Customer GSTIN (optional)</label>
+                <input class="input-ssz" id="invBuyerGst" type="text" placeholder="B2B ho to" style="text-transform:uppercase">
+              </div>
+            </div>
+            <div class="adm-row adm-row--3">
+              <div class="field">
+                <label class="field__label" for="invNo">Invoice No.</label>
+                <input class="input-ssz" id="invNo" type="text">
+              </div>
+              <div class="field">
+                <label class="field__label" for="invDate">Date</label>
+                <input class="input-ssz" id="invDate" type="date">
+              </div>
+              <div class="field">
+                <label class="field__label" for="invSupply">Supply type</label>
+                <select class="select-ssz" id="invSupply">
+                  <option value="intra">Same state (CGST+SGST)</option>
+                  <option value="inter">Other state (IGST)</option>
+                </select>
+              </div>
+            </div>
+
+            <h2 style="margin:1.5rem 0 .75rem;font-size:1.05rem">Items</h2>
+            <div id="invItems"></div>
+            <button class="btn-ssz btn-secondary-ssz btn-sm-ssz" type="button" id="invAdd">+ Item jodein</button>
+
+            <div class="cluster" style="margin-top:1.5rem">
+              <button class="btn-ssz btn-primary-ssz" type="button" id="invPrint">Print / PDF</button>
+              <button class="btn-ssz btn-ghost-ssz" type="button" id="invReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-panel">
+          <div class="tool-panel__head">Preview</div>
+          <div class="tool-panel__body" style="background:var(--bg-surface-2)">
+            <div id="invSheet"></div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span>Yeh invoice format aam zaroorat ke liye hai. Aapke business par laagu vishesh niyam (e-invoice, reverse charge waghairah) ke liye apne CA se salah lein.</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div data-include="footer"></div>
+
+<script type="module" src="../../js/app.js"></script>
+<script type="module" src="../../js/tools/invoice-generator.js"></script>
+
+<script>
+/* PWA: install the service worker so the site opens fast and the free
+   tools keep working on weak mobile data. Fails silently on file://. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../../sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

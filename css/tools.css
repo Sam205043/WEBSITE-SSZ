@@ -1,0 +1,246 @@
+/* ==========================================================================
+   Soft Skill Zone — Free Student Tools
+   Hub grid + shared tool-page layout (calculator panel + result panel).
+   ========================================================================== */
+
+/* ---------------- Hub ---------------- */
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--sp-6);
+  border-radius: var(--r-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  transition: var(--t-base);
+}
+.tool-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--border-default); }
+.tool-card__icon {
+  width: 50px; height: 50px;
+  display: grid; place-items: center;
+  border-radius: var(--r-md);
+  color: #fff;
+  margin-bottom: var(--sp-4);
+}
+.tool-card__icon svg { width: 23px; height: 23px; }
+.tool-card :is(h2,h3) { font-size: var(--fs-md); margin-bottom: .4rem; }
+.tool-card p { font-size: var(--fs-sm); flex: 1; margin-bottom: var(--sp-4); }
+.tool-card__go { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--brand); display: flex; align-items: center; gap: .35rem; }
+
+/* ---------------- Tool page shell ---------------- */
+.tool-layout {
+  display: grid;
+  gap: var(--sp-6);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 992px) { .tool-layout { grid-template-columns: 1fr 1fr; } }
+.tool-layout--wide { grid-template-columns: 1fr; }
+
+.tool-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.tool-panel__head {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.tool-panel__body { padding: var(--sp-6); }
+@media (max-width: 576px) { .tool-panel__body { padding: var(--sp-5) var(--sp-4); } }
+
+/* Result readouts */
+.result-hero {
+  text-align: center;
+  padding: var(--sp-6);
+  border-radius: var(--r-lg);
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+  margin-bottom: var(--sp-5);
+}
+.result-hero__label { font-size: var(--fs-xs); letter-spacing: var(--ls-caps); text-transform: uppercase; opacity: .85; }
+.result-hero__value {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  font-weight: var(--fw-extrabold);
+  line-height: 1.1;
+  letter-spacing: var(--ls-tight);
+  margin-top: .25rem;
+  word-break: break-word;
+}
+.result-hero__sub { font-size: var(--fs-sm); opacity: .9; margin-top: .4rem; }
+
+.result-row {
+  display: flex; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--fs-sm);
+}
+.result-row:last-child { border-bottom: none; }
+.result-row dt { color: var(--text-muted); }
+.result-row dd { margin: 0; font-weight: var(--fw-semibold); color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums; }
+.result-row--total { border-top: 2px solid var(--border-default); margin-top: var(--sp-2); padding-top: var(--sp-4); }
+.result-row--total dd { font-size: var(--fs-md); color: var(--brand); }
+
+/* Segmented control (inclusive/exclusive, calc modes) */
+.segment {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-md);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: var(--sp-5);
+  overflow-x: auto;
+}
+.segment button {
+  flex: 1;
+  min-width: fit-content;
+  padding: .55rem .9rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: none;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--t-fast);
+}
+.segment button:hover { color: var(--text-primary); }
+.segment button.is-active { background: var(--bg-surface); color: var(--brand); box-shadow: var(--shadow-xs); }
+
+/* Rate chips */
+.rate-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* ---------------- GST quiz ---------------- */
+.quiz-progress { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-5); font-size: var(--fs-sm); color: var(--text-muted); }
+.quiz-option {
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-3);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  text-align: left;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: var(--t-fast);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--brand); background: var(--brand-soft); }
+.quiz-option__key {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--bg-surface-2);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xs);
+}
+.quiz-option.is-right { border-color: var(--success); background: var(--success-soft); }
+.quiz-option.is-right .quiz-option__key { background: var(--success); color: #fff; }
+.quiz-option.is-wrong { border-color: var(--danger); background: var(--danger-soft); }
+.quiz-option.is-wrong .quiz-option__key { background: var(--danger); color: #fff; }
+.quiz-explain {
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--info-soft);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  margin-top: var(--sp-4);
+}
+
+/* ---------------- Invoice / resume printable sheets ---------------- */
+.sheet {
+  background: #fff;
+  color: #0f172a;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  font-size: .85rem;
+}
+.sheet * { color: inherit; }
+.sheet table { width: 100%; border-collapse: collapse; }
+.sheet th, .sheet td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+.sheet th { background: #f1f5f9; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+.sheet .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.item-row {
+  display: grid;
+  gap: var(--sp-2);
+  grid-template-columns: 1fr;
+  padding: var(--sp-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-3);
+}
+@media (min-width: 640px) { .item-row { grid-template-columns: 2fr 1fr 1fr 1fr auto; align-items: end; } }
+
+/* ---------------- Typing test ---------------- */
+.typing-text {
+  padding: var(--sp-5);
+  border-radius: var(--r-md);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--fs-md);
+  line-height: 2;
+  letter-spacing: .01em;
+  margin-bottom: var(--sp-5);
+  user-select: none;
+}
+.typing-text span { border-radius: 3px; padding: 1px 0; }
+.typing-text .ok { color: var(--success); }
+.typing-text .bad { color: var(--danger-ink); background: var(--danger-soft); text-decoration: underline wavy; }
+.typing-text .cur { background: var(--brand-solid); color: #fff; }
+.typing-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--sp-3); }
+.typing-stat {
+  text-align: center;
+  padding: var(--sp-4) var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+}
+.typing-stat__value { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: var(--fw-extrabold); line-height: 1; }
+.typing-stat__label { font-size: var(--fs-xs); color: var(--text-muted); margin-top: .25rem; }
+
+/* ---------------- QR ---------------- */
+.qr-box {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-6);
+  border-radius: var(--r-lg);
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+  min-height: 260px;
+}
+.qr-box canvas { max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 6px; }
+
+/* ---------------- HSN table ---------------- */
+.hsn-code { font-family: var(--font-mono); font-weight: var(--fw-bold); color: var(--brand); }
+
+/* ---------------- Disclaimer ---------------- */
+.tool-note {
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--warning-soft);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  margin-top: var(--sp-6);
+}
+.tool-note svg { width: 17px; height: 17px; color: var(--warning); flex-shrink: 0; margin-top: 1px; }
+
+@media print {
+  .tool-panel__head, .tool-note, .segment, .btn-ssz { display: none !important; }
+  .sheet { box-shadow: none; padding: 0; }
+}

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Setup Check | Soft Skill Zone</title>
+
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="icon" href="images/logo/favicon.svg" type="image/svg+xml">
+
+<style>
+  body { padding: var(--sp-8) var(--sp-4); }
+  .wrap { max-width: 820px; margin-inline: auto; }
+  .head { text-align: center; margin-bottom: var(--sp-8); }
+  .head h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); margin-bottom: .5rem; }
+  .head p { color: var(--text-muted); }
+
+  .score {
+    display: flex; align-items: center; justify-content: center; gap: var(--sp-4);
+    padding: var(--sp-5); margin-bottom: var(--sp-6);
+    border-radius: var(--r-lg); background: var(--bg-surface);
+    border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);
+    font-weight: var(--fw-semibold);
+  }
+  .score b { font-family: var(--font-display); font-size: 1.6rem; }
+
+  .group { margin-bottom: var(--sp-6); }
+  .group h2 { font-size: var(--fs-md); margin-bottom: var(--sp-3); color: var(--text-secondary); }
+
+  .row {
+    display: flex; gap: var(--sp-4); align-items: flex-start;
+    padding: var(--sp-4);
+    border: 1px solid var(--border-subtle); border-radius: var(--r-md);
+    background: var(--bg-surface); margin-bottom: var(--sp-3);
+  }
+  .pill {
+    flex-shrink: 0; min-width: 74px; text-align: center;
+    padding: .28rem .5rem; border-radius: var(--r-pill);
+    font-size: var(--fs-xs); font-weight: var(--fw-bold);
+    text-transform: uppercase; letter-spacing: var(--ls-wide);
+  }
+  .p-run  { background: var(--bg-surface-2); color: var(--text-muted); }
+  .p-ok   { background: var(--success-soft); color: var(--success-ink); }
+  .p-fail { background: var(--danger-soft);  color: var(--danger-ink); }
+  .p-warn { background: var(--warning-soft); color: var(--warning-ink); }
+  .p-skip { background: var(--bg-surface-2); color: var(--text-muted); }
+
+  .row__body { flex: 1; min-width: 0; }
+  .row__title { font-weight: var(--fw-semibold); font-size: var(--fs-sm); }
+  .row__note { font-size: var(--fs-sm); color: var(--text-muted); margin-top: .25rem; }
+  .row__note code {
+    font-family: var(--font-mono); font-size: .82em;
+    background: var(--bg-surface-2); padding: 1px 5px; border-radius: 4px;
+    word-break: break-word;
+  }
+  .actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; justify-content: center; margin-top: var(--sp-6); }
+  .note-box {
+    padding: var(--sp-4); border-radius: var(--r-md);
+    background: var(--info-soft); color: var(--text-secondary);
+    font-size: var(--fs-sm); margin-bottom: var(--sp-6);
+  }
+</style>
+</head>
+
+<body data-depth="0">
+<div class="wrap">
+
+  <div class="head">
+    <h1>Setup Check</h1>
+    <p>Firebase sahi jud gaya ya nahi — sab apne aap check ho raha hai.</p>
+  </div>
+
+  <div class="note-box">
+    Ye page sirf <strong>padhta</strong> hai, kuch likhta nahi — aapke data ko koi khatra nahi.
+    Neeche ek optional write-test bhi hai, wo tabhi chalega jab aap khud button dabayenge.
+    Kaam ho jaane ke baad is file ko delete kar sakte hain.
+  </div>
+
+  <div class="score" id="score">
+    <span>Check chal raha hai…</span>
+  </div>
+
+  <div class="group">
+    <h2>1. Project connection</h2>
+    <div id="gConnect"></div>
+  </div>
+
+  <div class="group">
+    <h2>2. Public website (bina login)</h2>
+    <div id="gPublic"></div>
+  </div>
+
+  <div class="group">
+    <h2>3. Security — ye sab BAND hone chahiye</h2>
+    <div id="gSecurity"></div>
+  </div>
+
+  <div class="group">
+    <h2>4. Rules ka naya version live hai?</h2>
+    <div id="gRules"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-ssz btn-secondary-ssz" type="button" onclick="location.reload()">Dobara check karein</button>
+    <button class="btn-ssz btn-primary-ssz" type="button" id="btnWrite">Write test chalayein (ek test application banegi)</button>
+  </div>
+
+  <div class="group" id="gWriteWrap" hidden style="margin-top:var(--sp-6)">
+    <h2>5. Write test</h2>
+    <div id="gWrite"></div>
+  </div>
+
+</div>
+
+<script type="module">
+/* ==========================================================================
+   Setup self-check.
+
+   Runs the same calls the real pages make, against the live Firebase project,
+   and reports what a visitor can and cannot do. Everything here is read-only
+   unless the user presses the write-test button.
+   ========================================================================== */
+
+const rows = {};
+
+function row(group, id, title) {
+  const el = document.createElement("div");
+  el.className = "row";
+  el.innerHTML = `<span class="pill p-run">…</span>
+    <span class="row__body"><span class="row__title"></span><div class="row__note"></div></span>`;
+  el.querySelector(".row__title").textContent = title;
+  document.getElementById(group).appendChild(el);
+  rows[id] = el;
+  return el;
+}
+
+function set(id, state, note) {
+  const el = rows[id];
+  if (!el) return;
+  const pill = el.querySelector(".pill");
+  const map = { ok: ["p-ok", "PASS"], fail: ["p-fail", "FAIL"], warn: ["p-warn", "DEKHEIN"], skip: ["p-skip", "SKIP"] };
+  const [cls, label] = map[state] || ["p-run", "…"];
+  pill.className = `pill ${cls}`;
+  pill.textContent = label;
+  el.querySelector(".row__note").innerHTML = note || "";
+  el.dataset.state = state;
+}
+
+function tally() {
+  const all = Object.values(rows).filter((r) => r.dataset.state);
+  const pass = all.filter((r) => r.dataset.state === "ok").length;
+  const fail = all.filter((r) => r.dataset.state === "fail").length;
+  const warn = all.filter((r) => r.dataset.state === "warn").length;
+  const box = document.getElementById("score");
+  box.innerHTML = fail
+    ? `<b style="color:var(--danger-ink)">${fail}</b><span>cheez theek karni hai — neeche laal wale dekhein</span>`
+    : warn
+      ? `<b style="color:var(--warning-ink)">${warn}</b><span>dhyan dene layak · baaki ${pass} check pass</span>`
+      : `<b style="color:var(--success-ink)">${pass}/${all.length}</b><span>sab theek hai — setup poora ho gaya</span>`;
+}
+
+/* Firestore rejects with code "permission-denied". Anything else is a real
+   problem (no network, wrong project, service not enabled…). */
+const denied = (e) => e && (e.code === "permission-denied" || /permission/i.test(e.message || ""));
+
+const g = (label) => `<code>${label}</code>`;
+
+(async () => {
+  /* ---------------------------------------------------------- 1. connection */
+  row("gConnect", "cfg", "Firebase keys file me padi hain");
+  row("gConnect", "sdk", "Firebase SDK load ho raha hai");
+  row("gConnect", "auth", "Authentication service chalu hai");
+  row("gConnect", "store", "Storage (file upload) chalu hai");
+
+  let cfg, initMod;
+  try {
+    cfg = await import("./firebase/firebase-config.js");
+    if (!cfg.isFirebaseConfigured) {
+      set("cfg", "fail", "Keys abhi bhi <code>PASTE_…</code> hain. docs/FIREBASE-SETUP.md ka Step 3 dekhein.");
+      tally(); return;
+    }
+    set("cfg", "ok", `Project: ${g(cfg.firebaseConfig.projectId)}`);
+  } catch (e) {
+    set("cfg", "fail", `firebase-config.js load nahi hui — ${e.message}`);
+    tally(); return;
+  }
+
+  try {
+    initMod = await import("./firebase/firebase-init.js");
+    set("sdk", "ok", `Version ${g(cfg.FIREBASE_SDK_VERSION)} · CDN se load ho gaya`);
+  } catch (e) {
+    set("sdk", "fail",
+      "SDK load nahi hua. Do wajah ho sakti hain: (1) page <code>file://</code> se khula hai — " +
+      "VS Code me <strong>Go Live</strong> se kholein; ya (2) internet nahi hai / gstatic.com block hai.");
+    tally(); return;
+  }
+
+  try {
+    const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js");
+    await new Promise((res) => onAuthStateChanged(initMod.auth, () => res(), () => res()));
+    const who = initMod.auth.currentUser;
+    set("auth", "ok", who ? `Abhi logged in: ${g(who.email)}` : "Service chalu hai (abhi koi logged in nahi)");
+  } catch (e) {
+    set("auth", "fail", `Authentication reachable nahi — ${e.message}`);
+  }
+
+  try {
+    const { ref, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js");
+    await getDownloadURL(ref(initMod.storage, "__setup_check__/nothing.txt"));
+    set("store", "ok", "Storage enable hai — file upload chalega");
+  } catch (e) {
+    const c = e?.code || "";
+    if (c === "storage/object-not-found") set("store", "ok", "Storage enable hai — file upload chalega");
+    else if (c === "storage/unauthorized") set("store", "ok", "Storage enable hai (rules lage hue hain)");
+    else set("store", "warn",
+      "Storage enable nahi hai — free Spark plan par milta hi nahi. Site chalti rahegi, " +
+      "sirf photo/document upload band rahega (admission form WhatsApp par bhejne ko keh dega). " +
+      `Code: ${g(c || e.message)}`);
+  }
+
+  const { getFirestore, collection, doc, getDoc, getDocs, query, where, limit } =
+    await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+  const db = initMod.db;
+
+  const tryRead = async (fn) => {
+    try { const snap = await fn(); return { ok: true, snap }; }
+    catch (e) { return { ok: false, err: e }; }
+  };
+
+  /* ------------------------------------------------------------- 2. public */
+  row("gPublic", "settings", "Institute settings padh sakte hain");
+  row("gPublic", "batches", "Batches padh sakte hain (admission form ka picker)");
+  row("gPublic", "counters", "ID counters padh sakte hain (application number)");
+
+  for (const [id, label, run] of [
+    ["settings", "settings/institute", () => getDoc(doc(db, "settings", "institute"))],
+    ["batches", "batches", () => getDocs(query(collection(db, "batches"), limit(1)))],
+    ["counters", "counters", () => getDocs(query(collection(db, "counters"), limit(1)))]
+  ]) {
+    const r = await tryRead(run);
+    if (r.ok) set(id, "ok", `${g(label)} khula hai — jaisa hona chahiye`);
+    else set(id, "fail", denied(r.err)
+      ? `${g(label)} block ho raha hai. Rules publish hue? <code>firebase/firestore.rules</code> dobara paste karein.`
+      : `${r.err.code || ""} ${r.err.message}`);
+  }
+
+  /* ----------------------------------------------------------- 3. security */
+  row("gSecurity", "sAdm", "Admissions kisi ko dikhni nahi chahiye");
+  row("gSecurity", "sUsers", "Users list kisi ko dikhni nahi chahiye");
+  row("gSecurity", "sStud", "Students list kisi ko dikhni nahi chahiye");
+  row("gSecurity", "sFees", "Fees kisi ko dikhni nahi chahiye");
+  row("gSecurity", "sCert", "Certificates list kisi ko dikhni nahi chahiye");
+
+  for (const [id, coll] of [
+    ["sAdm", "admissions"], ["sUsers", "users"], ["sStud", "students"],
+    ["sFees", "fees"], ["sCert", "certificates"]
+  ]) {
+    const r = await tryRead(() => getDocs(query(collection(db, coll), limit(1))));
+    if (!r.ok && denied(r.err)) set(id, "ok", `${g(coll)} bahar se band hai — bilkul sahi`);
+    else if (r.ok) set(id, "fail",
+      `<strong>Khatra:</strong> ${g(coll)} bina login ke padhi jaa sakti hai. ` +
+      `Rules publish nahi hue, ya test-mode rules lage hain. Turant ` +
+      `<code>firebase/firestore.rules</code> paste karke Publish karein.`);
+    else set(id, "warn", `${r.err.code || ""} ${r.err.message}`);
+  }
+
+  /* -------------------------------------------------------------- 4. rules */
+  row("gRules", "rev", "Reviews query (naye rules ki pehchaan)");
+  row("gRules", "blog", "Blog query (published articles)");
+  row("gRules", "codes", "Certificate verify lookup");
+
+  const rev = await tryRead(() =>
+    getDocs(query(collection(db, "reviews"), where("isApproved", "==", true), limit(1))));
+  set("rev", rev.ok ? "ok" : "fail", rev.ok
+    ? "Naye rules live hain — home page ke reviews chalenge"
+    : denied(rev.err)
+      ? "<strong>Purane rules chal rahe hain.</strong> Ye query <code>isApproved</code> par filter karti hai " +
+        "par rules me <code>isPublished</code> likha tha. Nayi <code>firebase/firestore.rules</code> " +
+        "paste karke Publish karein."
+      : `${rev.err.code || ""} ${rev.err.message}`);
+
+  const blog = await tryRead(() =>
+    getDocs(query(collection(db, "blog"), where("isPublished", "==", true), limit(1))));
+  set("blog", blog.ok ? "ok" : "fail", blog.ok
+    ? "Blog query chal rahi hai"
+    : denied(blog.err) ? "Blog rules purane hain — nayi rules file publish karein."
+                       : `${blog.err.code || ""} ${blog.err.message}`);
+
+  /* NOTE: never use an id shaped like __x__ here — Firestore reserves that
+     pattern and rejects it with "incomplete key" before the rules even run. */
+  const codes = await tryRead(() => getDoc(doc(db, "certificateCodes", "SETUP-CHECK-NONE")));
+  set("codes", codes.ok ? "ok" : "fail", codes.ok
+    ? "Verify lookup khula hai — certificate verification chalegi"
+    : denied(codes.err)
+      ? "<code>certificateCodes</code> rule missing hai — nayi rules file publish karein."
+      : `${codes.err.code || ""} ${codes.err.message}`);
+
+  tally();
+
+  /* ---------------------------------------------------- 5. optional write */
+  document.getElementById("btnWrite").addEventListener("click", async (e) => {
+    e.target.disabled = true;
+    e.target.textContent = "Chal raha hai…";
+    document.getElementById("gWriteWrap").hidden = false;
+
+    row("gWrite", "wUp", "Photo upload ho raha hai (Storage)");
+    row("gWrite", "wSeq", "Application number ban raha hai (counter)");
+    row("gWrite", "wApp", "Test application save ho rahi hai");
+    row("gWrite", "wEnq", "Test enquiry save ho rahi hai");
+
+    /* Real upload to the exact path the admission form uses, so the error
+       code here is the same one a student would hit. */
+    try {
+      const { ref, uploadBytes, deleteObject } =
+        await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js");
+      // 1x1 transparent PNG
+      const png = Uint8Array.from(atob(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+      ), (c) => c.charCodeAt(0));
+      const path = "admissions/SETUP-CHECK/photo.jpg";
+      const r = ref(initMod.storage, path);
+      await uploadBytes(r, png, { contentType: "image/jpeg" });
+      set("wUp", "ok", `Upload chal gaya: ${g(path)} — admission form ki photo ab save hogi.`);
+      deleteObject(r).catch(() => {});
+    } catch (err) {
+      const c = err?.code || "";
+      set("wUp", "fail",
+        c === "storage/unauthorized"
+          ? "Storage rules block kar rahe hain. <strong>Storage -> Rules</strong> me check karein ki paanchvi line par " +
+            "<code>service firebase.storage</code> likha ho, aur <strong>Publish</strong> dabaya gaya ho."
+          : c === "storage/unknown" || c === "storage/retry-limit-exceeded"
+            ? "Storage tak pahunch nahi ban rahi — bucket enable hua? Internet theek hai?"
+            : `${c} — ${err.message}`);
+    }
+
+    let appNo = "";
+    try {
+      const { nextSequence, createWithId, create } = await import("./firebase/db-service.js");
+      const year = new Date().getFullYear();
+
+      try {
+        const seq = await nextSequence(`admissions-${year}`);
+        appNo = `SSZ/APP/${year}/${String(seq).padStart(4, "0")}`;
+        set("wSeq", "ok", `Mila: ${g(appNo)}`);
+      } catch (err) {
+        set("wSeq", "fail", denied(err)
+          ? "Counter block ho raha hai — rules me <code>counters</code> ka naya version chahiye " +
+            `(naam ${g("admissions-" + year)} hota hai). Nayi rules file publish karein.`
+          : `${err.code || ""} ${err.message}`);
+        tally(); return;
+      }
+
+      try {
+        await createWithId("admissions", appNo.replace(/\//g, "-"), {
+          applicationNo: appNo,
+          fullName: "SETUP TEST — delete kar dein",
+          fatherName: "Test", motherName: "Test",
+          mobile: "9999999999", whatsapp: "9999999999", email: "",
+          dob: "2000-01-01", gender: "male",
+          address: "Test", city: "Ara", pincode: "802301",
+          qualification: "Test",
+          courseId: "ai-dca", courseName: "AI Powered DCA",
+          courseFee: 0, admissionFee: 0,
+          batchPref: "morning", batchId: "",
+          photoURL: "", photoPath: "", documents: [], documentsPending: true,
+          status: "pending", isRead: false,
+          submittedOn: new Date().toISOString().slice(0, 10),
+          source: "setup-check"
+        });
+        set("wApp", "ok",
+          `Save ho gayi: ${g(appNo)} — admin dashboard me dikhni chahiye. ` +
+          `<strong>Test hai, baad me delete kar dein.</strong>`);
+      } catch (err) {
+        set("wApp", "fail", denied(err)
+          ? "Admission save block ho raha hai — <code>admissions</code> ka create rule dekhein."
+          : `${err.code || ""} ${err.message}`);
+      }
+
+      try {
+        await create("enquiries", {
+          name: "SETUP TEST — delete kar dein",
+          mobile: "9999999999", email: "", subject: "Setup check",
+          message: "Automatic test", isRead: false, source: "setup-check"
+        });
+        set("wEnq", "ok", "Enquiry save ho gayi — contact form chalega. Test hai, delete kar dein.");
+      } catch (err) {
+        set("wEnq", "fail", denied(err)
+          ? "Enquiry block ho rahi hai — <code>enquiries</code> ka create rule dekhein."
+          : `${err.code || ""} ${err.message}`);
+      }
+    } catch (err) {
+      set("wSeq", "fail", err.message);
+    }
+
+    e.target.textContent = "Write test ho gaya";
+    tally();
+  });
+})();
+</script>
+</body>
+</html>

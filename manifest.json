@@ -1,0 +1,72 @@
+{
+  "name": "Soft Skill Zone Institute",
+  "short_name": "Soft Skill Zone",
+  "description": "Learn Today. Lead Tomorrow. — Ara, Bihar ka AI-powered computer & commerce institute.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "images/logo/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/logo/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/logo/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Online Admission",
+      "short_name": "Admission",
+      "url": "pages/admission.html",
+      "icons": [
+        {
+          "src": "images/logo/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Student Dashboard",
+      "short_name": "Dashboard",
+      "url": "pages/student/dashboard.html",
+      "icons": [
+        {
+          "src": "images/logo/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Free Tools",
+      "short_name": "Tools",
+      "url": "pages/tools.html",
+      "icons": [
+        {
+          "src": "images/logo/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /check-setup.html
+Disallow: /cleanup.html
+Disallow: /pages/admin/
+Disallow: /pages/student/
+
+# Replace the host below with your real GitHub Pages / custom domain URL
+Sitemap: https://softskillzone.in/sitemap.xml

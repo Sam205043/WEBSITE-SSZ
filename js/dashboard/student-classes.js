@@ -1,0 +1,89 @@
+/* ==========================================================================
+   Soft Skill Zone — Student: Live Classes
+   JOIN LIVE CLASS opens the Google Meet link scheduled by the admin.
+   ========================================================================== */
+
+import { $, el, render } from "../core/dom.js";
+import { icon } from "../core/icons.js";
+import { formatDateTime, formatTime, timeAgo, toDate } from "../core/utils.js";
+import { initShell } from "./shell.js";
+import * as data from "./student-data.js";
+import { DEMO_STUDENT, DEMO_CLASSES } from "./demo-data.js";
+
+const isLive = (c) => {
+  const s = toDate(c.startsAt)?.getTime(), e = toDate(c.endsAt)?.getTime();
+  return s && e && s <= Date.now() && e >= Date.now() && c.status !== "cancelled";
+};
+
+function classCard(c, big = false) {
+  const live = isLive(c);
+  const past = toDate(c.endsAt)?.getTime() < Date.now();
+
+  if (big) {
+    return el("div", { class: "live-card" },
+      el("span", { class: "live-badge" }, "Live Now"),
+      el("h3", { style: { margin: ".9rem 0 .3rem", fontSize: "1.15rem" } }, c.title),
+      el("p", { style: { margin: "0 0 .35rem", fontSize: ".88rem" } }, c.topic || ""),
+      el("p", { style: { margin: "0 0 1.25rem", fontSize: ".82rem" } },
+        `${formatTime(c.startsAt)} – ${formatTime(c.endsAt)} · ${c.facultyName || ""}`),
+      el("a", {
+        class: "btn-ssz btn-lg-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" },
+        href: c.meetLink, target: "_blank", rel: "noopener"
+      }, "JOIN LIVE CLASS", el("span", { html: icon("externalLink", { size: 17 }) }))
+    );
+  }
+
+  return el("div", { class: "card-ssz" }, el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" } },
+    el("span", {
+      class: "stat-tile__icon",
+      style: { background: past ? "var(--bg-surface-2)" : "var(--brand-soft)", color: past ? "var(--text-muted)" : "var(--brand)" },
+      html: icon("video", { size: 22 })
+    }),
+    el("span", { style: { flex: 1, minWidth: "200px" } },
+      el("strong", { style: { display: "block", fontSize: ".95rem" } }, c.title),
+      el("span", { style: { fontSize: ".8rem", color: "var(--text-muted)" } },
+        `${formatDateTime(c.startsAt)} · ${c.facultyName || ""}${c.topic ? ` · ${c.topic}` : ""}`)
+    ),
+    past
+      ? (c.recordingURL
+          ? el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: c.recordingURL, target: "_blank", rel: "noopener" }, "Recording dekhein")
+          : el("span", { class: "badge-ssz" }, `Ended ${timeAgo(c.endsAt)}`))
+      : el("a", {
+          class: `btn-ssz btn-sm-ssz ${live ? "btn-primary-ssz" : "btn-secondary-ssz"}`,
+          href: c.meetLink, target: "_blank", rel: "noopener"
+        }, live ? "JOIN NOW" : "Meet Link")
+  ));
+}
+
+function emptyBox(target, msg) {
+  render($(target), el("div", { class: "card-ssz" }, el("div", { class: "card-ssz__body" },
+    el("p", { style: { margin: 0, fontSize: ".88rem", color: "var(--text-muted)" } }, msg))));
+}
+
+/* ---------------- boot ---------------- */
+const { user, mode } = await initShell({ active: "classes", title: "Live Classes" });
+
+let classes;
+if (mode === "preview") {
+  classes = [...DEMO_CLASSES];
+} else {
+  const student = await data.getStudent(user);
+  classes = student ? await data.getClasses(student) : [];
+}
+
+const liveNow = classes.filter(isLive);
+const upcoming = classes
+  .filter((c) => !isLive(c) && toDate(c.startsAt)?.getTime() > Date.now() && c.status !== "cancelled")
+  .sort((a, b) => toDate(a.startsAt) - toDate(b.startsAt));
+const past = classes
+  .filter((c) => toDate(c.endsAt)?.getTime() < Date.now())
+  .sort((a, b) => toDate(b.startsAt) - toDate(a.startsAt));
+
+if (liveNow.length) render($("#liveNow"), classCard(liveNow[0], true));
+else $("#liveNow").remove();
+
+if (upcoming.length) render($("#upcomingList"), upcoming.map((c) => classCard(c)));
+else emptyBox("#upcomingList", "Abhi koi class scheduled nahi hai. Nayi class lagte hi notification aayegi.");
+
+if (past.length) render($("#pastList"), past.slice(0, 10).map((c) => classCard(c)));
+else emptyBox("#pastList", "Abhi tak koi class nahi hui.");

@@ -65,10 +65,29 @@ $("#noteSearch").addEventListener("input", debounce((e) => { term = e.target.val
 on($("#noteList"), "click", "[data-dl]", async (e, btn) => {
   const n = notes.find((x) => x.id === btn.dataset.dl);
   if (!n) return;
-  if (mode === "preview" || !n.fileURL || n.fileURL === "#") {
+  const hasFile = n.filePath || (n.fileURL && n.fileURL !== "#");
+  if (mode === "preview" || !hasFile) {
     toast.info("Preview mode: asli file Firebase connect hone ke baad download hogi.");
     return;
   }
+
+  /* The link is asked for here rather than kept inside the note, so Storage
+     rules check the reader before one is handed out. Older notes still carry
+     a fileURL — those keep working. */
+  let url = n.fileURL;
+  if (n.filePath) {
+    btn.disabled = true;
+    try {
+      const { urlForPath } = await import("../../firebase/storage-service.js");
+      url = await urlForPath(n.filePath);
+    } catch (err) {
+      toast.error(err.message || "File nahi khul payi — dobara login karke try karein.");
+      return;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   data.bumpNoteDownloads(n.id);
-  window.open(n.fileURL, "_blank", "noopener");
+  window.open(url, "_blank", "noopener");
 });

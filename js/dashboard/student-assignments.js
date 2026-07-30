@@ -52,8 +52,10 @@ function card(a) {
     el("p", { style: { fontSize: ".78rem", color: "var(--text-muted)", marginBottom: "1rem" } },
       `Due: ${formatDateTime(a.dueDate)} · ${a.totalMarks} marks${s ? ` · Submitted: ${formatDate(s.submittedAt)}` : ""}`),
 
-    a.fileURL ? el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: a.fileURL, target: "_blank", rel: "noopener", style: { marginRight: ".5rem" } },
-      el("span", { html: icon("download", { size: 16 }) }), a.fileName || "Question file") : null,
+    (a.filePath || a.fileURL) ? el("button", {
+      class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button",
+      dataset: { openAsg: a.id }, style: { marginRight: ".5rem" }
+    }, el("span", { html: icon("download", { size: 16 }) }), a.fileName || "Question file") : null,
 
     s?.feedback ? el("div", {
       style: { marginTop: ".75rem", padding: ".75rem 1rem", borderRadius: "var(--r-sm)", background: "var(--bg-surface-2)", fontSize: ".82rem" }
@@ -134,6 +136,28 @@ on($("#asgFilters"), "click", ".chip", (e, chip) => {
   filter = chip.dataset.f;
   paintFilters();
   paint();
+});
+
+/* Question papers are stored by path, not by download URL — ask for the link
+   only when it is clicked, so Storage rules check the reader first. Older
+   assignments still carry a fileURL and keep working. */
+on($("#asgList"), "click", "[data-openAsg]", async (e, btn) => {
+  const a = assignments.find((x) => x.id === btn.dataset.openAsg);
+  if (!a) return;
+  let url = a.fileURL;
+  if (a.filePath) {
+    btn.disabled = true;
+    try {
+      const { urlForPath } = await import("../../firebase/storage-service.js");
+      url = await urlForPath(a.filePath);
+    } catch (err) {
+      toast.error(err.message || "File nahi khul payi — dobara login karke try karein.");
+      return;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  if (url) window.open(url, "_blank", "noopener");
 });
 
 on($("#asgList"), "click", "[data-pick]", (e, btn) => {

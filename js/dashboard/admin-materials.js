@@ -116,7 +116,7 @@ function asgForm() {
       courseId: batch?.courseId || "",
       totalMarks: Number(form.elements.totalMarks.value) || 10,
       dueDate: new Date(form.elements.dueDate.value),
-      fileURL: "", fileName: ""
+      filePath: "", fileURL: "", fileName: ""
     };
     const file = form.elements.file.files[0];
     if (file) {
@@ -137,9 +137,12 @@ function asgForm() {
       const id = await create(COLLECTIONS.ASSIGNMENTS, data);
       if (file) {
         const { uploadFile } = await import("../../firebase/storage-service.js");
-        const up = await uploadFile(file, STORAGE_PATHS.assignments(id), { kind: "material" });
-        await update(COLLECTIONS.ASSIGNMENTS, id, { fileURL: up.url, fileName: file.name });
-        data.fileURL = up.url; data.fileName = file.name;
+        // Path only — see the note on the notes upload below.
+        const up = await uploadFile(file, STORAGE_PATHS.assignments(id), {
+          kind: "material", skipUrl: true
+        });
+        await update(COLLECTIONS.ASSIGNMENTS, id, { filePath: up.path, fileName: file.name });
+        data.filePath = up.path; data.fileName = file.name;
       }
       assignments.unshift({ id, ...data });
       m.close(); paintTabs(); paintAsg();
@@ -218,7 +221,9 @@ function noteRow(n) {
         el("strong", { style: { display: "block", fontSize: ".93rem" } }, n.title),
         el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
           `${COURSES.find((c) => c.id === n.courseId)?.shortTitle || n.courseId} · ${formatBytes(n.fileSize || 0)} · ${n.downloads || 0} downloads`)),
-      n.fileURL && n.fileURL !== "#" ? el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: n.fileURL, target: "_blank", rel: "noopener" }, "File") : null,
+      (n.filePath || (n.fileURL && n.fileURL !== "#"))
+        ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { openNote: n.id } }, "File")
+        : null,
       el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delNote: n.id } }, "Delete")
     ));
 }
@@ -279,7 +284,7 @@ function noteForm() {
       description: form.elements.description.value.trim(),
       courseId: cSel.value,
       fileName: file.name, fileType: file.type, fileSize: file.size,
-      fileURL: "", downloads: 0, isPublic: false
+      filePath: "", fileURL: "", downloads: 0, isPublic: false
     };
 
     if (mode === "preview") {
@@ -293,8 +298,14 @@ function noteForm() {
       saveBtn.disabled = true;
       const { uploadFile } = await import("../../firebase/storage-service.js");
       const { create } = await import("../../firebase/db-service.js");
-      const up = await uploadFile(file, STORAGE_PATHS.notes(cSel.value), { kind: "material" });
-      data.fileURL = up.url;
+      // Store the path, not the download URL. A Storage URL carries its own
+      // token and opens for anyone holding the link — sitting in the database
+      // it made the file effectively public. The URL is fetched on demand
+      // instead, so Storage rules get to check the reader first.
+      const up = await uploadFile(file, STORAGE_PATHS.notes(cSel.value), {
+        kind: "material", skipUrl: true
+      });
+      data.filePath = up.path;
       const id = await create(COLLECTIONS.NOTES, data);
       notes.unshift({ id, ...data });
       m.close(); paintTabs(); paintNotes();
@@ -351,6 +362,26 @@ on($("#asgAdminList"), "click", "[data-delAsg]", async (e, btn) => {
   paintTabs(); paintAsg();
   toast.success("Delete ho gaya.");
 });
+/* The download URL is not kept in the document any more, so resolve it at the
+   moment it is asked for. Older notes still carry fileURL — use that. */
+on($("#noteAdminList"), "click", "[data-openNote]", async (e, btn) => {
+  const n = notes.find((x) => x.id === btn.dataset.openNote);
+  if (!n) return;
+  if (n.filePath) {
+    btn.disabled = true;
+    try {
+      const { urlForPath } = await import("../../firebase/storage-service.js");
+      window.open(await urlForPath(n.filePath), "_blank", "noopener");
+    } catch (err) {
+      toast.error(err.message || "File nahi khul payi.");
+    } finally {
+      btn.disabled = false;
+    }
+    return;
+  }
+  window.open(n.fileURL, "_blank", "noopener");
+});
+
 on($("#noteAdminList"), "click", "[data-delNote]", async (e, btn) => {
   const n = notes.find((x) => x.id === btn.dataset.delNote);
   if (!n) return;

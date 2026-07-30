@@ -127,8 +127,12 @@ export async function downloadWatermarked(url, fileName, label, onProgress = () 
   const pdf = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false });
   const font = await pdf.embedFont(StandardFonts.Helvetica);
 
+  /* The institute name is deliberately absent: every page already carries it
+     in the header, the footer and the book's own watermark. Repeating it a
+     fourth time only made the page look busy. What has to be here is the one
+     thing the book does not already say — who this copy belongs to. */
   const diagonalText = `${label}`;
-  const footText = `Soft Skill Zone Institute, Ara · ${label} ke liye jaari · sirf personal study ke liye`;
+  const footText = `${label} ke liye jaari · sirf personal study ke liye`;
 
   const pages = pdf.getPages();
   for (let i = 0; i < pages.length; i++) {

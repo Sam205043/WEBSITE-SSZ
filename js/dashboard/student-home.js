@@ -112,10 +112,24 @@ if (mode === "preview") {
     ));
     throw new Error("no-student-record");
   }
-  [classes, attendance, assignments, submissions, notifications] = await Promise.all([
-    data.getClasses(student), data.getAttendance(student), data.getAssignments(student),
-    data.getSubmissions(student), data.getNotifications(student)
-  ]);
+  /* Settled, not all — this is the first screen a student sees, and one
+     unlucky query (a rule change, a cold index) must not blank the page.
+     A section that fails to load simply renders empty. */
+  const loaders = [
+    ["classes",       data.getClasses(student)],
+    ["attendance",    data.getAttendance(student)],
+    ["assignments",   data.getAssignments(student)],
+    ["submissions",   data.getSubmissions(student)],
+    ["notifications", data.getNotifications(student)]
+  ];
+  const settled = await Promise.allSettled(loaders.map(([, p]) => p));
+  settled.forEach((r, i) => {
+    if (r.status === "rejected") {
+      console.error(`[dashboard] ${loaders[i][0]} load nahi hua:`, r.reason);
+    }
+  });
+  [classes, attendance, assignments, submissions, notifications] =
+    settled.map((r) => (r.status === "fulfilled" ? r.value : []));
 }
 
 /* stats */

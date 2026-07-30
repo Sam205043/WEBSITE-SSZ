@@ -47,6 +47,43 @@ render($("#profileInfo"),
     "Naam, course ya batch me sudhaar ke liye institute office se sampark karein — yeh records admin hi badal sakta hai.")
 );
 
+/* ==========================================================================
+   Link a Student ID — only when this account has no student record yet.
+
+   A student can sign up before the admin approves their admission, so the
+   login exists while students/{id} does not. Without this box they would be
+   stuck on the "record abhi link nahi hua" screen forever, and the admin would
+   have to patch Firestore by hand.
+   ========================================================================== */
+if (mode !== "preview" && !student) {
+  const section = $("#linkIdSection");
+  section.hidden = false;
+
+  const idForm = $("#linkIdForm");
+  const idv = createValidator(idForm, {
+    studentId: [
+      rules.required("Student ID daalein."),
+      rules.minLen(6, "Student ID poora daalein — jaise SSZ2026PYT0001.")
+    ]
+  });
+
+  idForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!idv.validate()) return;
+
+    await withButton($("#linkIdSave"), async () => {
+      try {
+        const { claimStudentId } = await import("../../firebase/auth-service.js");
+        await claimStudentId(idForm.elements.studentId.value);
+        toast.success("ID jud gaya! Dashboard khol raha hoon…");
+        setTimeout(() => location.reload(), 900);
+      } catch (err) {
+        toast.error(err.message || "ID nahi jud paya.");
+      }
+    });
+  });
+}
+
 /* contact form */
 const form = $("#profileForm");
 form.elements.name.value = user.name || "";

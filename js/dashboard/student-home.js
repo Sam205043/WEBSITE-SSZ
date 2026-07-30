@@ -98,11 +98,17 @@ if (mode === "preview") {
 } else {
   student = await data.getStudent(user);
   if (!student) {
+    /* Two different people land here, so offer both doors:
+       - already admitted, has a Student ID → link it on the profile page
+       - not admitted yet → fill the admission form */
     render($("#dashBody"), el("div", { class: "empty-state" },
       el("div", { class: "empty-state__icon", html: icon("user", { size: 32 }) }),
       el("h2", {}, "Student record abhi link nahi hua"),
-      el("p", {}, "Aapka account ban gaya hai, par admin ne abhi ise kisi admission se joda nahi hai. Institute se sampark karein ya admission form bharein."),
-      el("a", { class: "btn-ssz btn-primary-ssz", style: { marginTop: "1.25rem" }, href: url("admission") }, "Online Admission")
+      el("p", {}, "Aapka account ban gaya hai, par ye abhi kisi admission se juda nahi hai. Agar institute se Student ID mil chuka hai to niche se jod lein — warna pehle admission form bharein."),
+      el("div", { class: "cluster", style: { marginTop: "1.25rem", justifyContent: "center", gap: ".75rem", flexWrap: "wrap" } },
+        el("a", { class: "btn-ssz btn-primary-ssz", href: url("studentProfile") }, "Student ID Jodein"),
+        el("a", { class: "btn-ssz btn-secondary-ssz", href: url("admission") }, "Online Admission")
+      )
     ));
     throw new Error("no-student-record");
   }

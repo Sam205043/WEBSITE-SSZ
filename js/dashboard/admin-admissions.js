@@ -194,7 +194,10 @@ async function approve(a, modal) {
       admissionId: a.id,
       fullName: a.fullName, fatherName: a.fatherName, motherName: a.motherName,
       dob: a.dob, gender: a.gender,
-      mobile: a.mobile, whatsapp: a.whatsapp, email: a.email || "",
+      mobile: a.mobile, whatsapp: a.whatsapp,
+      // Lower-cased so it matches the Firebase Auth email when the student
+      // links this record to their login. Older admissions may hold mixed case.
+      email: (a.email || "").trim().toLowerCase(),
       address: `${a.address}, ${a.city} - ${a.pincode}`,
       qualification: a.qualification,
       courseId: a.courseId, courseName: a.courseName,

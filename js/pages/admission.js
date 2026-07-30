@@ -478,6 +478,11 @@ async function submit() {
   ["fullName", "fatherName", "motherName", "dob", "mobile", "whatsapp", "email",
    "address", "city", "pincode", "qualification"].forEach((n) => { data[n] = form.elements[n].value.trim(); });
 
+  /* Store the email lower-cased. Firebase Auth hands back a lower-cased
+     address, and the rule that links a Student ID compares the two literally —
+     so "Soft@Gmail.com" typed here would silently never match the login. */
+  data.email = data.email.toLowerCase();
+
   let configured = false;
   try {
     const cfg = await import("../../firebase/firebase-config.js");
@@ -587,7 +592,10 @@ onReady(() => {
     dob:        [rules.required("Janm tithi chunein."), rules.date(), rules.notFuture(), rules.ageRange(8, 70)],
     mobile:     [rules.required(), rules.mobile()],
     whatsapp:   [rules.required("WhatsApp number daalein."), rules.mobile()],
-    email:      [rules.email()],
+    /* Required, not optional: this email is what later links the admission to
+       the student's dashboard login. Blank here means that student can never
+       open their own dashboard without an admin fixing it by hand. */
+    email:      [rules.required("Email daalein — dashboard login isi se judega."), rules.email()],
     address:    [rules.required(), rules.minLen(10, "Poora pata likhein.")],
     city:       [rules.required()],
     pincode:    [rules.required(), rules.pincode()],

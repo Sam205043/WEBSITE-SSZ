@@ -123,6 +123,30 @@ export async function deleteFile(fullPath) {
   }
 }
 
+/**
+ * Resolve a stored file path into a download URL, at the moment it is needed.
+ *
+ * Study material used to keep its download URL inside the Firestore document.
+ * A Firebase Storage download URL carries its own token and works for anyone
+ * who has the link — forever, signed in or not. Sitting in the database, that
+ * link was readable by every signed-in user and forwardable to anyone at all.
+ *
+ * Storing only the path and asking for the URL here means Storage rules run
+ * first, so a signed-out visitor gets nothing. (Once a logged-in student has
+ * the link they can still forward it — killing that needs a per-student
+ * watermark or a server; this closes the open door, not every window.)
+ *
+ * @param {string} path e.g. "notes/ai-dca/book.pdf"
+ */
+export async function urlForPath(path) {
+  if (!path) throw new Error("File ka path nahi mila.");
+  try {
+    return await getDownloadURL(storageRef(storage, path));
+  } catch (err) {
+    throw new Error(storageError(err));
+  }
+}
+
 export async function listFolder(path) {
   const res = await listAll(storageRef(storage, path));
   return Promise.all(res.items.map(async (item) => {

@@ -181,6 +181,47 @@ export async function changePassword(currentPassword, newPassword) {
   await updatePassword(fbUser, newPassword);
 }
 
+/**
+ * Attach a Student ID to the signed-in account, after signup.
+ *
+ * Needed because a student may create their login BEFORE the admin approves
+ * their admission — at that moment there is no students/{id} record to point
+ * at, so the account sits unlinked and every dashboard page shows the
+ * "record abhi link nahi hua" empty state. This lets them link it themselves
+ * later, without the admin editing Firestore by hand.
+ *
+ * Safe by construction: the security rule only allows this when
+ * students/{studentId}.email equals the caller's own email, so nobody can
+ * claim somebody else's ID and read their fees. That same rule also demands
+ * `studentId` be the ONLY changed field — which is why this deliberately does
+ * NOT stamp updatedAt the way updateUserProfile() does.
+ *
+ * @param {string} studentId e.g. "SSZ2026PYT0001"
+ */
+export async function claimStudentId(studentId) {
+  const fbUser = auth.currentUser;
+  if (!fbUser) throw new Error("Pehle login karein.");
+
+  const id = String(studentId || "").trim().toUpperCase();
+  if (!id) throw new Error("Student ID daalein.");
+
+  try {
+    await updateDoc(doc(db, COLLECTIONS.USERS, fbUser.uid), { studentId: id });
+  } catch (err) {
+    if (err?.code === "permission-denied") {
+      throw new Error(
+        "Ye Student ID is email se match nahi karta. Dekhein ki ID sahi hai aur " +
+        "wahi email use ho raha hai jo admission form me diya tha."
+      );
+    }
+    throw err;
+  }
+
+  currentUser = await loadProfile(fbUser);
+  emit();
+  return currentUser;
+}
+
 /** Patch the users/{uid} document and refresh the cached session object. */
 export async function updateUserProfile(patch) {
   const fbUser = auth.currentUser;

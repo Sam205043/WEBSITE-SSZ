@@ -87,16 +87,19 @@ service cloud.firestore {
                 .hasAny(['role', 'status', 'studentId']);
     }
 
-    /* A login may claim a Student ID at signup ONLY if the student record the
-       admin created carries the same email address. Without this, anyone
-       could type someone else's Student ID and read their fees. */
+    /* A login may claim a Student ID ONLY if the student record the admin
+       created carries the same email address. Without this, anyone could type
+       someone else's Student ID and read their fees.
+       Compared lower-cased on both sides: the admission form may have been
+       filled in as "Soft@Gmail.com" while Firebase Auth stores the address
+       lower-cased, and a case difference is not a different person. */
     function mayClaimStudentId() {
       return request.resource.data.get('studentId', '') == ''
         || (
              request.auth.token.email != null
              && exists(/databases/$(database)/documents/students/$(request.resource.data.studentId))
              && get(/databases/$(database)/documents/students/$(request.resource.data.studentId))
-                  .data.get('email', '') == request.auth.token.email
+                  .data.get('email', '').lower() == request.auth.token.email.lower()
            );
     }
 

@@ -47,6 +47,35 @@ document.documentElement.style.colorScheme=t;})();
           </div>
         </section>
         <div class="stack" style="gap:1.5rem">
+          <!-- Shown only when the account has no linked student record yet.
+               js/dashboard/student-profile.js unhides it. -->
+          <section class="dash-section" id="linkIdSection" hidden>
+            <div class="card-ssz has-accent">
+              <div class="card-ssz__head"><h2 style="margin:0;font-size:1.15rem">Student ID Jodein</h2></div>
+              <div class="card-ssz__body">
+                <p style="font-size:.85rem;margin-bottom:1rem">
+                  Aapka account abhi kisi admission se juda nahi hai. Institute se mila
+                  <strong>Student ID</strong> daalein — jodne ke baad attendance, fees,
+                  assignments aur certificates sab dikhne lagenge.
+                </p>
+                <form id="linkIdForm" novalidate>
+                  <div class="field">
+                    <label class="field__label" for="linkId">Student ID</label>
+                    <input class="input-ssz" id="linkId" name="studentId" type="text"
+                           placeholder="SSZ2026PYT0001" autocomplete="off" spellcheck="false"
+                           style="text-transform:uppercase">
+                    <div class="field__error"></div>
+                    <p class="field__hint">
+                      Wahi email use ho raha ho jo admission form me diya tha — warna ID nahi judegi.
+                    </p>
+                  </div>
+                  <button class="btn-ssz btn-primary-ssz btn-block-ssz" type="submit" id="linkIdSave">
+                    ID Jodein
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
           <section class="dash-section">
             <div class="card-ssz">
               <div class="card-ssz__head"><h2 style="margin:0;font-size:1.15rem">Contact Update Karein</h2></div>

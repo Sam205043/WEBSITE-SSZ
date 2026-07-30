@@ -10,6 +10,7 @@ import { validateFile } from "../core/files.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_ASSIGNMENTS, DEMO_SUBMISSIONS, DEMO_STUDENT } from "./demo-data.js";
+import { deliver } from "./watermark.js";
 import toast from "../core/toast.js";
 
 let assignments = [], submissions = [], student = null, mode = "preview";
@@ -157,7 +158,7 @@ on($("#asgList"), "click", "[data-openAsg]", async (e, btn) => {
       btn.disabled = false;
     }
   }
-  if (url) window.open(url, "_blank", "noopener");
+  if (url) await deliver(btn, a, url, mode === "preview" ? null : student, shell.user);
 });
 
 on($("#asgList"), "click", "[data-pick]", (e, btn) => {

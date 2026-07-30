@@ -9,9 +9,10 @@ import { formatBytes } from "../core/files.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_NOTES } from "./demo-data.js";
+import { deliver } from "./watermark.js";
 import toast from "../core/toast.js";
 
-let notes = [], mode = "preview", term = "";
+let notes = [], mode = "preview", term = "", student = null;
 
 function card(n) {
   return el("div", { class: "card-ssz is-hoverable" }, el("div", { class: "card-ssz__body" },
@@ -54,7 +55,7 @@ mode = shell.mode;
 if (mode === "preview") {
   notes = [...DEMO_NOTES];
 } else {
-  const student = await data.getStudent(shell.user);
+  student = await data.getStudent(shell.user);
   notes = student ? await data.getNotes(student) : [];
 }
 
@@ -89,5 +90,5 @@ on($("#noteList"), "click", "[data-dl]", async (e, btn) => {
   }
 
   data.bumpNoteDownloads(n.id);
-  window.open(url, "_blank", "noopener");
+  await deliver(btn, n, url, student, shell.user);
 });

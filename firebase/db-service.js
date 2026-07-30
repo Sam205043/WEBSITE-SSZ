@@ -68,6 +68,63 @@ function buildQuery(path, opts = {}) {
 }
 
 /* ==========================================================================
+   Missing-index fallback
+   --------------------------------------------------------------------------
+   A Firestore query that filters on one field and sorts by another needs a
+   composite index. Until that index is built, the query throws
+   "failed-precondition" — and one such throw used to blank out a whole
+   dashboard page.
+
+   That is a bad trade for an institute this size. The data here is small
+   (one branch, hundreds of rows), so when the index is missing we simply
+   re-run the query without the sort and order the rows in the browser. The
+   page keeps working; the console prints the console link so the index can
+   be created later purely for speed.
+   ========================================================================== */
+
+/** Firestore Timestamp | Date | number | string -> something comparable. */
+function sortValue(v) {
+  if (v === undefined || v === null) return null;
+  if (typeof v.toMillis === "function") return v.toMillis();
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === "number" || typeof v === "boolean") return Number(v);
+  return String(v);
+}
+
+/** Sort rows the way Firestore would have. Missing fields sort first. */
+function sortRows(rows, orderByOpt) {
+  if (!orderByOpt) return rows;
+  const orders = Array.isArray(orderByOpt[0]) ? orderByOpt : [orderByOpt];
+  return [...rows].sort((a, b) => {
+    for (const [field, dir = "asc"] of orders) {
+      const av = sortValue(a[field]);
+      const bv = sortValue(b[field]);
+      if (av === bv) continue;
+      if (av === null) return dir === "desc" ? 1 : -1;
+      if (bv === null) return dir === "desc" ? -1 : 1;
+      return (av < bv ? -1 : 1) * (dir === "desc" ? -1 : 1);
+    }
+    return 0;
+  });
+}
+
+const warnedIndexes = new Set();
+function warnMissingIndex(path, err) {
+  if (warnedIndexes.has(path)) return;
+  warnedIndexes.add(path);
+  console.warn(
+    `[db] "${path}" ka composite index abhi nahi bana — browser me sort karke chala raha hoon. ` +
+    `Speed ke liye ye index bana lein:\n${err?.message || ""}`
+  );
+}
+
+const isMissingIndex = (err) => err?.code === "failed-precondition";
+
+/* Without the sort, `limit` would hand back an arbitrary slice rather than the
+   newest rows — so the fallback fetches a wider window, sorts, then trims. */
+const FALLBACK_WINDOW = 500;
+
+/* ==========================================================================
    Generic CRUD
    ========================================================================== */
 
@@ -87,8 +144,21 @@ export async function getMany(path, opts = {}) {
   const useCache = opts.useCache !== false && !opts.startAfter;
   if (useCache) { const c = cacheGet(key); if (c) return c; }
 
-  const snap = await getDocs(buildQuery(path, opts));
-  const rows = snap.docs.map(withId);
+  let rows;
+  try {
+    const snap = await getDocs(buildQuery(path, opts));
+    rows = snap.docs.map(withId);
+  } catch (err) {
+    // Pagination genuinely needs the index — a cursor is meaningless unsorted.
+    if (!isMissingIndex(err) || !opts.orderBy || opts.startAfter) throw err;
+    warnMissingIndex(path, err);
+    const snap = await getDocs(buildQuery(path, {
+      ...opts, orderBy: undefined, limit: FALLBACK_WINDOW
+    }));
+    rows = sortRows(snap.docs.map(withId), opts.orderBy);
+    if (opts.limit) rows = rows.slice(0, opts.limit);
+  }
+
   if (useCache) cacheSet(key, rows, opts.ttl);
   return rows;
 }
@@ -166,13 +236,40 @@ export async function batchWrite(ops) {
    Realtime
    ========================================================================== */
 
-/** Live list. cb(rows). Returns unsubscribe. */
+/**
+ * Live list. cb(rows). Returns unsubscribe.
+ *
+ * Same missing-index fallback as getMany: if the sorted listener is rejected,
+ * resubscribe unsorted and sort each snapshot in the browser, so realtime
+ * screens (the admissions inbox above all) keep updating.
+ */
 export function watchMany(path, opts, cb, onError) {
-  return onSnapshot(
-    buildQuery(path, opts),
-    (snap) => cb(snap.docs.map(withId)),
-    (err) => { console.error(`[db] watch ${path}:`, err); onError && onError(err); }
+  let stop = null;
+  let cancelled = false;
+
+  const subscribe = (queryOpts, sortLocally) => onSnapshot(
+    buildQuery(path, queryOpts),
+    (snap) => {
+      let rows = snap.docs.map(withId);
+      if (sortLocally) {
+        rows = sortRows(rows, opts.orderBy);
+        if (opts.limit) rows = rows.slice(0, opts.limit);
+      }
+      cb(rows);
+    },
+    (err) => {
+      if (!sortLocally && isMissingIndex(err) && opts.orderBy && !cancelled) {
+        warnMissingIndex(path, err);
+        stop = subscribe({ ...opts, orderBy: undefined, limit: FALLBACK_WINDOW }, true);
+        return;
+      }
+      console.error(`[db] watch ${path}:`, err);
+      onError && onError(err);
+    }
   );
+
+  stop = subscribe(opts, false);
+  return () => { cancelled = true; stop && stop(); };
 }
 
 /** Live single document. cb(docOrNull). Returns unsubscribe. */

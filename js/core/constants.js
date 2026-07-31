@@ -14,6 +14,9 @@ export const COLLECTIONS = Object.freeze({
   ATTENDANCE:    "attendance",
   LIVE_CLASSES:  "liveClasses",
   ASSIGNMENTS:   "assignments",
+  // MCQ ke sahi jawab yahan rehte hain, assignment ke saath NAHI — warna
+  // student browser console se paper se pehle hi jawab dekh leta.
+  ASSIGNMENT_KEYS: "assignmentKeys",
   SUBMISSIONS:   "submissions",
   NOTES:         "notes",
   CERTIFICATES:  "certificates",

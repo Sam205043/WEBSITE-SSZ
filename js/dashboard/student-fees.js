@@ -121,6 +121,16 @@ async function upiQrDialog(upiId, pending) {
   );
   body.appendChild(chips);
 
+  /* Phone par ye sabse seedha raasta hai: dabate hi PhonePe/GPay/Paytm khud
+     khul jaati hai, amount aur reference bhare hue. QR sirf tab chahiye jab
+     student kisi doosre phone se scan kar raha ho — ya laptop par ho, jahan
+     upi:// link koi app nahi kholta. */
+  const payBtn = el("a", { class: "btn-ssz btn-primary-ssz btn-block-ssz", href: "#" },
+    el("span", { html: icon("wallet", { size: 18 }) }), "UPI app me pay karein");
+  body.appendChild(payBtn);
+  body.appendChild(el("p", { style: { margin: ".5rem 0 1.25rem", fontSize: ".76rem", color: "var(--text-muted)" } },
+    "App na khule to niche wala QR kisi bhi UPI app se scan kar lein."));
+
   const canvas = el("canvas", { style: { maxWidth: "100%", height: "auto", borderRadius: "8px" } });
   const holder = el("div", { style: { background: "#fff", padding: "16px", borderRadius: "12px", display: "inline-block" } }, canvas);
   body.appendChild(holder);
@@ -141,6 +151,10 @@ async function upiQrDialog(upiId, pending) {
   let failed = false;
   const redraw = async () => {
     const amt = Math.max(0, Math.round(Number(amtInput.value) || 0));
+    payBtn.href = upiPayload(upiId, amt);
+    payBtn.lastChild.textContent = amt > 0
+      ? ` ${money(amt)} pay karein`
+      : " UPI app me pay karein";
     caption.textContent = amt > 0
       ? `${money(amt)} · ${student.studentId || ""}`
       : `Amount app me daalein · ${student.studentId || ""}`;

@@ -151,8 +151,15 @@ service cloud.firestore {
       allow get: if isAdmin()
         || (hasStudentId() && studentId == myStudentId())
         || (isSignedIn() && resource.data.get('uid', '') == request.auth.uid);
+      // Aur teesra: signup/login ke baad app where("email","==",<apna email>)
+      // chalata hai taaki Student ID khud jud jaaye — student ko yaad rakh kar
+      // type na karni pade (SSZ2026ADC0004 vs SSZ2026ADCA0004 wali galti).
+      // Sirf apna hi record mil sakta hai: email ki tulna request.auth.token
+      // .email se hoti hai, jo login ka apna email hai aur badla nahi ja sakta.
       allow list: if isAdmin()
-        || (isSignedIn() && resource.data.uid == request.auth.uid);
+        || (isSignedIn() && resource.data.uid == request.auth.uid)
+        || (isSignedIn() && request.auth.token.email != null
+            && resource.data.email == request.auth.token.email);
       allow write: if isAdmin();
     }
 

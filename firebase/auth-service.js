@@ -16,7 +16,9 @@ import {
   signOut, sendPasswordResetEmail, updateProfile, updatePassword,
   reauthenticateWithCredential, EmailAuthProvider,
   setPersistence, browserLocalPersistence, browserSessionPersistence,
-  doc, getDoc, setDoc, updateDoc, serverTimestamp
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+  doc, getDoc, setDoc, updateDoc, serverTimestamp,
+  collection, query, where, limit, getDocs
 } from "./firebase-init.js";
 
 import { ROLES, COLLECTIONS, USER_STATUS } from "../js/core/constants.js";
@@ -86,6 +88,47 @@ onAuthStateChanged(auth, async (fbUser) => {
 });
 
 /* ==========================================================================
+   Student ID khud jodna
+   --------------------------------------------------------------------------
+   Pehle student ko apni Student ID yaad rakhni aur type karni padti thi. Wo
+   sabse zyada galtiyon wali jagah thi (SSZ2026ADCA0004 vs SSZ2026ADC0004).
+   Ab zaroorat nahi: admission form me email pehle se hai, isliye login ke
+   baad hum usi email se student ka record dhoondh lete hain.
+
+   Ye surakshit hai — rules sirf usi record ko dikhne dete hain jiska email
+   is login ke email se milta ho, isliye koi doosre ka record nahi utha sakta.
+   ========================================================================== */
+async function findStudentIdByEmail(email) {
+  const mail = String(email || "").trim().toLowerCase();
+  if (!mail) return "";
+  const snap = await getDocs(query(
+    collection(db, COLLECTIONS.STUDENTS),
+    where("email", "==", mail),
+    limit(1)
+  ));
+  return snap.empty ? "" : (snap.docs[0].data().studentId || snap.docs[0].id);
+}
+
+/**
+ * Agar login ke saath koi Student ID judi nahi hai to email se dhoondh kar
+ * jod deta hai. Kabhi fail nahi karta — record na mile ya rule mana kare to
+ * chup-chaap chhod deta hai aur student profile page se khud jod sakta hai.
+ * @returns {Promise<string>} judi hui Student ID, ya khaali
+ */
+export async function autoLinkStudentId(fbUser) {
+  if (!fbUser?.email) return "";
+  try {
+    const id = await findStudentIdByEmail(fbUser.email);
+    if (!id) return "";
+    await updateDoc(doc(db, COLLECTIONS.USERS, fbUser.uid), { studentId: id });
+    return id;
+  } catch (err) {
+    console.warn("[auth] auto-link skipped:", err?.code || err);
+    return "";
+  }
+}
+
+/* ==========================================================================
    Actions
    ========================================================================== */
 
@@ -99,7 +142,7 @@ onAuthStateChanged(auth, async (fbUser) => {
 export async function login(email, password, remember = true) {
   await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
   const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-  const user = await loadProfile(cred.user);
+  let user = await loadProfile(cred.user);
 
   if (user.status === USER_STATUS.BLOCKED) {
     await signOut(auth);
@@ -108,6 +151,86 @@ export async function login(email, password, remember = true) {
 
   await updateDoc(doc(db, COLLECTIONS.USERS, cred.user.uid), { lastLoginAt: serverTimestamp() })
     .catch(() => { /* profile may not exist yet — non-fatal */ });
+
+  /* Jo student pehle signup kar chuka tha aur baad me uska admission approve
+     hua — uska record ab mil jaayega. Isliye har login par ek baar dekhte hain. */
+  if (!user.studentId && user.role === ROLES.STUDENT) {
+    if (await autoLinkStudentId(cred.user)) user = await loadProfile(cred.user);
+  }
+
+  currentUser = user;
+  authResolved = true;
+  emit();
+  return user;
+}
+
+/**
+ * Google se ek-tap login. Naya user ho to uska students profile khud ban
+ * jaata hai aur Student ID email se jud jaati hai — kuch type nahi karna.
+ *
+ * Popup mobile browsers me kabhi-kabhi block hota hai, is halat me redirect
+ * par gir jaate hain (wapas aakar completeGoogleRedirect() sambhaal leta hai).
+ * @returns {Promise<object|null>} merged user, ya null agar redirect chala
+ */
+export async function loginWithGoogle(remember = true) {
+  await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  let cred;
+  try {
+    cred = await signInWithPopup(auth, provider);
+  } catch (err) {
+    const soft = ["auth/popup-blocked", "auth/operation-not-supported-in-this-environment",
+                  "auth/cancelled-popup-request"];
+    if (soft.includes(err?.code)) {
+      await signInWithRedirect(auth, provider);
+      return null;                       // page abhi Google par ja raha hai
+    }
+    throw err;
+  }
+  return finishGoogleSignIn(cred.user);
+}
+
+/** Redirect se wapas aane par session poora karta hai. Kuch na ho to null. */
+export async function completeGoogleRedirect() {
+  const cred = await getRedirectResult(auth).catch(() => null);
+  if (!cred?.user) return null;
+  return finishGoogleSignIn(cred.user);
+}
+
+async function finishGoogleSignIn(fbUser) {
+  const ref = doc(db, COLLECTIONS.USERS, fbUser.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    /* Pehli baar Google se aaya hai — student profile khud bana dete hain.
+       Rules sirf role "student" hi banane dete hain, isliye koi apne aap
+       admin nahi ban sakta. */
+    await setDoc(ref, {
+      uid: fbUser.uid,
+      name: fbUser.displayName || (fbUser.email || "").split("@")[0],
+      email: (fbUser.email || "").toLowerCase(),
+      phone: fbUser.phoneNumber || "",
+      role: ROLES.STUDENT,
+      status: USER_STATUS.ACTIVE,
+      studentId: "",
+      photoURL: fbUser.photoURL || "",
+      createdAt: serverTimestamp(),
+      lastLoginAt: serverTimestamp()
+    });
+  } else {
+    await updateDoc(ref, { lastLoginAt: serverTimestamp() }).catch(() => {});
+  }
+
+  let user = await loadProfile(fbUser);
+  if (user.status === USER_STATUS.BLOCKED) {
+    await signOut(auth);
+    throw new Error("Aapka account block kar diya gaya hai. Institute se sampark karein.");
+  }
+  if (!user.studentId && user.role === ROLES.STUDENT) {
+    if (await autoLinkStudentId(fbUser)) user = await loadProfile(fbUser);
+  }
 
   currentUser = user;
   authResolved = true;
@@ -126,7 +249,7 @@ export async function registerStudent({ email, password, name, phone = "", stude
   const base = {
     uid: cred.user.uid,
     name,
-    email: email.trim(),
+    email: email.trim().toLowerCase(),
     phone,
     role: ROLES.STUDENT,
     status: USER_STATUS.ACTIVE,
@@ -155,8 +278,17 @@ export async function registerStudent({ email, password, name, phone = "", stude
     await setDoc(ref, { ...base, studentId: "" });
   }
 
+  /* ID khud jodne ki koshish — signup form me ab wo field maangte hi nahi.
+     Admission approve ho chuka hai to yahin jud jaayegi; nahi hua to baad me
+     pehle login par jud jaayegi. */
   currentUser = await loadProfile(cred.user);
-  if (currentUser) currentUser.idClaimRejected = idClaimRejected;
+  if (!currentUser.studentId) {
+    if (await autoLinkStudentId(cred.user)) {
+      currentUser = await loadProfile(cred.user);
+      idClaimRejected = false;
+    }
+  }
+  if (currentUser) currentUser.idClaimRejected = idClaimRejected && !currentUser.studentId;
   authResolved = true;
   emit();
   return currentUser;
@@ -257,7 +389,11 @@ const AUTH_ERRORS = {
   "auth/too-many-requests":        "Bahut zyada attempts. Thodi der baad try karein.",
   "auth/network-request-failed":   "Internet connection check karein.",
   "auth/requires-recent-login":    "Security ke liye dobara login karein.",
-  "auth/operation-not-allowed":    "Email/Password sign-in Firebase Console me enable nahi hai.",
+  "auth/operation-not-allowed":    "Ye sign-in tarika Firebase Console me enable nahi hai.",
+  "auth/popup-closed-by-user":     "Google ki window band ho gayi. Dobara try karein.",
+  "auth/account-exists-with-different-credential":
+    "Is email se pehle password wala account bana hua hai. Neeche email aur password se login karein.",
+  "auth/unauthorized-domain":      "Ye domain Firebase ki authorized list me nahi hai. Institute se sampark karein.",
   "auth/missing-password":         "Password daalna zaroori hai.",
   "permission-denied":             "Aapke paas is action ki permission nahi hai.",
   "unavailable":                   "Server se connect nahi ho pa raha. Internet check karein."

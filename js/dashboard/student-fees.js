@@ -85,7 +85,7 @@ function payBox() {
           `Due date: ${student.nextDueDate ? formatDate(student.nextDueDate) : "jald hi"} · ${amountInWords(pending)}`)
       ),
       el("span", { class: "cluster" },
-        rzp ? el("a", { class: "btn-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" }, href: rzp, target: "_blank", rel: "noopener" },
+        rzp ? el("a", { class: "btn-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" }, href: rzp, target: "_blank", rel: "noopener", id: "btnRzp" },
           "Pay Now (Razorpay)") : null,
         upi ? el("button", { class: "btn-ssz btn-glass-ssz", style: { color: "#fff", borderColor: "rgba(255,255,255,.4)" }, type: "button", id: "btnUpiQr" },
           "UPI QR") : null,
@@ -98,6 +98,15 @@ function payBox() {
 
   $("#btnProof").addEventListener("click", () => proofDialog());
   if (upi) $("#btnUpiQr").addEventListener("click", () => upiQrDialog(upi, pending));
+
+  /* Razorpay ka page doosre tab me khulta hai aur website ko kabhi wapas
+     khabar nahi karta — bilkul UPI ki tarah. Isliye link kholte hi yahan
+     wahi "kitna bheja" wali screen kholte hain, warna student payment karke
+     chala jaata hai aur institute ko kabhi pata hi nahi chalta. */
+  const rzpBtn = $("#btnRzp");
+  if (rzpBtn) rzpBtn.addEventListener("click", () => {
+    setTimeout(() => proofDialog(pending, "razorpay"), 1200);
+  });
 }
 
 /* --------------------------------------------------------------------------
@@ -230,17 +239,21 @@ async function upiQrDialog(upiId, pending) {
    turant wapas aate hain aur screenshot lena bhool jaate hain. Sirf amount
    maangte hain, screenshot marzi ka. Bina screenshot ke bhi institute ko
    turant pata chal jaata hai ki kis student ne kitna bheja hai. */
-function proofDialog(prefillAmount = 0) {
+function proofDialog(prefillAmount = 0, payMode = "upi") {
   if (mode === "preview") {
     toast.info("Preview mode: Firebase connect hone ke baad ye chalega.");
     return;
   }
 
+  const intro = payMode === "razorpay"
+    ? "Razorpay ka page doosre tab me khul gaya hai. Wahan payment poora karne ke baad " +
+      "yahan aakar kitna bheja hai wo bata dein — tabhi institute ko pata chalega."
+    : "Payment kar diya? Bas kitna bheja hai wo bata dein — institute ko turant pata chal jaayega.";
+
   const body = el("div", {});
   body.innerHTML = `
-    <p style="font-size:.88rem;margin-bottom:1rem">Payment kar diya? Bas kitna bheja hai wo
-    bata dein — institute ko turant pata chal jaayega. Confirm hote hi aapki fees apne aap
-    update ho jaayegi aur receipt bhi ban jaayegi.</p>
+    <p style="font-size:.88rem;margin-bottom:1rem">${intro}
+    Confirm hote hi aapki fees apne aap update ho jaayegi aur receipt bhi ban jaayegi.</p>
     <div class="field">
       <label class="field__label" for="proofAmt">Kitna bheja? (Rs.) <span class="req">*</span></label>
       <input class="input-ssz" id="proofAmt" type="number" min="1" step="1" inputmode="numeric"
@@ -292,7 +305,7 @@ function proofDialog(prefillAmount = 0) {
         batchId: student.batchId || "",
         amount: 0,
         claimedAmount: paidAmount,
-        mode: "upi",
+        mode: payMode,
         installmentNo: 0,
         status: FEE_STATUS.PENDING,
         paidOn: null,

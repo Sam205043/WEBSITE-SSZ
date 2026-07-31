@@ -198,6 +198,12 @@
   margin-bottom: var(--sp-5);
   user-select: none;
 }
+/* Devanagari me matraayein akshar ke upar-neeche lagti hain, isliye aam line
+   height me wo aapas me chipak jaati hain aur padhna mushkil ho jaata hai.
+   Hindi mode me thoda bada font aur zyada khuli line. */
+.typing-text.is-hindi { font-size: 1.15rem; line-height: 2.4; letter-spacing: 0; }
+.textarea-ssz.is-hindi { font-size: 1.05rem; line-height: 1.9; }
+
 .typing-text span { border-radius: 3px; padding: 1px 0; }
 .typing-text .ok { color: var(--success); }
 .typing-text .bad { color: var(--danger-ink); background: var(--danger-soft); text-decoration: underline wavy; }

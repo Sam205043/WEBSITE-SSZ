@@ -41,9 +41,14 @@ function asgRow(a) {
     el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
       el("span", { class: "stat-tile__icon", html: icon("clipboard", { size: 20 }) }),
       el("span", { style: { flex: 1, minWidth: "220px" } },
-        el("strong", { style: { display: "block", fontSize: ".93rem" } }, a.title),
+        el("strong", { style: { display: "block", fontSize: ".93rem" } },
+          a.title,
+          a.type === "mcq"
+            ? el("span", { class: "badge-ssz badge-accent", style: { marginLeft: ".5rem", fontSize: ".62rem" } }, "MCQ")
+            : null),
         el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
-          `${batches.find((b) => b.id === a.batchId)?.name || a.batchId} · Due ${formatDate(a.dueDate)} · ${a.totalMarks} marks`)),
+          `${batches.find((b) => b.id === a.batchId)?.name || a.batchId} · Due ${formatDate(a.dueDate)} · ${a.totalMarks} marks` +
+          (a.type === "mcq" ? " · khud check hota hai" : ""))),
       el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { subs: a.id } }, "Submissions"),
       el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delAsg: a.id } }, "Delete")
     ));
@@ -68,13 +73,23 @@ function asgForm() {
       <label class="field__label">Instructions</label>
       <textarea class="textarea-ssz" name="description" style="min-height:80px" placeholder="Students ko kya karna hai"></textarea>
     </div>
+    <div class="field">
+      <label class="field__label">Kis tarah ka assignment? <span class="req">*</span></label>
+      <select class="select-ssz" name="type">
+        <option value="file">File — student apna kaam upload karega (practical)</option>
+        <option value="mcq">MCQ — sawaal-jawab, khud check ho jayega (theory)</option>
+      </select>
+      <p class="field__hint" style="font-size:.76rem;color:var(--text-muted);margin:.3rem 0 0">
+        Practical kaam ke liye File, aur theory/revision ke liye MCQ — MCQ me aapko kuch check nahi karna padta.
+      </p>
+    </div>
     <div class="adm-row">
       <div class="field">
         <label class="field__label">Batch <span class="req">*</span></label>
         <select class="select-ssz" name="batchId"></select>
         <div class="field__error"></div>
       </div>
-      <div class="field">
+      <div class="field" id="asgMarksField">
         <label class="field__label">Marks</label>
         <input class="input-ssz" name="totalMarks" type="number" min="1" value="10">
       </div>
@@ -84,9 +99,19 @@ function asgForm() {
       <input class="input-ssz" name="dueDate" type="datetime-local">
       <div class="field__error"></div>
     </div>
-    <div class="field">
+    <div class="field" id="asgFileField">
       <label class="field__label">Question file (optional)</label>
       <input class="input-ssz" name="file" type="file" style="padding:.6rem">
+    </div>
+    <div id="asgMcqBox" hidden>
+      <div class="between" style="margin-bottom:.75rem">
+        <strong style="font-size:.95rem">Sawaal</strong>
+        <button class="btn-ssz btn-secondary-ssz btn-sm-ssz" type="button" id="asgAddQ">+ Sawaal jodein</button>
+      </div>
+      <div id="asgQList"></div>
+      <p style="font-size:.78rem;color:var(--text-muted);margin:.6rem 0 0">
+        Har sahi jawab ka 1 mark. Total marks sawaalon ki ginti ke barabar apne aap ho jaayenge.
+      </p>
     </div>`;
 
   const bSel = form.querySelector('[name="batchId"]');
@@ -94,6 +119,87 @@ function asgForm() {
   batches.filter((b) => b.status !== "completed").forEach((b) => bSel.appendChild(el("option", { value: b.id }, b.name)));
   const due = new Date(Date.now() + 3 * 86400000); due.setHours(23, 59, 0, 0);
   form.elements.dueDate.value = dateTimeLocal(due);
+
+  /* ---------------- MCQ builder ----------------
+     Har sawaal ek chhota card hai: sawaal + 4 option + radio se sahi jawab.
+     Radio isliye ki ek hi sahi jawab ho sakta hai — do galti se nahi chun sakte. */
+  const qList = form.querySelector("#asgQList");
+  const mcqBox = form.querySelector("#asgMcqBox");
+  const fileField = form.querySelector("#asgFileField");
+  const marksField = form.querySelector("#asgMarksField");
+  let qSeq = 0;
+
+  function renumber() {
+    [...qList.children].forEach((card, i) => {
+      card.querySelector("[data-qnum]").textContent = `Sawaal ${i + 1}`;
+      card.querySelector("[data-del-q]").hidden = qList.children.length <= 1;
+    });
+  }
+
+  function addQuestion() {
+    const gid = `q${++qSeq}`;
+    const card = el("div", {
+      class: "card-ssz",
+      style: { marginBottom: ".75rem" },
+      dataset: { qcard: "1" }
+    });
+    card.innerHTML = `
+      <div class="card-ssz__body" style="padding:1rem 1.15rem">
+        <div class="between" style="margin-bottom:.6rem">
+          <strong style="font-size:.82rem;color:var(--text-muted)" data-qnum>Sawaal</strong>
+          <button class="btn-ssz btn-ghost-ssz btn-sm-ssz" type="button"
+                  style="color:var(--danger)" data-del-q>Hataayein</button>
+        </div>
+        <input class="input-ssz" data-q type="text" placeholder="Jaise: MS Word me bold ka shortcut kya hai?">
+        <p style="font-size:.76rem;color:var(--text-muted);margin:.7rem 0 .4rem">
+          Chaar option likhein, aur sahi wale ke aage ka gola daba dein.
+        </p>
+        ${[0, 1, 2, 3].map((i) => `
+          <label style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem">
+            <input type="radio" name="${gid}" value="${i}"${i === 0 ? " checked" : ""} style="flex-shrink:0">
+            <input class="input-ssz" data-opt="${i}" type="text" placeholder="Option ${i + 1}">
+          </label>`).join("")}
+      </div>`;
+    card.querySelector("[data-del-q]").addEventListener("click", () => {
+      if (qList.children.length <= 1) return;
+      card.remove();
+      renumber();
+    });
+    qList.appendChild(card);
+    renumber();
+  }
+
+  form.querySelector("#asgAddQ").addEventListener("click", addQuestion);
+  addQuestion();
+
+  const typeSel = form.elements.type;
+  const applyType = () => {
+    const mcq = typeSel.value === "mcq";
+    mcqBox.hidden = !mcq;
+    fileField.hidden = mcq;
+    marksField.hidden = mcq;      // MCQ me marks = sawaalon ki ginti
+  };
+  typeSel.addEventListener("change", applyType);
+  applyType();
+
+  /** Form se sawaal padhta hai. Galti mile to { error } lautata hai. */
+  function readQuestions() {
+    const cards = [...qList.querySelectorAll("[data-qcard]")];
+    const questions = [], correct = [];
+    for (let i = 0; i < cards.length; i++) {
+      const c = cards[i];
+      const text = c.querySelector("[data-q]").value.trim();
+      if (!text) return { error: `Sawaal ${i + 1} khaali hai.` };
+      const options = [...c.querySelectorAll("[data-opt]")].map((o) => o.value.trim());
+      if (options.some((o) => !o)) return { error: `Sawaal ${i + 1} ke saare chaar option bharein.` };
+      const picked = c.querySelector("input[type=radio]:checked");
+      if (!picked) return { error: `Sawaal ${i + 1} ka sahi jawab chunein.` };
+      questions.push({ q: text, options });
+      correct.push(Number(picked.value));
+    }
+    if (!questions.length) return { error: "Kam se kam ek sawaal jodein." };
+    return { questions, correct };
+  }
 
   const validator = createValidator(form, {
     title:   [rules.required(), rules.minLen(4)],
@@ -108,17 +214,33 @@ function asgForm() {
 
   saveBtn.addEventListener("click", async () => {
     if (!validator.validate()) return;
+    const isMcq = form.elements.type.value === "mcq";
     const batch = batches.find((b) => b.id === bSel.value);
+
+    /* Sahi jawab yahan alag nikaal lete hain — ye assignment ke saath save
+       NAHI hote. Warna student browser console se pehle hi dekh leta. Ye
+       assignmentKeys me jaate hain, jahan submit karne se pehle uski pahunch
+       nahi hai (dekhein firestore.rules). */
+    let questions = [], correct = [];
+    if (isMcq) {
+      const read = readQuestions();
+      if (read.error) return toast.error(read.error);
+      questions = read.questions;
+      correct = read.correct;
+    }
+
     const data = {
       title: form.elements.title.value.trim(),
       description: form.elements.description.value.trim(),
+      type: isMcq ? "mcq" : "file",
       batchId: bSel.value,
       courseId: batch?.courseId || "",
-      totalMarks: Number(form.elements.totalMarks.value) || 10,
+      totalMarks: isMcq ? questions.length : (Number(form.elements.totalMarks.value) || 10),
       dueDate: new Date(form.elements.dueDate.value),
+      questions,
       filePath: "", fileURL: "", fileName: ""
     };
-    const file = form.elements.file.files[0];
+    const file = isMcq ? null : form.elements.file.files[0];
     if (file) {
       const check = validateFile(file, "material");
       if (!check.ok) return toast.error(check.error);
@@ -133,8 +255,11 @@ function asgForm() {
 
     try {
       saveBtn.disabled = true;
-      const { create, update } = await import("../../firebase/db-service.js");
+      const { create, update, createWithId } = await import("../../firebase/db-service.js");
       const id = await create(COLLECTIONS.ASSIGNMENTS, data);
+      if (isMcq) {
+        await createWithId(COLLECTIONS.ASSIGNMENT_KEYS, id, { correct, assignmentId: id });
+      }
       if (file) {
         const { uploadFile } = await import("../../firebase/storage-service.js");
         // Path only — see the note on the notes upload below.
@@ -146,7 +271,9 @@ function asgForm() {
       }
       assignments.unshift({ id, ...data });
       m.close(); paintTabs(); paintAsg();
-      toast.success("Assignment de diya gaya — students ko dashboard me dikhega.");
+      toast.success(isMcq
+        ? `MCQ de diya gaya — ${questions.length} sawaal, khud check ho jayega.`
+        : "Assignment de diya gaya — students ko dashboard me dikhega.");
     } catch (err) {
       saveBtn.disabled = false;
       toast.error(err.message || "Fail ho gaya.");
@@ -178,7 +305,11 @@ async function showSubmissions(a) {
               ? el("span", { class: "badge-ssz badge-success" }, `${s.marks}/${a.totalMarks}`)
               : el("span", { class: "badge-ssz badge-warning" }, "Grade baaki")),
           el("p", { style: { fontSize: ".78rem", color: "var(--text-muted)", margin: "0 0 .6rem" } },
-            `${s.fileName || "file"} · ${formatDateTime(s.submittedAt)}`),
+            /* MCQ me koi file hoti hi nahi — wahan ye batana zyada kaam ka hai
+               ki khud check hua hai. Marks phir bhi badle ja sakte hain. */
+            s.type === "mcq"
+              ? `MCQ · khud check hua · ${formatDateTime(s.submittedAt)}`
+              : `${s.fileName || "file"} · ${formatDateTime(s.submittedAt)}`),
           el("div", { class: "cluster" },
             s.fileURL && s.fileURL !== "#" ? el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: s.fileURL, target: "_blank", rel: "noopener" }, "File kholein") : null,
             el("input", { class: "input-ssz", type: "number", min: "0", max: String(a.totalMarks), placeholder: "Marks", value: s.marks ?? "", style: { maxWidth: "90px", minHeight: "36px", padding: ".4rem .6rem" }, dataset: { marks: s.id } }),

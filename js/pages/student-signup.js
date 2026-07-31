@@ -6,19 +6,20 @@
 import { $, onReady } from "../core/dom.js";
 import { createValidator, rules } from "../core/validators.js";
 import { withButton } from "../core/loader.js";
-import { alertBox, clearAlert, initPasswordToggles, initPwMeter, initUppercase, requireConfigured, skipIfAuthed } from "./auth-ui.js";
+import { alertBox, clearAlert, initGoogleButton, initPasswordToggles, initPwMeter, requireConfigured, skipIfAuthed } from "./auth-ui.js";
 
 onReady(async () => {
   initPasswordToggles();
   initPwMeter("password");
-  initUppercase("studentId");
 
+  /* Student ID ab poochi hi nahi jaati. Admission form me jo email diya tha
+     wahi email yahan daalte hi system khud uska record dhoondh kar jod deta
+     hai — na ID yaad rakhni, na type karni, na galat padne ka darr. */
   const form = $("#signupForm");
   const validator = createValidator(form, {
     name:     [rules.required(), rules.minLen(3)],
     email:    [rules.required("Email daalein."), rules.email()],
     phone:    [rules.required(), rules.mobile()],
-    studentId:[rules.pattern(/^$|^SSZ[A-Z0-9/-]{6,}$/i, "Student ID ka format sahi nahi lag raha (SSZ se shuru hota hai).")],
     password: [rules.required("Password banayein."), rules.password()],
     confirm:  [rules.required("Password dobara daalein."),
                rules.matches(() => form.elements.password.value, "Dono passwords same nahi hain.")]
@@ -26,6 +27,7 @@ onReady(async () => {
 
   const configured = await requireConfigured();
   if (configured) skipIfAuthed();
+  initGoogleButton(configured);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -46,15 +48,17 @@ onReady(async () => {
           name:  form.elements.name.value.trim(),
           email: form.elements.email.value.trim(),
           phone: form.elements.phone.value.trim(),
-          studentId: form.elements.studentId.value.trim().toUpperCase(),
           password: form.elements.password.value
         });
 
-        if (user.idClaimRejected) {
+        /* Record na mila — matlab admission abhi approve nahi hua, ya email
+           form wale email se alag hai. Account phir bhi ban gaya; approve
+           hote hi agle login par ID khud jud jaayegi. */
+        if (!user.studentId) {
           alertBox("info",
-            `Account ban gaya, ${user.name}! Lekin jo Student ID aapne daali hai wo is email se ` +
-            `match nahi kar rahi, isliye abhi jodi nahi gayi — admin check karke jod dega. ` +
-            `Tab tak dashboard khul raha hai…`);
+            `Account ban gaya, ${user.name}! Aapka admission record abhi juda nahi hai — ` +
+            `approve hote hi apne aap jud jaayega. Dhyan rakhein ki wahi email ho jo ` +
+            `admission form me diya tha. Dashboard khul raha hai…`);
           setTimeout(() => goHomeFor(user), 3400);
           return;
         }

@@ -82,6 +82,63 @@ export function initPwMeter(inputId = "password") {
   });
 }
 
+/* ==========================================================================
+   Google se ek-tap login
+   --------------------------------------------------------------------------
+   Login aur signup dono page par wahi button hai — dono ka matlab ek hi hai:
+   "andar aa jao". Naya student ho to profile khud ban jaata hai, aur Student
+   ID email se apne aap jud jaati hai. Isliye yahan naam/phone/password kuch
+   nahi maanga jaata.
+   ========================================================================== */
+export function initGoogleButton(configured) {
+  const btn = $("#googleBtn");
+  if (!btn) return;
+  if (!configured) { btn.disabled = true; return; }
+
+  /* Mobile par popup block hone par redirect chalta hai — wapas aane par
+     session yahin poora hota hai, isliye page load par ek baar dekh lete hain. */
+  (async () => {
+    try {
+      const { completeGoogleRedirect } = await import("../../firebase/auth-service.js");
+      const user = await completeGoogleRedirect();
+      if (!user) return;
+      const { goHomeFor } = await import("../core/guard.js");
+      alertBox("success", `Swagat hai, ${user.name}! Dashboard khul raha hai…`);
+      setTimeout(() => goHomeFor(user), 700);
+    } catch (err) {
+      const { authError } = await import("../../firebase/auth-service.js");
+      alertBox("error", authError(err));
+    }
+  })();
+
+  btn.addEventListener("click", async () => {
+    clearAlert();
+    btn.disabled = true;
+    btn.classList.add("is-loading");
+    try {
+      const { loginWithGoogle } = await import("../../firebase/auth-service.js");
+      const user = await loginWithGoogle();
+      if (!user) return;                 // redirect chal pada, page badal raha hai
+      const { goHomeFor } = await import("../core/guard.js");
+
+      if (user.role === "student" && !user.studentId) {
+        alertBox("info",
+          `Swagat hai, ${user.name}! Aapka admission record abhi juda nahi hai — ` +
+          `agar aapne abhi-abhi form bhara hai to approve hote hi apne aap jud jaayega.`);
+        setTimeout(() => goHomeFor(user), 3000);
+        return;
+      }
+      alertBox("success", `Swagat hai, ${user.name}! Dashboard khul raha hai…`);
+      setTimeout(() => goHomeFor(user), 700);
+    } catch (err) {
+      const { authError } = await import("../../firebase/auth-service.js");
+      alertBox("error", authError(err));
+      btn.disabled = false;
+      btn.classList.remove("is-loading");
+    }
+  });
+}
+
 /** Uppercase-as-you-type for Student ID fields. */
 export function initUppercase(id) {
   const input = document.getElementById(id);

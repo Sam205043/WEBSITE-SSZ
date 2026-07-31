@@ -5,7 +5,7 @@
 import { $, onReady } from "../core/dom.js";
 import { createValidator, rules } from "../core/validators.js";
 import { withButton } from "../core/loader.js";
-import { alertBox, clearAlert, initPasswordToggles, requireConfigured, skipIfAuthed } from "./auth-ui.js";
+import { alertBox, clearAlert, initGoogleButton, initPasswordToggles, requireConfigured, skipIfAuthed } from "./auth-ui.js";
 
 onReady(async () => {
   initPasswordToggles();
@@ -18,6 +18,7 @@ onReady(async () => {
 
   const configured = await requireConfigured();
   if (configured) skipIfAuthed();
+  initGoogleButton(configured);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();

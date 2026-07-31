@@ -198,9 +198,34 @@ service cloud.firestore {
       allow create: if isAdmin()
         || (hasStudentId() && request.resource.data.studentId == myStudentId());
       // A submission may be edited until it has been marked.
+      //
+      // MCQ ke liye ek pakki shart aur: jawab (`answers`) ek baar likhne ke
+      // baad kabhi badle nahi ja sakte. Isi wajah se student jawab dekh lene
+      // ke baad apna paper sudhaar nahi sakta — marks bhale hi browser me
+      // gine jaate hon, `answers` waise ke waise pade rehte hain aur admin
+      // kabhi bhi unhe sahi jawab se milaakar dekh sakta hai.
       allow update: if isAdmin()
-        || (ownsRow() && resource.data.get('marks', null) == null);
+        || (ownsRow() && resource.data.get('marks', null) == null
+            && request.resource.data.get('answers', []) == resource.data.get('answers', []));
       allow delete: if isAdmin();
+    }
+
+    /* ------------------------- MCQ ke sahi jawab ---------------------------
+       Ye jaan-boojh kar assignments se ALAG rakhe gaye hain. Agar sahi jawab
+       assignment ke saath hote, to student browser ka console kholkar paper
+       se pehle hi dekh leta — bilkul waisi hi dikkat jaisi study material ke
+       public link me thi.
+
+       Student ko ye tabhi milte hain jab uska submission ban chuka ho, aur
+       submission ke `answers` upar wale rule se jam chuke hote hain. Yaani
+       jawab dekhne ka ek hi raasta hai — pehle apna paper jama karo.
+       ---------------------------------------------------------------------- */
+    match /assignmentKeys/{assignmentId} {
+      allow get: if isAdmin()
+        || (hasStudentId()
+            && exists(/databases/$(database)/documents/submissions/$(assignmentId + '__' + myStudentId())));
+      allow list: if isAdmin();
+      allow write: if isAdmin();
     }
 
     /* ----------------------------------------------------------- certificates */

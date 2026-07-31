@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v23";
+const VERSION = "ssz-v24";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -52,6 +52,11 @@ const PRECACHE = [
   "css/home.css",
   "css/pages.css",
   "css/tools.css",
+  /* Sahayak bhi offline chalta hai — aam sawaalon ka jawab site-data se
+     banta hai, net ki zaroorat nahi. Sirf AI wali tah ko internet chahiye. */
+  "css/chat.css",
+  "js/chat/chatbot.js",
+  "js/chat/knowledge.js",
   "components/navbar.html",
   "components/footer.html",
   "js/app.js",

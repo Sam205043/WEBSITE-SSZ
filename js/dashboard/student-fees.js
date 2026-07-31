@@ -87,18 +87,49 @@ function upiPayload(upiId, amount) {
   return `upi://pay?${q.toString().replace(/\+/g, "%20")}`;
 }
 
+/* Student jitna bhej sakta hai utna bheje — poori fees ka dabav nahi. Amount
+   badalte hi QR dobara ban jaata hai. Amount khaali chhodne par QR bina rakam
+   ke banta hai, taaki student apni UPI app me khud type kar le. */
 async function upiQrDialog(upiId, pending) {
   const body = el("div", { style: { textAlign: "center" } });
   body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: "1rem" } },
-    "Koi bhi UPI app (PhonePe, Google Pay, Paytm) se scan karein — amount aur reference pehle se bhara hua hai."));
+    "Jitna abhi de sakte hain utna amount daalein — poori fees ek saath dena zaroori nahi. " +
+    "Phir koi bhi UPI app (PhonePe, Google Pay, Paytm) se scan karein."));
+
+  const amtInput = el("input", {
+    class: "input-ssz", type: "number", id: "upiAmt",
+    min: "1", step: "1", inputmode: "numeric",
+    placeholder: "Jaise 2000",
+    value: pending > 0 ? String(pending) : "",
+    style: { textAlign: "center", fontSize: "1.05rem", fontWeight: "600" }
+  });
+  body.appendChild(el("div", { class: "field", style: { maxWidth: "240px", margin: "0 auto .75rem" } },
+    el("label", { class: "field__label", for: "upiAmt" }, "Kitna bhej rahe hain? (₹)"),
+    amtInput
+  ));
+
+  /* Jaldi ke liye — sirf wahi option jo is student ke bakaya par bante hain. */
+  const presets = [];
+  if (pending > 0) presets.push(["Poora bakaya", pending]);
+  if (pending >= 2000) presets.push(["Aadha", Math.round(pending / 2)]);
+  [500, 1000, 2000, 5000].forEach((v) => { if (v < pending) presets.push([money(v), v]); });
+  presets.push(["App me khud daalunga", 0]);
+
+  const chips = el("div", { class: "cluster", style: { justifyContent: "center", gap: ".4rem", marginBottom: "1rem" } },
+    ...presets.map(([label, v]) =>
+      el("button", { type: "button", class: "chip", dataset: { amt: String(v) } }, label))
+  );
+  body.appendChild(chips);
 
   const canvas = el("canvas", { style: { maxWidth: "100%", height: "auto", borderRadius: "8px" } });
   const holder = el("div", { style: { background: "#fff", padding: "16px", borderRadius: "12px", display: "inline-block" } }, canvas);
   body.appendChild(holder);
 
   body.appendChild(el("p", { style: { margin: "1rem 0 .25rem", fontWeight: "600" } }, upiId));
-  body.appendChild(el("p", { style: { margin: 0, fontSize: ".85rem", color: "var(--text-muted)" } },
-    pending > 0 ? `${money(pending)} · ${student.studentId || ""}` : (student.studentId || "")));
+  const caption = el("p", { style: { margin: 0, fontSize: ".85rem", color: "var(--text-muted)" } });
+  body.appendChild(caption);
+  const hint = el("p", { style: { margin: ".4rem 0 0", fontSize: ".78rem", color: "var(--warning, #b45309)" } });
+  body.appendChild(hint);
   body.appendChild(el("p", { style: { margin: "1rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
     "Payment ke baad screenshot upload karna na bhoolein — tabhi receipt banegi."));
 
@@ -106,13 +137,39 @@ async function upiQrDialog(upiId, pending) {
   const m = openModal({ title: "UPI se pay karein", body, footer: [closeBtn] });
   closeBtn.addEventListener("click", () => m.close(null));
 
-  try {
-    const { qrMatrix, drawQR } = await import("../tools/qrcode.js");
-    drawQR(canvas, qrMatrix(upiPayload(upiId, pending), "M"), { scale: 6, margin: 3 });
-  } catch {
-    holder.replaceChildren(el("p", { style: { color: "#0f172a", fontSize: ".85rem", margin: 0 } },
-      `QR nahi ban paaya. Seedhe is UPI id par bhej dein: ${upiId}`));
-  }
+  let lib = null;
+  let failed = false;
+  const redraw = async () => {
+    const amt = Math.max(0, Math.round(Number(amtInput.value) || 0));
+    caption.textContent = amt > 0
+      ? `${money(amt)} · ${student.studentId || ""}`
+      : `Amount app me daalein · ${student.studentId || ""}`;
+    hint.textContent = (pending > 0 && amt > pending)
+      ? `Aapka bakaya sirf ${money(pending)} hai.`
+      : "";
+    if (failed) return;
+    try {
+      lib = lib || await import("../tools/qrcode.js");
+      lib.drawQR(canvas, lib.qrMatrix(upiPayload(upiId, amt), "M"), { scale: 6, margin: 3 });
+    } catch {
+      failed = true;
+      holder.replaceChildren(el("p", { style: { color: "#0f172a", fontSize: ".85rem", margin: 0 } },
+        `QR nahi ban paaya. Seedhe is UPI id par bhej dein: ${upiId}`));
+    }
+  };
+
+  let t = null;
+  amtInput.addEventListener("input", () => {
+    clearTimeout(t);
+    t = setTimeout(redraw, 250);
+  });
+  on(chips, "click", ".chip", (e, chip) => {
+    const v = Number(chip.dataset.amt) || 0;
+    amtInput.value = v > 0 ? String(v) : "";
+    redraw();
+  });
+
+  redraw();
 }
 
 function proofDialog() {
@@ -130,6 +187,12 @@ function proofDialog() {
       <input class="input-ssz" type="file" id="proofFile" accept="image/jpeg,image/png,image/webp" style="padding:.6rem">
     </div>
     <div class="field">
+      <label class="field__label" for="proofAmt">Kitna bheja? (Rs.) <span class="req">*</span></label>
+      <input class="input-ssz" id="proofAmt" type="number" min="1" step="1" inputmode="numeric" placeholder="Jaise: 2000">
+      <p class="field__hint" style="font-size:.76rem;color:var(--text-muted);margin:.3rem 0 0">
+        Poori fees ek saath dena zaroori nahi — jitna bheja hai wahi likhein.</p>
+    </div>
+    <div class="field">
       <label class="field__label" for="proofRef">UPI / Transaction Ref No.</label>
       <input class="input-ssz" id="proofRef" type="text" placeholder="Jaise: 4209XXXXXX">
     </div>
@@ -144,6 +207,11 @@ function proofDialog() {
     const file = body.querySelector("#proofFile").files[0];
     const check = validateFile(file, "image");
     if (!check.ok) return toast.error(check.error);
+
+    /* Student jitna bheja hai wahi likhta hai — partial payment bhi chalega.
+       Admin screenshot dekh kar isi rakam ko confirm ya theek kar dega. */
+    const paidAmount = Math.round(Number(body.querySelector("#proofAmt").value) || 0);
+    if (paidAmount < 1) return toast.error("Kitna bheja hai wo amount daalein.");
 
     try {
       submitBtn.disabled = true;
@@ -161,11 +229,12 @@ function proofDialog() {
         courseName: student.courseName || "",
         batchId: student.batchId || "",
         amount: 0,
+        claimedAmount: paidAmount,
         mode: "upi",
         installmentNo: 0,
         status: FEE_STATUS.PENDING,
         paidOn: null,
-        remarks: "Student-uploaded proof — amount verify karke bharein"
+        remarks: `Student ne ${money(paidAmount)} bheja bataya hai — screenshot se milaakar verify karein`
       });
 
       await data.uploadFeeProof(student, feeId, file, body.querySelector("#proofRef").value.trim(),

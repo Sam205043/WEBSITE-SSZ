@@ -176,12 +176,17 @@ function verifyDialog(f) {
     body.appendChild(el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", style: { marginBottom: "1rem" }, href: f.proofURL, target: "_blank", rel: "noopener" },
       el("span", { html: icon("image", { size: 16 }) }), "Screenshot dekhein"));
   }
+  /* Student jitna bheja bataya hai wahi pehle se bhar dete hain — aksar wahi
+     sahi hota hai. Screenshot alag dikhaye to yahin badal dein. */
+  const claimed = Number(f.claimedAmount) || 0;
   const form = el("form", { novalidate: true });
   form.innerHTML = `
     <div class="field">
       <label class="field__label">Amount (Rs.) <span class="req">*</span></label>
-      <input class="input-ssz" name="amount" type="number" min="1" placeholder="Screenshot me jitna hai">
+      <input class="input-ssz" name="amount" type="number" min="1" placeholder="Screenshot me jitna hai"
+             value="${claimed > 0 ? claimed : ""}">
       <div class="field__error"></div>
+      ${claimed > 0 ? `<p style="font-size:.76rem;color:var(--text-muted);margin:.3rem 0 0">Student ne ${money(claimed)} bataya hai.</p>` : ""}
     </div>`;
   body.appendChild(form);
   const validator = createValidator(form, { amount: [rules.required("Amount daalein."), rules.min(1)] });

@@ -116,7 +116,9 @@ function detailBody(a) {
     ["Email", a.email],
     ["Address", `${a.address}, ${a.city} - ${a.pincode}`],
     ["Qualification", a.qualification],
-    ["Course", `${a.courseName} (${money(a.courseFee || 0)} + ${money(a.admissionFee || 0)})`],
+    ["Course", a.admissionFee
+      ? `${a.courseName} (${money(a.courseFee || 0)} + ${money(a.admissionFee)})`
+      : `${a.courseName} (${money(a.courseFee || 0)})`],
     ["Batch preference", a.batchPref],
     ["Submitted", formatDateTime(a.createdAt)],
     a.status === "approved" ? ["Student ID", a.studentId] : null,

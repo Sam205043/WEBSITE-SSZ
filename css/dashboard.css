@@ -91,6 +91,51 @@
 .dash.is-collapsed .dash-side__foot-text { display: none; }
 .dash.is-collapsed .dash-link { justify-content: center; }
 
+/* Collapsed sidebar me sirf icon bachta hai. Hover karte hi naam bagal me
+   aa jaata hai — browser ke apne title tooltip ka intezaar nahi karna padta.
+   Sirf desktop par: touch device par hover hota hi nahi, wahan sidebar
+   drawer ki tarah poora naam ke saath khulta hai. */
+@media (hover: hover) and (min-width: 1024px) and (min-height: 700px) {
+  /* Tooltip sidebar ke bahar nikalta hai, isliye yahan clipping band karni
+     padti hai. Sirf itni lambi screen par jahan poora menu bina scroll ke
+     aa jaata hai — chhoti screen par nav scroll karta rahe, wahan browser
+     ka apna title tooltip kaam karega. */
+  .dash.is-collapsed .dash-side,
+  .dash.is-collapsed .dash-side__nav { overflow: visible; }
+
+  .dash.is-collapsed .dash-link,
+  .dash.is-collapsed .dash-side__foot [data-tip] { position: relative; }
+
+  .dash.is-collapsed .dash-link[data-tip]::after,
+  .dash.is-collapsed .dash-side__foot [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--r-sm);
+    background: var(--text-primary);
+    color: var(--bg-surface);
+    font-size: 0.78rem;
+    font-weight: var(--fw-medium);
+    line-height: 1.2;
+    white-space: nowrap;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-fast), transform var(--t-fast);
+    z-index: 60;
+  }
+  .dash.is-collapsed .dash-link[data-tip]:hover::after,
+  .dash.is-collapsed .dash-link[data-tip]:focus-visible::after,
+  .dash.is-collapsed .dash-side__foot [data-tip]:hover::after,
+  .dash.is-collapsed .dash-side__foot [data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
 .dash-side__foot { padding: var(--sp-4); border-top: 1px solid var(--border-subtle); flex-shrink: 0; }
 
 /* ---------- Main ---------- */

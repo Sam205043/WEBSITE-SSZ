@@ -14,7 +14,7 @@ import { icon } from "../core/icons.js";
 import { initTheme } from "../core/theme.js";
 import { initials, store } from "../core/utils.js";
 import { url } from "../core/routes.js";
-import { LS_KEYS, COLLECTIONS } from "../core/constants.js";
+import { LS_KEYS, COLLECTIONS, FEE_STATUS } from "../core/constants.js";
 import { DEMO_ADMIN, DEMO_ADMISSIONS } from "./admin-demo.js";
 import toast from "../core/toast.js";
 
@@ -25,7 +25,7 @@ const NAV = [
   { key: "students",   label: "Students",   icon: "users",     route: "adminStudents" },
   { key: "batches",    label: "Batches",    icon: "calendar",  route: "adminBatches" },
   { group: "Operations" },
-  { key: "fees",       label: "Fees",       icon: "wallet",    route: "adminFees" },
+  { key: "fees",       label: "Fees",       icon: "wallet",    route: "adminFees", badge: true },
   { key: "attendance", label: "Attendance", icon: "userCheck", route: "adminAttendance" },
   { key: "classes",    label: "Live Classes", icon: "video",   route: "adminClasses" },
   { key: "materials",  label: "Materials",  icon: "book",      route: "adminNotes" },
@@ -37,6 +37,7 @@ const NAV = [
 
 let shellState = { user: null, mode: "preview" };
 let stopWatch = null;
+let stopFeeWatch = null;
 
 function buildSidebar(active) {
   const nav = el("nav", { class: "dash-side__nav", "aria-label": "Admin navigation" });
@@ -55,7 +56,7 @@ function buildSidebar(active) {
       el("span", { class: "dash-link__icon", html: icon(item.icon, { size: 20 }) }),
       el("span", { class: "dash-link__text" }, item.label)
     );
-    if (item.badge) link.appendChild(el("span", { class: "dash-link__badge", id: "admissionBadge", hidden: true }));
+    if (item.badge) link.appendChild(el("span", { class: "dash-link__badge", id: `badge-${item.key}`, hidden: true }));
     nav.appendChild(link);
   });
 
@@ -158,12 +159,15 @@ function wireShell() {
   });
 }
 
-export function setAdmissionBadge(n) {
-  const node = $("#admissionBadge");
+/** Laal counter kisi bhi sidebar link par — key = NAV ka key. */
+export function setNavBadge(key, n) {
+  const node = $(`#badge-${key}`);
   if (!node) return;
   node.hidden = !n;
   node.textContent = n > 99 ? "99+" : String(n);
 }
+
+export function setAdmissionBadge(n) { setNavBadge("admissions", n); }
 
 /**
  * Realtime pending-admissions listener. cb(rows) fires on every change.
@@ -201,6 +205,48 @@ export async function watchPendingAdmissions(cb) {
   return stopWatch;
 }
 
+/**
+ * Realtime listener on payments jinhe student ne bhej diya hai par confirm
+ * hona baaki hai. Sidebar ke "Fees" par laal counter chadhta hai aur nayi
+ * payment aate hi toast bajta hai — chahe admin kisi bhi page par ho.
+ * cb(rows) har badlaav par chalta hai.
+ */
+export async function watchPendingFees(cb) {
+  if (shellState.mode === "preview") {
+    const { DEMO_FEE_ROWS } = await import("./admin-demo.js");
+    const rows = DEMO_FEE_ROWS.filter((f) => f.status === FEE_STATUS.PENDING);
+    setNavBadge("fees", rows.length);
+    cb && cb(rows);
+    return () => {};
+  }
+
+  const { watchMany } = await import("../../firebase/db-service.js");
+  let first = true;
+  let known = new Set();
+
+  stopFeeWatch = watchMany(
+    COLLECTIONS.FEES,
+    { where: [["status", "==", FEE_STATUS.PENDING]], limit: 50 },
+    (rows) => {
+      setNavBadge("fees", rows.length);
+      if (!first) {
+        rows.forEach((r) => {
+          if (known.has(r.id)) return;
+          const amt = Number(r.claimedAmount) || 0;
+          toast.info(
+            `${r.studentName || r.studentId}${amt ? ` — ₹${amt.toLocaleString("en-IN")}` : ""}`,
+            { title: "Nayi payment aayi hai!" }
+          );
+        });
+      }
+      known = new Set(rows.map((r) => r.id));
+      first = false;
+      cb && cb(rows);
+    }
+  );
+  return stopFeeWatch;
+}
+
 export function initAdminShell({ active, title }) {
   return new Promise((resolve) => {
     onReady(async () => {
@@ -230,10 +276,16 @@ export function initAdminShell({ active, title }) {
       wireShell();
       if (mode === "preview") previewBanner();
 
-      // Badge is useful on every admin page
-      watchPendingAdmissions(null);
-
+      /* shellState pehle set hota hai: niche ke dono watcher ise padhkar tay
+         karte hain ki demo data dikhana hai ya asli. Pehle ye assignment inke
+         BAAD tha, isliye live mode me bhi badge demo data dikha raha tha. */
       shellState = { user, mode };
+
+      // Badges are useful on every admin page
+      watchPendingAdmissions(null);
+      // admin-fees.js apna khud ka listener lagata hai, isliye wahan dobara nahi
+      if (active !== "fees") watchPendingFees(null);
+
       resolve(shellState);
     });
   });

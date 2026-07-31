@@ -9,7 +9,7 @@ import { icon } from "../core/icons.js";
 import { money, amountInWords, formatDate, formatPhone, exportCSV, debounce, sum } from "../core/utils.js";
 import { open as openModal, confirm as confirmModal } from "../core/modal.js";
 import { createValidator, rules } from "../core/validators.js";
-import { initAdminShell } from "./admin-shell.js";
+import { initAdminShell, watchPendingFees } from "./admin-shell.js";
 import { DEMO_STUDENTS, DEMO_FEE_ROWS } from "./admin-demo.js";
 import { COLLECTIONS, ID_FORMATS, FEE_STATUS, PAYMENT_MODES } from "../core/constants.js";
 import { INSTITUTE } from "../config/site-data.js";
@@ -47,6 +47,29 @@ function tiles() {
 /* ==========================================================================
    Collect / verify
    ========================================================================== */
+/* Student ke dashboard par turant dikhne wali khabar. Fees confirm hote hi
+   uski fees page khud update ho jaati hai, par notification bell me bhi ek
+   pakka record reh jaata hai jise wo baad me dekh sake. */
+async function notifyStudent(studentId, title, message) {
+  if (mode === "preview" || !studentId) return;
+  try {
+    const { create } = await import("../../firebase/db-service.js");
+    await create(COLLECTIONS.NOTIFICATIONS, {
+      title, message,
+      type: "fee",
+      priority: "normal",
+      audience: "student",
+      studentId,
+      batchId: "",
+      readBy: [],
+      createdBy: "admin"
+    });
+  } catch (err) {
+    // Notification na jaaye to bhi payment to jama ho hi chuki hai
+    console.warn("[fees] notification failed:", err);
+  }
+}
+
 async function saveCollection({ student, amount, payMode, remarks, existingFeeId = null, txnRef = "" }) {
   if (mode === "preview") {
     toast.info("Preview mode: Firebase ke baad asli receipt banegi.");
@@ -82,6 +105,12 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     paidFee: increment(amount),
     pendingFee: increment(-amount)
   });
+
+  const left = Math.max(0, (Number(student.pendingFee) || 0) - amount);
+  await notifyStudent(student.studentId,
+    `${money(amount)} jama ho gaya`,
+    `Aapka ${money(amount)} ka payment confirm ho gaya hai. Receipt No. ${receiptNo}. ` +
+    (left > 0 ? `Ab bakaya ${money(left)} hai.` : "Aapki poori fees jama ho chuki hai — dhanyavaad!"));
 
   return { ...doc, id: existingFeeId || receiptNo.replace(/\//g, "-") };
 }
@@ -218,9 +247,11 @@ function verifyDialog(f) {
     try {
       const { update } = await import("../../firebase/db-service.js");
       await update(COLLECTIONS.FEES, f.id, { status: FEE_STATUS.FAILED });
+      await notifyStudent(f.studentId, "Payment confirm nahi ho paaya",
+        "Aapne jo payment bataya tha wo humein nahi mila. Kripya transaction reference ke saath institute se sampark karein — koi paisa kata ho to wo wapas aa jaayega.");
       f.status = "failed";
       m.close(); paintVerify(); tiles();
-      toast.success("Failed mark ho gaya.");
+      toast.success("Failed mark ho gaya — student ko bata diya gaya.");
     } catch (err) { toast.error(err.message || "Fail ho gaya."); }
   });
 }
@@ -259,19 +290,71 @@ function receiptView(f) {
 /* ==========================================================================
    Lists
    ========================================================================== */
+/* Ek tap me confirm — student ne jo rakam batayi hai wahi jama ho jaati hai.
+   Rakam badalni ho, screenshot dekhna ho ya reject karna ho to "Details". */
 function paintVerify() {
   const pend = fees.filter((f) => f.status === FEE_STATUS.PENDING);
   $("#verifySection").hidden = !pend.length;
-  render($("#verifyList"), pend.map((f) =>
-    el("div", { class: "card-ssz", style: { borderLeft: "3px solid var(--warning)" } },
+  render($("#verifyList"), pend.map((f) => {
+    const claimed = Number(f.claimedAmount) || 0;
+    const bits = [f.studentId];
+    if (f.txnRef) bits.push(`Ref: ${f.txnRef}`);
+    bits.push(f.proofURL && f.proofURL !== "#" ? "screenshot laga hai" : "screenshot nahi hai");
+
+    return el("div", { class: "card-ssz", style: { borderLeft: "3px solid var(--warning)" } },
       el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
         el("span", { class: "stat-tile__icon", style: { background: "var(--warning-soft)", color: "var(--warning)" }, html: icon("clock", { size: 20 }) }),
         el("span", { style: { flex: 1, minWidth: "200px" } },
-          el("strong", { style: { display: "block", fontSize: ".92rem" } }, f.studentName || f.studentId),
-          el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
-            `${f.studentId}${f.txnRef ? ` · Ref: ${f.txnRef}` : ""} · proof uploaded`)),
-        el("button", { class: "btn-ssz btn-primary-ssz btn-sm-ssz", type: "button", dataset: { verify: f.id } }, "Verify karein")
-      ))));
+          el("strong", { style: { display: "block", fontSize: ".92rem" } },
+            `${f.studentName || f.studentId}${claimed ? ` — ${money(claimed)}` : ""}`),
+          el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } }, bits.join(" · "))),
+        el("span", { class: "cluster", style: { gap: ".5rem" } },
+          el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { verify: f.id } }, "Details"),
+          claimed > 0
+            ? el("button", { class: "btn-ssz btn-success-ssz btn-sm-ssz", type: "button", dataset: { quick: f.id } },
+                el("span", { html: icon("checkCircle", { size: 16 }) }), ` ${money(claimed)} confirm`)
+            : el("button", { class: "btn-ssz btn-primary-ssz btn-sm-ssz", type: "button", dataset: { verify: f.id } }, "Verify karein")
+        )
+      ));
+  }));
+}
+
+/** Ek tap wala raasta — student ki batayi rakam seedhe jama kar deta hai. */
+async function quickConfirm(f, btn) {
+  const claimed = Number(f.claimedAmount) || 0;
+  if (claimed < 1) return verifyDialog(f);
+
+  const student = students.find((s) => s.studentId === f.studentId);
+  const ok = await confirmModal({
+    title: `${money(claimed)} confirm karein?`,
+    message: `${f.studentName || f.studentId} ka ${money(claimed)} jama maan liya jaayega — receipt ban jaayegi aur student ko notification chali jaayegi. ` +
+             "Pehle apne bank/PhonePe me dekh lein ki paisa aa gaya hai.",
+    confirmText: "Haan, aa gaya hai"
+  });
+  if (!ok) return;
+
+  try {
+    btn && (btn.disabled = true);
+    const doc = await saveCollection({
+      student: student || { studentId: f.studentId, fullName: f.studentName },
+      amount: claimed,
+      payMode: f.mode || "upi",
+      remarks: "Student ki batayi rakam confirm ki gayi",
+      existingFeeId: f.id,
+      txnRef: f.txnRef || ""
+    });
+    if (!doc) return;
+    Object.assign(f, doc, { status: "paid" });
+    if (student) {
+      student.paidFee = (student.paidFee || 0) + claimed;
+      student.pendingFee = Math.max(0, (student.pendingFee || 0) - claimed);
+    }
+    tiles(); paintVerify(); paintRows();
+    toast.success(`${money(claimed)} jama ho gaya — ${doc.receiptNo}`);
+  } catch (err) {
+    btn && (btn.disabled = false);
+    toast.error(err.message || "Confirm nahi ho paaya.");
+  }
 }
 
 function paintRows() {
@@ -332,6 +415,23 @@ $("#feeExport").addEventListener("click", () => {
 on($("#verifyList"), "click", "[data-verify]", (e, btn) => {
   const f = fees.find((x) => x.id === btn.dataset.verify);
   if (f) verifyDialog(f);
+});
+on($("#verifyList"), "click", "[data-quick]", (e, btn) => {
+  const f = fees.find((x) => x.id === btn.dataset.quick);
+  if (f) quickConfirm(f, btn);
+});
+
+/* Student ke payment batate hi ye list khud bhar jaati hai — page refresh
+   karne ki zaroorat nahi. Toast admin-shell se aata hai. */
+watchPendingFees((rows) => {
+  const fresh = rows.filter((r) => !fees.some((f) => f.id === r.id));
+  if (fresh.length) fees.unshift(...fresh);
+  // jo rows ab pending nahi rahe unhe local list me bhi hata dete hain
+  rows.forEach((r) => {
+    const local = fees.find((f) => f.id === r.id);
+    if (local && local.status === FEE_STATUS.PENDING) Object.assign(local, r);
+  });
+  tiles(); paintVerify();
 });
 on($("#feeRows"), "click", "[data-print]", (e, btn) => {
   const f = fees.find((x) => x.id === btn.dataset.print);

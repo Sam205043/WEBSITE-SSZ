@@ -38,7 +38,10 @@
   right: clamp(.85rem, 3vw, 1.5rem);
   bottom: calc(clamp(.85rem, 3vw, 1.5rem) + 62px);
   width: min(384px, calc(100vw - 1.7rem));
-  max-height: min(620px, calc(100vh - 140px));
+  /* Navbar sticky hai aur uska z-index chatbot se upar hai. Chhoti screen par
+     agar panel poori lambaai le le to uska apna header navbar ke neeche chhup
+     jaata hai — isliye navbar ki jagah pehle hi ghata dete hain. */
+  max-height: min(620px, calc(100vh - var(--navbar-h, 68px) - 90px));
   display: flex; flex-direction: column;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);

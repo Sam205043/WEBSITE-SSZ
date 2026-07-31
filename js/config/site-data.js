@@ -79,7 +79,7 @@ export const COURSES = Object.freeze([
       "computer fundamentals ke saath ChatGPT, Canva AI aur prompt writing bhi seekhein — " +
       "taaki aap office ka kaam aadhe time me kar sakein.",
     category: "ai", level: "beginner",
-    durationMonths: 6, fee: 6000, admissionFee: 500,
+    durationMonths: 6, fee: 6000, admissionFee: 0,
     icon: "sparkles", colorFrom: "#4f46e5", colorTo: "#7c3aed",
     image: "images/courses/ai-dca.jpg",
     isPopular: true, isNew: false, isActive: true,
@@ -107,7 +107,7 @@ export const COURSES = Object.freeze([
       "Tally Prime ka complete practical training — company creation se GST return tak. " +
       "Saath me AI tools se reconciliation aur report analysis fast karna seekhein.",
     category: "accounts", level: "beginner",
-    durationMonths: 3, fee: 5000, admissionFee: 500,
+    durationMonths: 3, fee: 5000, admissionFee: 0,
     icon: "wallet", colorFrom: "#059669", colorTo: "#06b6d4",
     image: "images/courses/tally-prime.jpg",
     isPopular: true, isNew: false, isActive: true,
@@ -135,7 +135,7 @@ export const COURSES = Object.freeze([
       "Latest Python 3.14 par complete programming course. Syntax se shuru karke " +
       "automation scripts, data handling aur mini projects tak — sab practical.",
     category: "programming", level: "intermediate",
-    durationMonths: 4, fee: 7000, admissionFee: 500,
+    durationMonths: 4, fee: 7000, admissionFee: 0,
     icon: "zap", colorFrom: "#0891b2", colorTo: "#4f46e5",
     image: "images/courses/python.jpg",
     isPopular: true, isNew: true, isActive: true,
@@ -163,7 +163,7 @@ export const COURSES = Object.freeze([
       "Advanced Diploma in Computer Applications — ek saal ka comprehensive programme " +
       "jisme office suite, accounting, DTP, internet aur basic programming sab shamil hai.",
     category: "academic", level: "intermediate",
-    durationMonths: 12, fee: 10000, admissionFee: 700,
+    durationMonths: 12, fee: 10000, admissionFee: 0,
     icon: "graduation", colorFrom: "#7c3aed", colorTo: "#f43f5e",
     image: "images/courses/adca.jpg",
     isPopular: true, isNew: false, isActive: true,
@@ -191,7 +191,7 @@ export const COURSES = Object.freeze([
       "Professional video editing with AI — auto captions, background removal, voice " +
       "cleanup aur fast reel production. Freelancing ke liye ekdum practical course.",
     category: "creative", level: "beginner",
-    durationMonths: 3, fee: 6500, admissionFee: 500,
+    durationMonths: 3, fee: 6500, admissionFee: 0,
     icon: "video", colorFrom: "#f43f5e", colorTo: "#f59e0b",
     image: "images/courses/video-editing.jpg",
     isPopular: false, isNew: true, isActive: true,
@@ -219,7 +219,7 @@ export const COURSES = Object.freeze([
       "Intermediate Commerce ki complete coaching — Accountancy, Business Studies, " +
       "Economics aur Entrepreneurship, board exam pattern ke hisaab se.",
     category: "academic", level: "beginner",
-    durationMonths: 24, fee: 12000, admissionFee: 1000,
+    durationMonths: 24, fee: 12000, admissionFee: 0,
     icon: "book", colorFrom: "#f59e0b", colorTo: "#059669",
     image: "images/courses/icom.jpg",
     isPopular: false, isNew: false, isActive: true,
@@ -247,7 +247,7 @@ export const COURSES = Object.freeze([
       "B.Com ki subject-wise coaching, saath me Tally, GST aur Excel ki practical training " +
       "— taaki degree ke saath job-ready skill bhi mile.",
     category: "academic", level: "intermediate",
-    durationMonths: 36, fee: 18000, admissionFee: 1500,
+    durationMonths: 36, fee: 18000, admissionFee: 0,
     icon: "graduation", colorFrom: "#4f46e5", colorTo: "#0891b2",
     image: "images/courses/bcom.jpg",
     isPopular: false, isNew: false, isActive: true,
@@ -275,7 +275,7 @@ export const COURSES = Object.freeze([
       "GST 2.0 ke naye slabs aur rules ke hisaab se complete practical course. " +
       "Portal par live filing practice ke saath.",
     category: "taxation", level: "intermediate",
-    durationMonths: 2, fee: 4500, admissionFee: 300,
+    durationMonths: 2, fee: 4500, admissionFee: 0,
     icon: "receipt", colorFrom: "#059669", colorTo: "#4f46e5",
     image: "images/courses/gst.jpg",
     isPopular: true, isNew: true, isActive: true,
@@ -303,7 +303,7 @@ export const COURSES = Object.freeze([
       "New Income Tax Act 2025 ke provisions, slabs aur ITR forms ka practical course. " +
       "Salaried, business aur capital gains — teeno cases cover.",
     category: "taxation", level: "intermediate",
-    durationMonths: 2, fee: 4500, admissionFee: 300,
+    durationMonths: 2, fee: 4500, admissionFee: 0,
     icon: "fileText", colorFrom: "#7c3aed", colorTo: "#06b6d4",
     image: "images/courses/income-tax.jpg",
     isPopular: false, isNew: true, isActive: true,
@@ -331,7 +331,7 @@ export const COURSES = Object.freeze([
       "Finance Act 2025 ke hisaab se TDS/TCS ka complete course — section-wise rates, " +
       "challan deposit, return filing aur Form 16/16A generation.",
     category: "taxation", level: "advanced",
-    durationMonths: 2, fee: 3500, admissionFee: 300,
+    durationMonths: 2, fee: 3500, admissionFee: 0,
     icon: "clipboard", colorFrom: "#e11d48", colorTo: "#7c3aed",
     image: "images/courses/tds.jpg",
     isPopular: false, isNew: true, isActive: true,

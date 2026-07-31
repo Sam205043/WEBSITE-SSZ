@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v14";
+const VERSION = "ssz-v15";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 

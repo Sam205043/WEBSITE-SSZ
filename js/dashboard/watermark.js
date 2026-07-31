@@ -206,7 +206,13 @@ export async function downloadWatermarked(url, fileName, label, onProgress = () 
 export async function deliver(btn, file, url, student, user) {
   const toast = (await import("../core/toast.js")).default;
 
-  if (!canWatermark(file) || !student) {
+  /* Abhi student ka naam/ID page par nahi chhapta — book apna khud ka
+     institute watermark leke aati hai, uske upar doosra stamp bhaari lagta
+     tha. Per-student stamp wapas chalu karne ke liye bas ise true kar dein;
+     baaki poora code niche jaisa ka waisa maujood hai. */
+  const STAMP_STUDENT_DETAILS = false;
+
+  if (!STAMP_STUDENT_DETAILS || !canWatermark(file) || !student) {
     window.open(url, "_blank", "noopener");
     return;
   }

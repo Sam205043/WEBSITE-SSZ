@@ -45,8 +45,12 @@ function classCard(c, big = false) {
         `${formatDateTime(c.startsAt)} · ${c.facultyName || ""}${c.topic ? ` · ${c.topic}` : ""}`)
     ),
     past
-      ? (c.recordingURL
-          ? el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: c.recordingURL, target: "_blank", rel: "noopener" }, "Recording dekhein")
+      /* Recording sirf tab dikhti hai jab admin ne use approve kiya ho. Sirf
+         link save kar dene se student ko kuch nahi milta — warna adhoori ya
+         galat recording apne aap chali jaati. */
+      ? (c.recordingURL && c.recordingPublished
+          ? el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: c.recordingURL, target: "_blank", rel: "noopener" },
+              el("span", { html: icon("video", { size: 15 }) }), " Recording dekhein")
           : el("span", { class: "badge-ssz" }, `Ended ${timeAgo(c.endsAt)}`))
       : el("a", {
           class: `btn-ssz btn-sm-ssz ${live ? "btn-primary-ssz" : "btn-secondary-ssz"}`,

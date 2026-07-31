@@ -15,6 +15,7 @@ import { DEMO_BATCHES } from "./admin-demo.js";
 import { DEMO_ASSIGNMENTS, DEMO_SUBMISSIONS, DEMO_NOTES } from "./demo-data.js";
 import { COLLECTIONS, STORAGE_PATHS } from "../core/constants.js";
 import { COURSES } from "../config/site-data.js";
+import { QUESTION_BANK, BANK_MODULES, bankCounts, pickQuestions } from "../config/question-bank.js";
 import toast from "../core/toast.js";
 
 let mode = "preview", assignments = [], notes = [], batches = [], tab = "assignments";
@@ -104,9 +105,34 @@ function asgForm() {
       <input class="input-ssz" name="file" type="file" style="padding:.6rem">
     </div>
     <div id="asgMcqBox" hidden>
+      <div class="card-ssz" style="margin-bottom:1rem;border-left:3px solid var(--brand)">
+        <div class="card-ssz__body" style="padding:1rem 1.15rem">
+          <strong style="font-size:.9rem;display:block;margin-bottom:.2rem">Bank se sawaal uthayein</strong>
+          <p style="font-size:.76rem;color:var(--text-muted);margin:0 0 .75rem">
+            480 sawaal pehle se maujood hain. Har baar alag sawaal nikalte hain, isliye
+            do batch ko ek jaisa paper nahi milega. <strong>Ye bank practice quiz me bhi
+            chalta hai, isliye iske jawab public hain</strong> — haftawaar revision ke liye
+            theek hai, asli imtihaan ke liye naye sawaal khud likhein.
+          </p>
+          <div class="adm-row">
+            <div class="field" style="margin:0">
+              <label class="field__label" style="font-size:.76rem">Module</label>
+              <select class="select-ssz" name="bankModule"></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="field__label" style="font-size:.76rem">Kitne sawaal</label>
+              <input class="input-ssz" name="bankCount" type="number" min="1" max="50" value="10">
+            </div>
+          </div>
+          <div class="cluster" style="margin-top:.6rem;gap:.5rem">
+            <button class="btn-ssz btn-primary-ssz btn-sm-ssz" type="button" id="asgBankFill">Bank se bharein</button>
+            <button class="btn-ssz btn-ghost-ssz btn-sm-ssz" type="button" id="asgBankAdd">Aur jodein</button>
+          </div>
+        </div>
+      </div>
       <div class="between" style="margin-bottom:.75rem">
-        <strong style="font-size:.95rem">Sawaal</strong>
-        <button class="btn-ssz btn-secondary-ssz btn-sm-ssz" type="button" id="asgAddQ">+ Sawaal jodein</button>
+        <strong style="font-size:.95rem">Sawaal <span id="asgQCount" style="color:var(--text-muted);font-weight:400"></span></strong>
+        <button class="btn-ssz btn-secondary-ssz btn-sm-ssz" type="button" id="asgAddQ">+ Khud likhein</button>
       </div>
       <div id="asgQList"></div>
       <p style="font-size:.78rem;color:var(--text-muted);margin:.6rem 0 0">
@@ -134,6 +160,9 @@ function asgForm() {
       card.querySelector("[data-qnum]").textContent = `Sawaal ${i + 1}`;
       card.querySelector("[data-del-q]").hidden = qList.children.length <= 1;
     });
+    const n = qList.children.length;
+    const label = form.querySelector("#asgQCount");
+    if (label) label.textContent = n ? `· ${n} sawaal · ${n} marks` : "";
   }
 
   function addQuestion() {
@@ -171,6 +200,40 @@ function asgForm() {
 
   form.querySelector("#asgAddQ").addEventListener("click", addQuestion);
   addQuestion();
+
+  /* ---------------- Bank se sawaal ----------------
+     Card banakar uske khaane bharte hain — yaani bank ka sawaal aane ke baad
+     bhi aap use haath se badal sakte hain. Bank sirf shuruaat deta hai,
+     bandhan nahi. */
+  const bankSel = form.querySelector('[name="bankModule"]');
+  const counts = bankCounts();
+  bankSel.appendChild(el("option", { value: "" }, `Saare module (${QUESTION_BANK.length})`));
+  BANK_MODULES.forEach((m) =>
+    bankSel.appendChild(el("option", { value: m }, `${m} (${counts[m] || 0})`)));
+
+  function fillCard(card, item) {
+    card.querySelector("[data-q]").value = item.q;
+    [...card.querySelectorAll("[data-opt]")].forEach((inp, i) => { inp.value = item.o[i] || ""; });
+    const radios = card.querySelectorAll("input[type=radio]");
+    if (radios[item.a]) radios[item.a].checked = true;
+  }
+
+  function addFromBank(replace) {
+    const count = Math.max(1, Math.min(50, Number(form.elements.bankCount.value) || 10));
+    const picked = pickQuestions(bankSel.value, count);
+    if (!picked.length) return toast.warning("Is module me sawaal nahi mile.");
+
+    if (replace) qList.replaceChildren();
+    picked.forEach((item) => {
+      addQuestion();
+      fillCard(qList.lastElementChild, item);
+    });
+    renumber();
+    toast.success(`${picked.length} sawaal aa gaye${bankSel.value ? ` — ${bankSel.value}` : ""}.`);
+  }
+
+  form.querySelector("#asgBankFill").addEventListener("click", () => addFromBank(true));
+  form.querySelector("#asgBankAdd").addEventListener("click", () => addFromBank(false));
 
   const typeSel = form.elements.type;
   const applyType = () => {

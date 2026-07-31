@@ -88,8 +88,16 @@
 }
 .dash.is-collapsed .dash-link__text,
 .dash.is-collapsed .dash-side__group,
-.dash.is-collapsed .dash-side__foot-text { display: none; }
+.dash.is-collapsed .dash-side__foot-text,
+/* Brand ka naam pehle sidebar ki clipping se chhupta tha. Tooltip ke liye
+   clipping hatani padi, isliye ab use seedhe hide karte hain — warna wo
+   bahar nikal kar topbar ke title ke upar chadh jaata hai. */
+.dash.is-collapsed .ssz-brand__text { display: none; }
 .dash.is-collapsed .dash-link { justify-content: center; }
+.dash.is-collapsed .dash-side__head {
+  padding-inline: var(--sp-3);
+  justify-content: center;
+}
 
 /* Collapsed sidebar me sirf icon bachta hai. Hover karte hi naam bagal me
    aa jaata hai — browser ke apne title tooltip ka intezaar nahi karna padta.

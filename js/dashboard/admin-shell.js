@@ -42,9 +42,14 @@ function buildSidebar(active) {
   const nav = el("nav", { class: "dash-side__nav", "aria-label": "Admin navigation" });
   NAV.forEach((item) => {
     if (item.group) { nav.appendChild(el("p", { class: "dash-side__group" }, item.group)); return; }
+    /* Sidebar collapse hone par sirf icon bachta hai, isliye naam hover par
+       dikhna chahiye. title = browser ka apna tooltip (thoda der se aata
+       hai), data-tip = hamara turant dikhne wala tooltip (CSS me). */
     const link = el("a", {
       class: `dash-link${item.key === active ? " is-active" : ""}`,
       href: url(item.route),
+      title: item.label,
+      "data-tip": item.label,
       "aria-current": item.key === active ? "page" : null
     },
       el("span", { class: "dash-link__icon", html: icon(item.icon, { size: 20 }) }),
@@ -66,7 +71,10 @@ function buildSidebar(active) {
     ),
     nav,
     el("div", { class: "dash-side__foot" },
-      el("button", { class: "btn-ssz btn-ghost-ssz btn-block-ssz btn-sm-ssz", type: "button", id: "btnLogout" },
+      el("button", {
+        class: "btn-ssz btn-ghost-ssz btn-block-ssz btn-sm-ssz", type: "button",
+        id: "btnLogout", title: "Logout", "data-tip": "Logout"
+      },
         el("span", { html: icon("logout", { size: 17 }) }),
         el("span", { class: "dash-side__foot-text" }, "Logout")
       )

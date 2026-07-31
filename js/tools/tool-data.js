@@ -138,3 +138,17 @@ export const TYPING_TEXTS = Object.freeze([
   "Accounts ka kaam dhyan maangta hai. Ek chhoti si galti poore mahine ka hisaab bigaad sakti hai, isliye har entry ko do baar check karein.",
   "Practice makes a person perfect. Sit straight, keep your wrists relaxed, look at the screen instead of the keyboard, and let your fingers learn the way."
 ]);
+
+/* Hindi (Devanagari) typing — sarkari naukri ke typing test me aksar Hindi
+   hi maangi jaati hai, aur English ki practice wahan poori tarah kaam nahi
+   aati kyunki keyboard layout hi alag hota hai. Isliye alag option rakha.
+
+   In paragraphs me jaan-boojh kar daftar wale shabd rakhe hain — sewa mein,
+   karyalay, vishay, dinank — kyunki asli test me isi tarah ki bhasha aati hai. */
+export const TYPING_TEXTS_HI = Object.freeze([
+  "कंप्यूटर आज हर काम का हिस्सा बन चुका है। कार्यालय हो या दुकान, थोड़ा सा कंप्यूटर ज्ञान आपका समय बचाता है और काम आसान बना देता है।",
+  "टाइपिंग सीखने का सबसे अच्छा तरीका रोज़ थोड़ा अभ्यास करना है। पहले सही उंगलियों से लिखना सीखें, गति अपने आप बढ़ जाएगी।",
+  "सेवा में, श्रीमान कार्यालय अध्यक्ष महोदय। विषय — दिनांक पंद्रह अगस्त को होने वाले कार्यक्रम की सूचना के संबंध में आवेदन पत्र।",
+  "हिसाब का काम ध्यान मांगता है। एक छोटी सी गलती पूरे महीने का लेखा बिगाड़ सकती है, इसलिए हर प्रविष्टि को दो बार जांचें।",
+  "सफलता का कोई छोटा रास्ता नहीं होता। जो विद्यार्थी रोज़ नियम से अभ्यास करता है, परीक्षा के दिन उसकी उंगलियां अपने आप चलती हैं।"
+]);

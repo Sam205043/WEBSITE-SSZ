@@ -6,14 +6,20 @@ import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { store } from "../core/utils.js";
 import { LS_KEYS } from "../core/constants.js";
-import { TYPING_TEXTS } from "./tool-data.js";
+import { TYPING_TEXTS, TYPING_TEXTS_HI } from "./tool-data.js";
 
 let target = "", duration = 60, remaining = 60, timer = null, running = false, finished = false;
+let lang = "en";
 
 const esc = (c) => c === "<" ? "&lt;" : c === "&" ? "&amp;" : c === " " ? "&nbsp;" : c;
 
+/* English ka best score purani jagah hi rehta hai, taaki jinke pichhle record
+   bane hue hain wo mit na jaayein. Hindi ka alag khaana. */
+const bestKeyFor = (l) => l === "hi" ? `${LS_KEYS.TYPING_BEST}.hi` : LS_KEYS.TYPING_BEST;
+
 function pickText() {
-  target = TYPING_TEXTS[Math.floor(Math.random() * TYPING_TEXTS.length)];
+  const pool = lang === "hi" ? TYPING_TEXTS_HI : TYPING_TEXTS;
+  target = pool[Math.floor(Math.random() * pool.length)];
 }
 
 function paintText(typed = "") {
@@ -69,12 +75,21 @@ function finish() {
   const { correct, acc, elapsed } = stats(typed);
   const wpm = Math.round((correct / 5) / (elapsed / 60));
 
-  const best = store.get(LS_KEYS.TYPING_BEST, 0);
+  /* Hindi aur English ki speed ki aapas me tulna nahi hoti — Devanagari me
+     har akshar ke liye zyada key dabani padti hai. Isliye best score dono ka
+     alag rakha hai, warna Hindi test English wala record kabhi nahi tod paata
+     aur student ko lagta hai wo peechhe ja raha hai. */
+  const bestKey = bestKeyFor(lang);
+  const best = store.get(bestKey, 0);
   const isBest = wpm > best;
-  if (isBest) { store.set(LS_KEYS.TYPING_BEST, wpm); $("#statBest").textContent = String(wpm); }
+  if (isBest) { store.set(bestKey, wpm); $("#statBest").textContent = String(wpm); }
 
-  const verdict = wpm >= 40 ? "Zabardast! Government exam level ke aas-paas."
-    : wpm >= 25 ? "Achha! Roz 15 minute practice se 40 WPM tak pahunch sakte hain."
+  /* Hindi ke paimane thode neeche hain — wahi speed Devanagari me zyada
+     mehnat maangti hai. */
+  const good = lang === "hi" ? 30 : 40;
+  const ok = lang === "hi" ? 18 : 25;
+  const verdict = wpm >= good ? "Zabardast! Government exam level ke aas-paas."
+    : wpm >= ok ? `Achha! Roz 15 minute practice se ${good} WPM tak pahunch sakte hain.`
     : "Shuruaat achhi hai — accuracy pehle, speed baad me.";
 
   render($("#typeResult"),
@@ -101,8 +116,12 @@ function reset() {
   paintText();
 }
 
+function showBest() {
+  $("#statBest").textContent = String(store.get(bestKeyFor(lang), 0) || "-");
+}
+
 onReady(() => {
-  $("#statBest").textContent = String(store.get(LS_KEYS.TYPING_BEST, 0) || "-");
+  showBest();
   reset();
 
   $("#typeInput").addEventListener("input", () => { start(); update(); });
@@ -110,6 +129,18 @@ onReady(() => {
   on($("#typeDuration"), "click", "button", (e, btn) => {
     duration = Number(btn.dataset.sec);
     $("#typeDuration").querySelectorAll("button").forEach((b) => b.classList.toggle("is-active", b === btn));
+    reset();
+  });
+
+  const langBox = $("#typeLang");
+  if (langBox) on(langBox, "click", "button", (e, btn) => {
+    lang = btn.dataset.lang;
+    langBox.querySelectorAll("button").forEach((b) => b.classList.toggle("is-active", b === btn));
+    /* Devanagari me akshar jude hue bante hain, isliye thoda bada font aur
+       khuli line height rakhte hain — warna matraayein aapas me chipakti hain. */
+    $("#typeText").classList.toggle("is-hindi", lang === "hi");
+    $("#typeInput").classList.toggle("is-hindi", lang === "hi");
+    showBest();
     reset();
   });
 

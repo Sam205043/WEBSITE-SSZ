@@ -8,7 +8,8 @@ import { store, debounce } from "../core/utils.js";
 import { LS_KEYS } from "../core/constants.js";
 import toast from "../core/toast.js";
 
-const FIELDS = ["name", "title", "phone", "email", "city", "about", "education", "skills", "experience", "certificates", "languages"];
+const FIELDS = ["name", "title", "phone", "email", "city", "about", "education", "skills",
+                "projects", "experience", "certificates", "languages"];
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const lines = (s) => String(s ?? "").split("\n").map((x) => x.trim()).filter(Boolean);
 
@@ -21,6 +22,9 @@ const SAMPLE = {
   about: "Computer aur accounts ka practical anubhav rakhne wala mehnati candidate. MS Office aur Tally Prime me comfortable, naya seekhne ke liye hamesha taiyaar.",
   education: "B.Com — Veer Kunwar Singh University — 2025\n12th (Commerce) — BSEB — 2022\nAI Powered DCA — Soft Skill Zone Institute — 2024",
   skills: "MS Word, MS Excel, Tally Prime, GST Return Filing, Hindi & English Typing, ChatGPT for office work",
+  /* Projects DCA/ADCA wale students ke liye sabse kaam ki cheez hai — jinke
+     paas naukri ka tajurba nahi hota, unke paas dikhane ko yahi hota hai. */
+  projects: "Dukaan ka billing system — Excel me formula aur VLOOKUP se banaya\nSchool ka result sheet — marks se grade aur division apne aap nikalta hai\nShaadi ka invitation card — MS Word me design karke print kiya",
   experience: "Accounts Assistant — Sharma Traders, Ara — 2024 se abhi tak\nData Entry Operator — CSC Centre, Ara — 2023",
   certificates: "AI Powered DCA — Soft Skill Zone Institute\nTyping Proficiency (30 WPM English, 25 WPM Hindi)",
   languages: "Hindi, English, Bhojpuri"
@@ -59,6 +63,7 @@ function paint() {
     ${section("Education", bullets(lines(d.education)))}
     ${section("Skills", skills.length
       ? `<p style="margin:0">${skills.map((s) => `<span style="display:inline-block;background:#eef2ff;color:#312e81;padding:2px 8px;border-radius:10px;margin:0 4px 4px 0;font-size:.74rem">${esc(s)}</span>`).join("")}</p>` : "")}
+    ${section("Projects", bullets(lines(d.projects)))}
     ${section("Experience", bullets(lines(d.experience)))}
     ${section("Certificates", bullets(lines(d.certificates)))}
     ${section("Languages", d.languages ? `<p style="margin:0">${esc(d.languages)}</p>` : "")}

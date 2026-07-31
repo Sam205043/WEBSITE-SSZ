@@ -249,6 +249,15 @@ export function initShell({ active, title }) {
       if (mode === "preview") previewBanner();
 
       shellState = { user, mode };
+
+      /* Sahayak — sirf live mode me. Preview me asli data hi nahi hai, to
+         "meri fees" ka jawab jhootha hota. */
+      if (mode === "live") {
+        import("../chat/chatbot.js")
+          .then(({ initChat }) => initChat({ user }))
+          .catch((err) => console.warn("[shell] chatbot skip:", err.message));
+      }
+
       resolve(shellState);
     });
   });

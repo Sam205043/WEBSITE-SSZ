@@ -13,6 +13,7 @@ import { initAdminShell, watchPendingFees } from "./admin-shell.js";
 import { DEMO_STUDENTS, DEMO_FEE_ROWS } from "./admin-demo.js";
 import { COLLECTIONS, ID_FORMATS, FEE_STATUS, PAYMENT_MODES } from "../core/constants.js";
 import { INSTITUTE } from "../config/site-data.js";
+import { currentDue, feeStatus, nextDueFrom, FEE_STATUS_LABEL } from "../core/fee-plan.js";
 import toast from "../core/toast.js";
 
 let mode = "preview", fees = [], students = [], term = "";
@@ -101,9 +102,18 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     await createWithId(COLLECTIONS.FEES, receiptNo.replace(/\//g, "-"), doc);
   }
 
+  /* Payment jama hote hi agli kist badal jaati hai — nayi due date wahin se
+     nikaal kar likh dete hain, taaki student ke dashboard par aur reminder
+     wali list me sahi tareekh dikhe. */
+  const after = {
+    ...student,
+    paidFee: (Number(student.paidFee) || 0) + amount,
+    pendingFee: Math.max(0, (Number(student.pendingFee) || 0) - amount)
+  };
   await update(COLLECTIONS.STUDENTS, student.studentId, {
     paidFee: increment(amount),
-    pendingFee: increment(-amount)
+    pendingFee: increment(-amount),
+    nextDueDate: nextDueFrom(after)
   });
 
   const left = Math.max(0, (Number(student.pendingFee) || 0) - amount);
@@ -184,7 +194,7 @@ function collectDialog(preStudent = null) {
         student.paidFee = (student.paidFee || 0) + amount;
         student.pendingFee = Math.max(0, (student.pendingFee || 0) - amount);
         fees.unshift(doc);
-        tiles(); paintRows();
+        tiles(); paintDue(); paintRows();
         toast.success(`Receipt ban gayi: ${doc.receiptNo}`);
         receiptView(doc);
       }
@@ -234,7 +244,7 @@ function verifyDialog(f) {
       if (doc) {
         Object.assign(f, doc, { status: "paid" });
         if (student) { student.paidFee = (student.paidFee || 0) + amount; student.pendingFee = Math.max(0, (student.pendingFee || 0) - amount); }
-        tiles(); paintVerify(); paintRows();
+        tiles(); paintVerify(); paintDue(); paintRows();
         toast.success(`Verify ho gaya — ${doc.receiptNo}`);
       }
     } catch (err) { okBtn.disabled = false; toast.error(err.message || "Fail ho gaya."); }
@@ -285,6 +295,102 @@ function receiptView(f) {
     w.document.write(`<html><head><title>${f.receiptNo}</title></head><body style="font-family:Arial,sans-serif">${body.innerHTML}</body></html>`);
     w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
   });
+}
+
+/* ==========================================================================
+   Bakaya — kiske paas kitna, aur kab se
+   --------------------------------------------------------------------------
+   Sabse upar wo naam jinki tareekh sabse pehle nikal chuki hai. Har naam ke
+   aage WhatsApp ka button, message pehle se likha hua — sirf bhejna hai.
+   ========================================================================== */
+function dueRows() {
+  return students
+    .filter((s) => s.status === "active" && (Number(s.pendingFee) || 0) > 0)
+    .map((s) => ({ s, due: currentDue(s), state: feeStatus(s) }))
+    .filter((r) => r.state === "overdue" || r.state === "today" || r.state === "unplanned")
+    .sort((a, b) => (b.due?.overdueDays || 0) - (a.due?.overdueDays || 0));
+}
+
+/** WhatsApp par bhejne wala message — chhota, seedha aur izzat ke saath. */
+function reminderText(s, due) {
+  const name = (s.fullName || "").split(" ")[0] || "ji";
+  const days = due?.overdueDays || 0;
+  const amt = due ? money(due.remaining) : money(s.pendingFee || 0);
+
+  const lines = [`Namaste ${name} ji, Soft Skill Zone se.`];
+  if (days > 0) lines.push(`Aapki ${amt} ki fees ki tareekh ${days} din pehle nikal chuki hai.`);
+  else if (due)  lines.push(`Aapki ${amt} ki fees aaj tak jama karni hai.`);
+  else           lines.push(`Aapki ${amt} ki fees abhi baaki hai.`);
+  lines.push("Website par login karke UPI se bhej sakte hain, ya institute aakar de sakte hain.");
+  lines.push("Koi dikkat ho to bata dijiye — hum raasta nikal lenge.");
+  return lines.join("\n");
+}
+
+function waLink(s, due) {
+  const num = String(s.whatsapp || s.mobile || "").replace(/\D/g, "").slice(-10);
+  if (num.length !== 10) return null;
+  return `https://wa.me/91${num}?text=${encodeURIComponent(reminderText(s, due))}`;
+}
+
+function paintDue() {
+  const rows = dueRows();
+  $("#dueSection").hidden = !rows.length;
+  if (!rows.length) return;
+
+  render($("#dueList"), rows.map(({ s, due, state }) => {
+    const [badgeCls, badgeText] = FEE_STATUS_LABEL[state];
+    const link = waLink(s, due);
+    const sub = state === "unplanned"
+      ? "Fees ka schedule nahi bana — Students page se bana dein"
+      : (due.overdueDays > 0
+          ? `${due.overdueDays} din se bakaya · kist ${due.no} · due thi ${formatDate(due.dueDate)}`
+          : `Aaj due hai · kist ${due.no}`);
+
+    return el("div", { class: "card-ssz", style: { borderLeft: `3px solid var(--${state === "overdue" ? "danger" : "warning"})` } },
+      el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
+        el("span", { style: { flex: 1, minWidth: "220px" } },
+          el("strong", { style: { display: "block", fontSize: ".93rem" } },
+            s.fullName || s.studentId,
+            el("span", { class: `badge-ssz ${badgeCls}`, style: { marginLeft: ".5rem", fontSize: ".62rem" } }, badgeText)),
+          el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } }, sub)),
+        el("span", { class: "num", style: { fontWeight: 700, fontSize: "1rem", color: "var(--danger)" } },
+          money(due ? due.remaining : s.pendingFee || 0)),
+        el("span", { class: "cluster", style: { gap: ".5rem" } },
+          link
+            ? el("a", { class: "btn-ssz btn-success-ssz btn-sm-ssz", href: link, target: "_blank", rel: "noopener" },
+                el("span", { html: icon("mail", { size: 15 }) }), " WhatsApp")
+            : el("span", { style: { fontSize: ".76rem", color: "var(--text-muted)" } }, "Mobile number nahi hai"),
+          el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { collectFor: s.studentId } },
+            "Fee lein"))
+      ));
+  }));
+}
+
+/** Sabhi bakaya walon ko unke dashboard par reminder — bina WhatsApp khole. */
+async function notifyAllDue(btn) {
+  const rows = dueRows();
+  if (!rows.length) return toast.info("Abhi kisi ka bakaya nahi hai.");
+
+  const ok = await confirmModal({
+    title: `${rows.length} students ko yaad dilayein?`,
+    message: "Har student ke dashboard par fees ka reminder chala jayega. WhatsApp alag se bhejna hoga.",
+    confirmText: "Haan, bhej dein"
+  });
+  if (!ok) return;
+  if (mode === "preview") return toast.info("Preview mode: Firebase ke baad asli jayega.");
+
+  btn.disabled = true;
+  let sent = 0;
+  for (const { s, due } of rows) {
+    const amt = due ? money(due.remaining) : money(s.pendingFee || 0);
+    const msg = due && due.overdueDays > 0
+      ? `Aapki ${amt} ki fees ki tareekh ${due.overdueDays} din pehle nikal chuki hai. Kripya jald jama kar dein.`
+      : `Aapki ${amt} ki fees jama karni hai. Website se UPI se bhej sakte hain.`;
+    await notifyStudent(s.studentId, "Fees ka reminder", msg);
+    sent++;
+  }
+  btn.disabled = false;
+  toast.success(`${sent} students ko reminder bhej diya gaya.`);
 }
 
 /* ==========================================================================
@@ -349,7 +455,7 @@ async function quickConfirm(f, btn) {
       student.paidFee = (student.paidFee || 0) + claimed;
       student.pendingFee = Math.max(0, (student.pendingFee || 0) - claimed);
     }
-    tiles(); paintVerify(); paintRows();
+    tiles(); paintVerify(); paintDue(); paintRows();
     toast.success(`${money(claimed)} jama ho gaya — ${doc.receiptNo}`);
   } catch (err) {
     btn && (btn.disabled = false);
@@ -397,9 +503,15 @@ if (mode === "preview") {
   ]);
 }
 
-tiles(); paintVerify(); paintRows();
+tiles(); paintVerify(); paintDue(); paintRows();
 
 $("#feeCollect").addEventListener("click", () => collectDialog());
+$("#dueNotifyAll").addEventListener("click", (e) => notifyAllDue(e.currentTarget));
+
+on($("#dueList"), "click", "[data-collectFor]", (e, btn) => {
+  const s = students.find((x) => x.studentId === btn.dataset.collectFor);
+  if (s) collectDialog(s);
+});
 $("#feeSearch").addEventListener("input", debounce((e) => { term = e.target.value.trim().toLowerCase(); paintRows(); }, 200));
 $("#feeExport").addEventListener("click", () => {
   const paid = fees.filter((f) => f.status === "paid");

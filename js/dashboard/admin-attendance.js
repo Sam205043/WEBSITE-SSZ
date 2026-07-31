@@ -100,8 +100,99 @@ async function save() {
       }
     })));
     toast.success(`${list.length} students ki attendance save ho gayi (${date}).`);
+    loadLow();   // aaj ki hazri jodne ke baad list dobara bane
   } catch (err) {
     toast.error(err.message || "Save fail ho gaya.");
+  }
+}
+
+/* ==========================================================================
+   Hazri gir rahi hai
+   --------------------------------------------------------------------------
+   Pichhle 30 din dekhte hain. "Leave" ko ginti se bahar rakhte hain — chhutti
+   li hui thi, wo gair-haazri nahi hai. "Late" ko haazir hi maante hain: der se
+   aaya to bhi aaya to hai.
+
+   Kam se kam 5 din ka record hone par hi kisi ko is list me daalte hain,
+   warna jo student abhi-abhi juda hai wo pehle hi din laal dikhne lagega.
+   ========================================================================== */
+const LOW_DAYS = 30;
+const LOW_MIN_MARKED = 5;
+const LOW_THRESHOLD = 60;      // isse neeche wale hi dikhenge
+
+function lowRows(records) {
+  const byStudent = new Map();
+  records.forEach((r) => {
+    if (r.status === ATTENDANCE_STATUS.LEAVE) return;
+    const cur = byStudent.get(r.studentId) || { marked: 0, present: 0 };
+    cur.marked++;
+    if (r.status === ATTENDANCE_STATUS.PRESENT || r.status === ATTENDANCE_STATUS.LATE) cur.present++;
+    byStudent.set(r.studentId, cur);
+  });
+
+  return students
+    .filter((s) => s.status === "active")
+    .map((s) => {
+      const c = byStudent.get(s.studentId);
+      if (!c || c.marked < LOW_MIN_MARKED) return null;
+      const pct = Math.round((c.present / c.marked) * 100);
+      return pct < LOW_THRESHOLD ? { s, pct, marked: c.marked, present: c.present } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.pct - b.pct);
+}
+
+function lowReminderText(s, pct) {
+  const name = (s.fullName || "").split(" ")[0] || "ji";
+  return [
+    `Namaste ${name} ji, Soft Skill Zone se.`,
+    `Pichhle mahine class me aapki hazri ${pct}% rahi hai — hum aapko miss kar rahe hain.`,
+    "Padhai ka nuksan na ho, isliye class me aana zaroori hai.",
+    "Koi dikkat ho — time, tabiyat ya kuch aur — to bata dijiye, hum raasta nikal lenge."
+  ].join("\n");
+}
+
+function paintLow(records) {
+  const rows = lowRows(records);
+  $("#lowSection").hidden = !rows.length;
+  $("#lowMeta").textContent = `Pichhle ${LOW_DAYS} din · ${LOW_THRESHOLD}% se kam`;
+  if (!rows.length) return;
+
+  render($("#lowList"), rows.map(({ s, pct, marked, present }) => {
+    const num = String(s.whatsapp || s.mobile || "").replace(/\D/g, "").slice(-10);
+    const link = num.length === 10
+      ? `https://wa.me/91${num}?text=${encodeURIComponent(lowReminderText(s, pct))}`
+      : null;
+    const tone = pct < 40 ? "danger" : "warning";
+
+    return el("div", { class: "card-ssz", style: { borderLeft: `3px solid var(--${tone})` } },
+      el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
+        el("span", { style: { flex: 1, minWidth: "200px" } },
+          el("strong", { style: { display: "block", fontSize: ".93rem" } }, s.fullName || s.studentId),
+          el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
+            `${present}/${marked} din haazir · ${s.batchName || s.batchId || "batch nahi"}`)),
+        el("span", { style: { fontWeight: 700, fontSize: "1.1rem", color: `var(--${tone})` } }, `${pct}%`),
+        link
+          ? el("a", { class: "btn-ssz btn-success-ssz btn-sm-ssz", href: link, target: "_blank", rel: "noopener" }, "WhatsApp")
+          : el("span", { style: { fontSize: ".76rem", color: "var(--text-muted)" } }, "Number nahi hai")
+      ));
+  }));
+}
+
+async function loadLow() {
+  if (mode === "preview") return;
+  const from = new Date();
+  from.setDate(from.getDate() - LOW_DAYS);
+  try {
+    const { getMany } = await import("../../firebase/db-service.js");
+    const records = await getMany(COLLECTIONS.ATTENDANCE, {
+      where: [["date", ">=", dateKey(from)]],
+      limit: 3000, useCache: false
+    });
+    paintLow(records);
+  } catch (err) {
+    // Index na ho ya permission na mile to register phir bhi chalta rahe
+    console.warn("[attendance] low-attendance list skipped:", err);
   }
 }
 
@@ -135,6 +226,8 @@ on($("#atRows"), "click", "[data-mark]", (e, btn) => {
   marks[btn.dataset.mark] = btn.dataset.status;
   paintRows();
 });
+
+loadLow();
 
 $("#atAllPresent").addEventListener("click", () => {
   batchStudents().forEach((s) => { marks[s.studentId] = ATTENDANCE_STATUS.PRESENT; });

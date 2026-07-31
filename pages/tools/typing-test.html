@@ -88,6 +88,10 @@ document.documentElement.style.colorScheme=t;})();
       <div class="tool-panel">
         <div class="tool-panel__body">
           <div class="between" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem">
+            <div class="segment" style="margin:0" id="typeLang">
+              <button type="button" class="is-active" data-lang="en">English</button>
+              <button type="button" data-lang="hi">हिंदी</button>
+            </div>
             <div class="segment" style="margin:0" id="typeDuration">
               <button type="button" data-sec="30">30 sec</button>
               <button type="button" class="is-active" data-sec="60">1 min</button>
@@ -95,6 +99,9 @@ document.documentElement.style.colorScheme=t;})();
             </div>
             <button class="btn-ssz btn-secondary-ssz btn-sm-ssz" type="button" id="typeRestart">Naya text</button>
           </div>
+          <p class="text-muted-c" id="typeLangHint" style="font-size:.8rem;margin:-.5rem 0 1rem">
+            Sarkari typing test me aksar Hindi maangi jaati hai — dono ka best score alag-alag rakha jaata hai.
+          </p>
 
           <div class="typing-text" id="typeText"></div>
           <textarea class="textarea-ssz" id="typeInput" style="min-height:90px" placeholder="Yahan type karna shuru karein — timer apne aap chalu ho jaayega" aria-label="Typing input"></textarea>

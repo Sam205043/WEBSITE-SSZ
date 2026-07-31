@@ -165,7 +165,20 @@ service cloud.firestore {
         || (ownsRow() && request.resource.data.diff(resource.data)
               .affectedKeys().hasOnly(['proofURL', 'txnRef', 'status', 'updatedAt'])
             && request.resource.data.get('status', '') != 'paid');
-      allow create, delete: if isAdmin();
+
+      // Proof upload karne ke liye student ko ek row chahiye jisme wo attach
+      // ho — isliye wo khud ek khol sakta hai. Lekin sirf apne liye, sirf
+      // unverified, aur amount 0 ke saath. `claimedAmount` sirf student ka
+      // dawa hai ki usne kitna bheja; asli rakam admin verify karte waqt
+      // bharta hai, isliye student apne aap paisa jama nahi dikha sakta.
+      allow create: if isAdmin()
+        || (hasStudentId()
+            && request.resource.data.studentId == myStudentId()
+            && request.resource.data.get('amount', -1) == 0
+            && request.resource.data.get('status', '') == 'pending-verification'
+            && request.resource.data.get('claimedAmount', 0) is number
+            && request.resource.data.get('claimedAmount', 0) > 0);
+      allow delete: if isAdmin();
     }
 
     match /attendance/{id} {

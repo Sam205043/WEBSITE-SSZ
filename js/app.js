@@ -96,6 +96,19 @@ async function wireLiveSettings() {
 }
 
 /* ==========================================================================
+   Support chatbot — sabse aakhir me, alag chunk me. Page ka pehla paint isse
+   rukta nahi, aur jinke paas dheema net hai unhe pehle content milta hai.
+   ========================================================================== */
+async function wireChatbot() {
+  try {
+    const { initChat } = await import("./chat/chatbot.js");
+    await initChat();
+  } catch (err) {
+    console.warn("[app] chatbot skip:", err.message);
+  }
+}
+
+/* ==========================================================================
    Boot
    ========================================================================== */
 onReady(async () => {
@@ -113,6 +126,7 @@ onReady(async () => {
   // Non-blocking upgrades
   wireAuthState();
   wireLiveSettings();
+  wireChatbot();
 
   document.dispatchEvent(new CustomEvent("ssz:ready"));
 });

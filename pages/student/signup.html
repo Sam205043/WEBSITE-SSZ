@@ -71,6 +71,15 @@ document.documentElement.style.colorScheme=t;})();
 
       <div class="auth-alert" id="authAlert" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span id="authAlertMsg"></span></div>
 
+      <button class="btn-ssz btn-google-ssz btn-block-ssz" type="button" id="googleBtn">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.06 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h6.2a5.3 5.3 0 0 1-2.3 3.48v2.89h3.72c2.18-2 3.44-4.96 3.44-8.38z"/><path fill="#34A853" d="M12 24c3.11 0 5.72-1.03 7.62-2.79l-3.72-2.89c-1.03.69-2.35 1.1-3.9 1.1-3 0-5.54-2.03-6.45-4.75H1.71v2.98A11.99 11.99 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.55 14.67a7.2 7.2 0 0 1 0-4.6V7.09H1.71a12 12 0 0 0 0 10.56l3.84-2.98z"/><path fill="#EA4335" d="M12 4.75c1.69 0 3.21.58 4.4 1.72l3.3-3.3C17.71 1.19 15.1 0 12 0 7.4 0 3.42 2.64 1.71 6.49l3.84 2.98C6.46 6.75 9 4.75 12 4.75z"/></svg>
+        Google se account banayein
+      </button>
+      <p style="text-align:center;font-size:.78rem;color:var(--text-muted);margin:.6rem 0 0">
+        Sabse aasan raasta — na password banana, na Student ID yaad rakhni.
+      </p>
+      <div class="auth-or"><span>ya email se</span></div>
+
       <form id="signupForm" novalidate>
               <div class="field">
                 <label class="field__label" for="name">Full Name <span class="req">*</span></label>
@@ -85,12 +94,6 @@ document.documentElement.style.colorScheme=t;})();
               <div class="field">
                 <label class="field__label" for="phone">Mobile <span class="req">*</span></label>
                 <input class="input-ssz" id="phone" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit">
-                <div class="field__error"></div>
-              </div>
-              <div class="field">
-                <label class="field__label" for="studentId">Student ID</label>
-                <input class="input-ssz" id="studentId" name="studentId" type="text" placeholder="Jaise: SSZ2026DCA0007 (agar mila ho)">
-                <p class="field__hint">Admission approve hone par jo ID mili thi. Nahi hai to khaali chhodein — admin baad me jod dega.</p>
                 <div class="field__error"></div>
               </div>
               <div class="field">

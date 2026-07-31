@@ -99,8 +99,12 @@ function renderAside(c) {
       el("div", { class: "card-ssz__body" },
         el("p", { class: "text-muted-c", style: { fontSize: ".75rem", letterSpacing: "var(--ls-caps)", textTransform: "uppercase", marginBottom: ".4rem" } }, "Course fee"),
         el("div", { class: "enroll-card__price" }, money(c.fee)),
+        /* Admission fee alag nahi li jaati. Agar kabhi kisi course par lagayi
+           jaaye to line apne aap wapas aa jaayegi. */
         el("p", { class: "text-muted-c", style: { fontSize: ".8rem", marginTop: ".4rem" } },
-          `+ ${money(c.admissionFee || 0)} admission fee · Total ${money(total)}`),
+          c.admissionFee
+            ? `+ ${money(c.admissionFee)} admission fee · Total ${money(total)}`
+            : "Koi alag admission fee nahi"),
 
         el("ul", { class: "enroll-card__list" },
           ...[

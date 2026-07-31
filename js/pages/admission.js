@@ -287,7 +287,9 @@ function paintReview() {
     group("Course", 3, [
       ["Course", course ? course.title : "—"],
       ["Duration", course ? durationLabel(course.durationMonths) : "—"],
-      ["Course fee", course ? `${money(course.fee)} + ${money(course.admissionFee || 0)} admission` : "—"],
+      ["Course fee", course
+        ? (course.admissionFee ? `${money(course.fee)} + ${money(course.admissionFee)} admission` : money(course.fee))
+        : "—"],
       ["Batch preference", pref ? `${pref.label} (${pref.sub})` : "—"]
     ]),
     group("Uploads", 4, [

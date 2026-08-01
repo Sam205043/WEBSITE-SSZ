@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Soft Skill Zone — Ek baar me ek sawaal wale test ka roop
+   --------------------------------------------------------------------------
+   Sab kuchh ungli se chalne layak: option poori chaudai ke bade button hain,
+   48px se chhote nahi, taaki chhoti screen par bhi galat option na dab jaye.
+   ========================================================================== */
+
+.quiz__bar {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--bg-surface-2);
+  overflow: hidden;
+  margin-bottom: .85rem;
+}
+.quiz__fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--brand), var(--accent, var(--brand)));
+  transition: width .25s ease;
+}
+
+.quiz__meta {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.quiz__meta strong { color: var(--text-primary); }
+.quiz__done { margin-inline-start: auto; }
+
+.quiz__clock {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  font-size: .86rem;
+  color: var(--text-primary);
+  background: var(--bg-surface-2);
+  border-radius: 8px;
+  padding: .2rem .55rem;
+}
+/* Aakhri paanch minute — dikhe, par ghabrahat na faile. */
+.quiz__clock.is-low {
+  color: var(--danger);
+  background: var(--danger-soft, var(--bg-surface-2));
+}
+
+.quiz__q {
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.55;
+  margin: 0 0 1.1rem;
+  color: var(--text-primary);
+}
+
+.quiz__opts { display: grid; gap: .6rem; }
+
+.quiz__opt {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  width: 100%;
+  min-height: 52px;
+  padding: .7rem .9rem;
+  text-align: start;
+  font-size: .92rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .08s ease;
+}
+.quiz__opt:hover { border-color: var(--brand); }
+.quiz__opt:active { transform: scale(.995); }
+.quiz__opt.is-picked {
+  border-color: var(--brand);
+  background: var(--brand-soft, var(--bg-surface-2));
+}
+
+.quiz__letter {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-surface-2);
+}
+.quiz__opt.is-picked .quiz__letter { color: #fff; background: var(--brand); }
+
+.quiz__note {
+  margin: 1.1rem 0 0;
+  font-size: .78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ---------------- review screen ---------------- */
+.quiz__reviewHead {
+  font-size: .88rem;
+  line-height: 1.55;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+}
+.quiz__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+  gap: .5rem;
+}
+.quiz__cell {
+  aspect-ratio: 1;
+  min-height: 46px;
+  border-radius: 10px;
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  transition: transform .08s ease;
+}
+.quiz__cell:active { transform: scale(.95); }
+.quiz__cell.is-done { border-color: var(--success); color: var(--success); }
+.quiz__cell.is-blank { border-color: var(--danger); color: var(--danger); }
+
+/* ---------------- result ---------------- */
+.qres { text-align: center; }
+.qres__score {
+  font-family: var(--font-display, inherit);
+  font-size: 2.7rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.qres__pct { margin: .35rem 0 1.2rem; font-size: .9rem; color: var(--text-muted); }
+
+.qres__rows { text-align: start; display: grid; gap: .45rem; margin-top: .5rem; }
+.qres__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: .84rem;
+  padding: .5rem .7rem;
+  border-radius: 9px;
+  background: var(--bg-surface-2);
+}
+.qres__row span:last-child { font-weight: 700; white-space: nowrap; }
+
+/* Galat jawaalon ki list — practice me hi dikhti hai, exam me nahi. */
+.qwrong { text-align: start; display: grid; gap: .7rem; }
+.qwrong__item {
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: .8rem .9rem;
+}
+.qwrong__q { font-size: .88rem; font-weight: 600; margin: 0 0 .5rem; line-height: 1.5; }
+.qwrong__line { font-size: .82rem; margin: 0 0 .25rem; line-height: 1.5; }
+.qwrong__bad { color: var(--danger); }
+.qwrong__good { color: var(--success); font-weight: 600; }
+
+/* ---------------- practice ke card ---------------- */
+.ptest__best {
+  font-size: .76rem;
+  font-weight: 700;
+  color: var(--success);
+}
+.ptest__none { font-size: .76rem; color: var(--text-muted); }

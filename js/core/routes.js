@@ -34,6 +34,7 @@ export const ROUTES = Object.freeze({
   studentClasses:    "pages/student/live-classes.html",
   studentAttendance: "pages/student/attendance.html",
   studentAssignments:"pages/student/assignments.html",
+  studentPractice:   "pages/student/practice.html",
   studentNotes:      "pages/student/notes.html",
   studentCerts:      "pages/student/certificates.html",
   studentNotify:     "pages/student/notifications.html",

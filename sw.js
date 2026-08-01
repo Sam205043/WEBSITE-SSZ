@@ -14,20 +14,31 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v26";
+const VERSION = "ssz-v27";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
 /* Files worth having ready before the first offline visit.
 
-   The 10 free tools are precached deliberately: they are the part of the site
-   that genuinely works with no internet (calculators, quiz, QR encoder, resume
-   builder), and offline.html points students at them. Everything else is
-   cached the first time it is actually used. */
+   Saare free tools jaanbujh kar precache hote hain: yahi wo hissa hai jo bina
+   internet ke sach me chalta hai (calculator, quiz, QR, resume builder,
+   practice tools), aur offline.html student ko inhi ki taraf bhejta hai.
+   Baaki sab pehli baar istemaal hone par cache hota hai. */
 const TOOLS = [
   "gst-calculator", "gst-quiz", "hsn-search", "invoice-generator",
   "age-calculator", "percentage-calculator", "emi-calculator",
-  "resume-builder", "typing-test", "qr-generator"
+  "resume-builder", "typing-test", "qr-generator",
+  "mega-quiz", "shortcut-trainer", "excel-practice", "interview-qa"
+];
+
+/* Practice tools ka data alag files me hai — inke bina tool khulega to sahi
+   par khali rahega, isliye ye bhi precache me hain. Yahi galti purani
+   office-tools site par thi: page live tha, data file gayab. */
+const TOOL_DATA = [
+  "js/config/question-bank.js",
+  "js/config/shortcut-bank.js",
+  "js/config/excel-bank.js",
+  "js/config/interview-bank.js"
 ];
 
 const PRECACHE = [
@@ -44,6 +55,7 @@ const PRECACHE = [
   "js/core/validators.js",
   ...TOOLS.map((t) => `pages/tools/${t}.html`),
   ...TOOLS.map((t) => `js/tools/${t}.js`),
+  ...TOOL_DATA,
   "css/tokens.css",
   "css/base.css",
   "css/layout.css",

@@ -14,9 +14,29 @@ import { DEMO_CERTIFICATES } from "./demo-data.js";
 import { COLLECTIONS, ID_FORMATS } from "../core/constants.js";
 import { INSTITUTE } from "../config/site-data.js";
 import { url } from "../core/routes.js";
+import { qrMatrix, qrSVG } from "../tools/qrcode.js";
 import toast from "../core/toast.js";
 
 let mode = "preview", certs = [], students = [], term = "";
+
+/** Verify page ka poora link — QR aur "Link copy" dono isi se bante hain. */
+function verifyLink(code) {
+  return `${location.origin}${url("verify", { code }).replace(/^(\.\.\/)+/, "/")}`;
+}
+
+/* QR seedha SVG me banta hai — inline hone se print aur PDF dono me aata hai,
+   aur kisi bhi internet/CDN par nirbhar nahi. Encoder khud project ka hai.
+   Level "M" isliye ki chhapaai halki ho jaye tab bhi scan ho jaye. */
+function qrTag(code) {
+  try {
+    const svg = qrSVG(qrMatrix(verifyLink(code), "M"), { margin: 2 });
+    return `<span style="display:block;width:76px;height:76px;margin:0 auto 4px">${
+      svg.replace("<svg ", '<svg style="width:100%;height:100%;display:block" ')}</span>`;
+  } catch {
+    /* QR na bhi bane to certificate ruke nahi — code neeche likha hi hai. */
+    return "";
+  }
+}
 
 function certPrintHTML(c) {
   return `
@@ -32,9 +52,13 @@ function certPrintHTML(c) {
       <span>Issue date: <strong>${formatDate(c.issueDate)}</strong></span>
       <span>Certificate No: <strong>${c.certificateNo}</strong></span>
     </div>
-    <div style="margin-top:26px;display:flex;justify-content:space-between;align-items:flex-end">
-      <span style="font-size:.62rem;color:#888">Verify: apni website ke "Verify Certificate" page par code <strong>${c.verifyCode}</strong> daalein</span>
+    <div style="margin-top:26px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
       <span style="border-top:1.5px solid #0f172a;padding:4px 18px 0;font-size:.72rem">Director</span>
+      <span style="text-align:center;font-size:.58rem;color:#666;line-height:1.5">
+        ${qrTag(c.verifyCode)}
+        <span style="display:block">Scan karke verify karein</span>
+        <strong style="display:block;letter-spacing:.04em">${c.verifyCode}</strong>
+      </span>
     </div>
   </div>`;
 }
@@ -61,7 +85,7 @@ function row(c) {
         el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" } },
           `${c.certificateNo} · ${c.verifyCode} · ${formatDate(c.issueDate)}`)),
       el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { view: c.id } }, "Certificate"),
-      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { copy: c.verifyCode } }, "Code copy")
+      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { copy: c.verifyCode } }, "Link copy")
     ));
 }
 
@@ -194,8 +218,9 @@ on($("#certAdminList"), "click", "[data-view]", (e, btn) => {
   const c = certs.find((x) => x.id === btn.dataset.view);
   if (c) certView(c);
 });
+/* Poora link copy hota hai, sirf code nahi — WhatsApp par yahi bhejna hota hai,
+   aur saamne wale ko code kahin type nahi karna padta. */
 on($("#certAdminList"), "click", "[data-copy]", async (e, btn) => {
-  const link = `${location.origin}${url("verify", { code: btn.dataset.copy }).replace(/^\.\.\//, "/")}`;
-  const ok = await copyToClipboard(btn.dataset.copy);
-  ok ? toast.success(`Verify code copy ho gaya: ${btn.dataset.copy}`) : toast.error("Copy nahi ho paya.");
+  const ok = await copyToClipboard(verifyLink(btn.dataset.copy));
+  ok ? toast.success("Verify link copy ho gaya — WhatsApp par bhej dein.") : toast.error("Copy nahi ho paya.");
 });

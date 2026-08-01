@@ -19,7 +19,7 @@ import { icon } from "../core/icons.js";
 import { url, asset } from "../core/routes.js";
 import { escapeHtml, whatsappLink, store } from "../core/utils.js";
 import { INSTITUTE } from "../config/site-data.js";
-import { answer, matchStudentIntent, STARTER_CHIPS, STUDENT_CHIPS } from "./knowledge.js";
+import { answer, matchStudentIntent, STARTER_CHIPS, STUDENT_CHIPS, BOT_NAME } from "./knowledge.js";
 import { aiReady, askAI } from "./ai.js";
 
 /* ==========================================================================
@@ -221,8 +221,8 @@ function greet() {
   const first = name ? name.split(" ")[0] : "";
   pushBot(
     state.loggedIn
-      ? `Namaste${first ? ` ${first}` : ""}! Apni fees, attendance, class ya assignment — jo dekhna ho poochh lijiye.`
-      : `Namaste! Main ${INSTITUTE.shortName} ka sahayak hoon.\n\nCourse, fees, admission ya timing — jo jaanna ho poochh lijiye.`,
+      ? `Namaste${first ? ` ${first}` : ""}! Main ${BOT_NAME} hoon.\n\nApni fees, attendance, class ya assignment — jo dekhna ho poochh lijiye.`
+      : `Namaste! Main ${BOT_NAME} hoon, ${INSTITUTE.shortName} ka sahayak.\n\nCourse, fees, admission ya timing — jo jaanna ho poochh lijiye.`,
     { chips: state.loggedIn ? STUDENT_CHIPS : STARTER_CHIPS }
   );
 }
@@ -252,7 +252,7 @@ function build() {
 
   const fab = el("button", {
     class: "fab fab--chat", type: "button",
-    "aria-label": "Sahayak se poochhein", "aria-expanded": "false",
+    "aria-label": `${BOT_NAME} se poochhein`, "aria-expanded": "false",
     html: `<span class="fab__chat">${BOT_ICON}</span><span class="fab__x">${icon("close", { size: 20 })}</span>`
   });
 
@@ -278,20 +278,20 @@ function build() {
 
   const panel = el("div", {
     class: "chat-panel", id: "sszChat", hidden: true,
-    role: "dialog", "aria-label": "Soft Skill Zone sahayak", "aria-modal": "false"
+    role: "dialog", "aria-label": `${BOT_NAME} — ${INSTITUTE.shortName} sahayak`, "aria-modal": "false"
   },
     el("div", { class: "chat-head" },
       el("span", { class: "chat-head__avatar", html: BOT_ICON }),
       el("span", { class: "chat-head__meta" },
-        el("strong", {}, `${INSTITUTE.shortName} Sahayak`),
-        el("span", {}, "Aam sawaalon ka turant jawab")
+        el("strong", {}, BOT_NAME),
+        el("span", {}, `${INSTITUTE.shortName} ka sahayak · turant jawab`)
       ),
       el("button", { class: "chat-head__close", type: "button", "aria-label": "Band karein", html: icon("close", { size: 18 }) })
     ),
     body,
     chips,
     form,
-    el("p", { class: "chat-note" }, "Ye ek automatic sahayak hai. Zaroori faisle institute se confirm kar lein.")
+    el("p", { class: "chat-note" }, `${BOT_NAME} ek automatic sahayak hai. Zaroori faisle institute se confirm kar lein.`)
   );
 
   /* WhatsApp/top ke saath hi baithe, unke upar. */

@@ -23,7 +23,7 @@
    ========================================================================== */
 
 import { firebaseConfig } from "../../firebase/firebase-config.js";
-import { groundingFacts } from "./knowledge.js";
+import { groundingFacts, BOT_NAME } from "./knowledge.js";
 import { INSTITUTE } from "../config/site-data.js";
 
 /* ==========================================================================
@@ -48,7 +48,8 @@ const CDN = `https://www.gstatic.com/firebasejs/${AI_SDK}`;
    nahi pata" kehne ke. */
 function systemPrompt() {
   return [
-    `Aap ${INSTITUTE.name} (Ara, Bihar) ki website ke sahayak hain.`,
+    `Aapka naam "${BOT_NAME}" hai. Aap ${INSTITUTE.name} (Ara, Bihar) ki website ke sahayak hain.`,
+    `Naam poochhe jaane par ${BOT_NAME} batayein, aur ye bhi ki aap ek program hain — insaan nahi. Kabhi insaan hone ka dawa na karein.`,
     "",
     "NIYAM — inse bahar bilkul nahi jaana:",
     "1. Sirf neeche diye TATHYA se jawab dein. Tathya me jo nahi hai, uske baare me kabhi andaaza na lagayein.",

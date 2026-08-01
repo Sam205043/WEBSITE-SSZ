@@ -19,6 +19,11 @@
 import { COURSES, INSTITUTE, TOOLS, activeCourses } from "../config/site-data.js";
 import { money, formatPhone } from "../core/utils.js";
 
+/* Sahayak ka naam. Ek hi jagah likha hai — badalna ho to sirf yahi line.
+   "Sarathi" = rath chalane wala: jo raasta jaanta hai aur manzil tak le
+   jaata hai, par shrey nahi leta. */
+export const BOT_NAME = "Sarathi";
+
 /* ==========================================================================
    Text normalise
    ========================================================================== */
@@ -134,7 +139,7 @@ const PUBLIC_INTENTS = [
     id: "greeting",
     keys: ["hi", "hello", "hey", "namaste", "namaskar", "pranam", "salam", "नमस्ते", "हेलो"],
     answer: () => ({
-      text: `Namaste! Main ${INSTITUTE.shortName} ka sahayak hoon.\n\nCourse, fees, admission ya timing — jo poochhna ho poochh lijiye. Student hain to login karke apni fees aur attendance bhi dekh sakte hain.`,
+      text: `Namaste! Main ${BOT_NAME} hoon, ${INSTITUTE.shortName} ka sahayak.\n\nCourse, fees, admission ya timing — jo poochhna ho poochh lijiye. Student hain to login karke apni fees aur attendance bhi dekh sakte hain.`,
       chips: ["Kaun kaun se course hain?", "Fees kitni hai?", "Admission kaise lein?"]
     })
   },
@@ -150,9 +155,9 @@ const PUBLIC_INTENTS = [
   },
   {
     id: "whoareyou",
-    keys: ["tum kaun", "aap kaun", "who are you", "bot", "kaun ho", "tumhara naam"],
+    keys: ["tum kaun", "aap kaun", "who are you", "bot", "kaun ho", "tumhara naam", "naam kya", "sarathi", "insaan ho", "aadmi ho", "robot"],
     answer: () => ({
-      text: `Main ${INSTITUTE.name} ka website sahayak hoon — ek chhota program, insaan nahi.\n\nCourse, fees, timing aur admission ki pakki jaankari de sakta hoon. Jo mujhe na pata ho, us par main andaaza nahi lagata — seedhe institute se baat kara deta hoon.`,
+      text: `Mera naam **${BOT_NAME}** hai — ${INSTITUTE.name} ki website ka sahayak. Ek program hoon, insaan nahi.\n\nSarathi wo hota hai jo raasta jaanta hai aur manzil tak pahunchata hai. Course, fees, timing aur admission ki pakki jaankari de sakta hoon. Jo mujhe na pata ho, us par andaaza nahi lagata — seedhe institute se baat kara deta hoon.`,
       chips: ["Course dekhein", "Baat karni hai"]
     })
   },

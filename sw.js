@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v35";
+const VERSION = "ssz-v36";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -64,14 +64,24 @@ const PRECACHE = [
   "css/home.css",
   "css/pages.css",
   "css/tools.css",
+  /* Tool pages ke form-field isi file se sajte hain — chhoot gayi thi to
+     offline par tool bina roop ke khulta tha. */
+  "css/admission.css",
   /* Sahayak bhi offline chalta hai — aam sawaalon ka jawab site-data se
-     banta hai, net ki zaroorat nahi. Sirf AI wali tah ko internet chahiye. */
+     banta hai, net ki zaroorat nahi. Sirf AI wali tah ko internet chahiye.
+     ai.js khud bhi yahan chahiye: chatbot.js use seedhe import karta hai,
+     isliye wo na mile to poora chatbot hi load nahi hota. */
   "css/chat.css",
   "js/chat/chatbot.js",
   "js/chat/knowledge.js",
+  "js/chat/ai.js",
   "components/navbar.html",
   "components/footer.html",
   "js/app.js",
+  /* app.js in dono ko seedhe import karta hai — chhootne par app.js hi nahi
+     chalta, aur offline page par navbar-footer dono gayab ho jaate hain. */
+  "js/components/navbar.js",
+  "js/components/footer.js",
   "js/core/dom.js",
   "js/core/utils.js",
   "js/core/theme.js",

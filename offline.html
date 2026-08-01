@@ -10,12 +10,12 @@
 if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
 document.documentElement.setAttribute("data-theme",t);})();
 </script>
-<link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="icon" href="images/logo/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="images/logo/favicon.ico" sizes="48x48">
-<link rel="apple-touch-icon" href="images/logo/apple-touch-icon.png">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="icon" href="/images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="/images/logo/apple-touch-icon.png">
 <link rel="canonical" href="https://softskillzone.in/offline.html">
 </head>
 <body>
@@ -35,8 +35,8 @@ document.documentElement.setAttribute("data-theme",t);})();
     </p>
     <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
       <button class="btn-ssz btn-primary-ssz" type="button" onclick="location.reload()">Dobara try karein</button>
-      <a class="btn-ssz btn-secondary-ssz" href="pages/tools.html">Free Tools kholein</a>
-      <a class="btn-ssz btn-ghost-ssz" href="index.html">Home</a>
+      <a class="btn-ssz btn-secondary-ssz" href="/pages/tools.html">Free Tools kholein</a>
+      <a class="btn-ssz btn-ghost-ssz" href="/index.html">Home</a>
     </div>
   </div>
 </main>
@@ -46,7 +46,7 @@ document.documentElement.setAttribute("data-theme",t);})();
    tools keep working on weak mobile data. Fails silently on file://. */
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function () {});
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
   });
 }
 </script>

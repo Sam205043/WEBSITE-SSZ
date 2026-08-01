@@ -13,11 +13,11 @@ document.documentElement.setAttribute("data-theme",t);})();
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/animations.css">
 <link rel="canonical" href="https://softskillzone.in/404.html">
 </head>
 <body data-depth="0">
@@ -30,9 +30,9 @@ document.documentElement.setAttribute("data-theme",t);})();
       Link galat ho sakta hai ya page hata diya gaya hai. Neeche se aage badhein.
     </p>
     <div class="cluster" style="justify-content:center">
-      <a class="btn-ssz btn-primary-ssz" href="index.html">Home par jaayein</a>
-      <a class="btn-ssz btn-secondary-ssz" href="pages/courses.html">Courses dekhein</a>
-      <a class="btn-ssz btn-ghost-ssz" href="pages/contact.html">Contact karein</a>
+      <a class="btn-ssz btn-primary-ssz" href="/index.html">Home par jaayein</a>
+      <a class="btn-ssz btn-secondary-ssz" href="/pages/courses.html">Courses dekhein</a>
+      <a class="btn-ssz btn-ghost-ssz" href="/pages/contact.html">Contact karein</a>
     </div>
   </div>
 </main>
@@ -42,7 +42,7 @@ document.documentElement.setAttribute("data-theme",t);})();
    tools keep working on weak mobile data. Fails silently on file://. */
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function () {});
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
   });
 }
 </script>

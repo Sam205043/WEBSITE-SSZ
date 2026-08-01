@@ -52,6 +52,7 @@ export const ROUTES = Object.freeze({
   adminCerts:       "pages/admin/certificates.html",
   adminNotify:      "pages/admin/notifications.html",
   adminEnquiries:   "pages/admin/enquiries.html",
+  adminGallery:     "pages/admin/gallery.html",
 
   toolGst:        "pages/tools/gst-calculator.html",
   toolGstQuiz:    "pages/tools/gst-quiz.html",

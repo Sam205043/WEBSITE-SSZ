@@ -13,11 +13,19 @@ async function db() { return import("../../firebase/db-service.js"); }
 /* ==========================================================================
    Student context — the students/{studentId} record for the signed-in user
    ========================================================================== */
-export async function getStudent(user) {
+/**
+ * @param {object}  user
+ * @param {object}  [opts]
+ * @param {boolean} [opts.fresh]  cache chhodkar seedha server se. Tab chahiye
+ *   jab record kisi DOOSRE browser me badla ho — jaise admin ne fees confirm
+ *   ki. Cache sirf apne hi write par saaf hota hai, isliye bina iske student
+ *   ko paanch minute tak purane totals dikhte rehte the.
+ */
+export async function getStudent(user, { fresh = false } = {}) {
   const { getOne, getMany } = await db();
 
   if (user.studentId) {
-    const doc = await getOne(COLLECTIONS.STUDENTS, user.studentId);
+    const doc = await getOne(COLLECTIONS.STUDENTS, user.studentId, { useCache: !fresh });
     if (doc) return doc;
   }
   // Fallback: find by auth uid (covers accounts linked later by the admin)

@@ -240,7 +240,7 @@ on($("#asgList"), "click", "[data-regrade]", async (e, btn) => {
 /* Question papers are stored by path, not by download URL — ask for the link
    only when it is clicked, so Storage rules check the reader first. Older
    assignments still carry a fileURL and keep working. */
-on($("#asgList"), "click", "[data-openAsg]", async (e, btn) => {
+on($("#asgList"), "click", "[data-open-asg]", async (e, btn) => {
   const a = assignments.find((x) => x.id === btn.dataset.openAsg);
   if (!a) return;
   let url = a.fileURL;

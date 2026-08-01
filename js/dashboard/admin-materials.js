@@ -557,7 +557,7 @@ on($("#asgAdminList"), "click", "[data-subs]", (e, btn) => {
   const a = assignments.find((x) => x.id === btn.dataset.subs);
   if (a) showSubmissions(a);
 });
-on($("#asgAdminList"), "click", "[data-delAsg]", async (e, btn) => {
+on($("#asgAdminList"), "click", "[data-del-asg]", async (e, btn) => {
   const a = assignments.find((x) => x.id === btn.dataset.delAsg);
   if (!a) return;
   const ok = await confirmModal({ title: "Assignment delete karein?", message: `"${a.title}" students ke dashboard se hat jaayega.`, danger: true, confirmText: "Haan" });
@@ -574,7 +574,7 @@ on($("#asgAdminList"), "click", "[data-delAsg]", async (e, btn) => {
 });
 /* The download URL is not kept in the document any more, so resolve it at the
    moment it is asked for. Older notes still carry fileURL — use that. */
-on($("#noteAdminList"), "click", "[data-openNote]", async (e, btn) => {
+on($("#noteAdminList"), "click", "[data-open-note]", async (e, btn) => {
   const n = notes.find((x) => x.id === btn.dataset.openNote);
   if (!n) return;
   if (n.filePath) {
@@ -592,7 +592,7 @@ on($("#noteAdminList"), "click", "[data-openNote]", async (e, btn) => {
   window.open(n.fileURL, "_blank", "noopener");
 });
 
-on($("#noteAdminList"), "click", "[data-delNote]", async (e, btn) => {
+on($("#noteAdminList"), "click", "[data-del-note]", async (e, btn) => {
   const n = notes.find((x) => x.id === btn.dataset.delNote);
   if (!n) return;
   const ok = await confirmModal({ title: "Note delete karein?", message: `"${n.title}" students ke Notes se hat jaayega.`, danger: true, confirmText: "Haan" });

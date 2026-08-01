@@ -508,7 +508,7 @@ tiles(); paintVerify(); paintDue(); paintRows();
 $("#feeCollect").addEventListener("click", () => collectDialog());
 $("#dueNotifyAll").addEventListener("click", (e) => notifyAllDue(e.currentTarget));
 
-on($("#dueList"), "click", "[data-collectFor]", (e, btn) => {
+on($("#dueList"), "click", "[data-collect-for]", (e, btn) => {
   const s = students.find((x) => x.studentId === btn.dataset.collectFor);
   if (s) collectDialog(s);
 });
@@ -538,11 +538,19 @@ on($("#verifyList"), "click", "[data-quick]", (e, btn) => {
 watchPendingFees((rows) => {
   const fresh = rows.filter((r) => !fees.some((f) => f.id === r.id));
   if (fresh.length) fees.unshift(...fresh);
-  // jo rows ab pending nahi rahe unhe local list me bhi hata dete hain
   rows.forEach((r) => {
     const local = fees.find((f) => f.id === r.id);
     if (local && local.status === FEE_STATUS.PENDING) Object.assign(local, r);
   });
+
+  /* Jo row ab pending list me nahi aayi — matlab kisi aur ne use confirm kar
+     diya (doosra admin, ya isi admin ka doosra tab). Use apni local list se
+     bhi hataana zaroori hai. Warna wo card yahan "verify pending" me pada
+     rehta hai, aur dobara confirm dabate hi ek AUR receipt ban jaata hai —
+     student ke paidFee me wahi rakam do baar chadh jaati hai. */
+  const live = new Set(rows.map((r) => r.id));
+  fees = fees.filter((f) => f.status !== FEE_STATUS.PENDING || live.has(f.id));
+
   tiles(); paintVerify();
 });
 on($("#feeRows"), "click", "[data-print]", (e, btn) => {

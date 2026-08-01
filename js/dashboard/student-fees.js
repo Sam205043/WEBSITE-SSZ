@@ -449,7 +449,7 @@ if (mode === "live" && student?.studentId) {
 
         if (!first && freshlyPaid.length) {
           // Totals students/{id} me rehte hain — admin unhe update karta hai
-          const fresh = await data.getStudent(shell.user).catch(() => null);
+          const fresh = await data.getStudent(shell.user, { fresh: true }).catch(() => null);
           if (fresh) student = fresh;
           freshlyPaid.forEach((f) => toast.success(
             `${money(f.amount)} jama ho gaya · Receipt ${f.receiptNo || ""}`.trim(),

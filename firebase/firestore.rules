@@ -259,9 +259,16 @@ service cloud.firestore {
       // "Padh liya" student ke dashboard se dabta hai, isliye use `readBy` me
       // sirf apna Student ID jodne ki ijaazat chahiye — aur bas itni hi.
       // Baaki koi field, aur kisi doosre ka ID, yahan se nahi badal sakta.
+      //
+      // `updatedAt` bhi list me hona ZAROORI hai: db-service.js ka update()
+      // har patch ke saath serverTimestamp() jodta hai, isliye badle hue
+      // field hamesha do hote hain. Sirf ['readBy'] likhne par har student ka
+      // write chup-chaap reject ho jaata tha. (fees wale rule me ye pehle se
+      // theek tha — wahin se ye tarika liya hai.)
       allow update: if isAdmin()
         || (hasStudentId()
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy'])
+            && request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['readBy', 'updatedAt'])
             && (request.resource.data.readBy ==
                   resource.data.get('readBy', []).concat([myStudentId()])
                 || request.resource.data.readBy == resource.data.get('readBy', [])));
@@ -275,9 +282,10 @@ service cloud.firestore {
     match /notes/{id} {
       allow read: if isSignedIn();
       // The download counter is bumped from the student dashboard.
+      // `updatedAt` bhi chahiye — update() use hamesha jodta hai.
       allow update: if isAdmin()
         || (isStudent() && request.resource.data.diff(resource.data)
-              .affectedKeys().hasOnly(['downloads']));
+              .affectedKeys().hasOnly(['downloads', 'updatedAt']));
       allow create, delete: if isAdmin();
     }
 
@@ -316,7 +324,11 @@ service cloud.firestore {
     // A visitor submitting the admission form must be able to bump the
     // admissions counter — by exactly one, and only that counter.
     match /counters/{name} {
-      allow read: if true;
+      // Bahar wale ko sirf admissions wala counter padhna hota hai (form
+      // bharte waqt agla application number banane ke liye). Baaki counters
+      // batate hain ki kitne students bhare, kitne receipt aur certificate
+      // bane — ye kisi anjaan visitor ke kaam ki cheez nahi hai.
+      allow read: if isAdmin() || name.matches('admissions-[0-9]{4}');
       allow create: if isAdmin()
         || (name.matches('admissions-[0-9]{4}')
             && request.resource.data.value is int

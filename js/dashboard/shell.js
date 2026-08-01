@@ -17,6 +17,7 @@
 import { $, $$, el, on, onReady, render, lockScroll } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { initTheme } from "../core/theme.js";
+import { initPress } from "../core/press.js";
 import { initials, store, timeAgo } from "../core/utils.js";
 import { url } from "../core/routes.js";
 import { LS_KEYS } from "../core/constants.js";
@@ -223,6 +224,7 @@ export function initShell({ active, title }) {
   return new Promise((resolve) => {
     onReady(async () => {
       initTheme();
+      initPress();
 
       let mode = "live";
       try {

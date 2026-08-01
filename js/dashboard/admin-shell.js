@@ -12,6 +12,7 @@
 import { $, el, on, onReady, render, lockScroll } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { initTheme } from "../core/theme.js";
+import { initPress } from "../core/press.js";
 import { initials, store } from "../core/utils.js";
 import { url } from "../core/routes.js";
 import { LS_KEYS, COLLECTIONS, FEE_STATUS } from "../core/constants.js";
@@ -251,6 +252,7 @@ export function initAdminShell({ active, title }) {
   return new Promise((resolve) => {
     onReady(async () => {
       initTheme();
+      initPress();
 
       let mode = "live";
       try {

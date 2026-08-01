@@ -1,0 +1,7 @@
+GitHub Pages Jekyll chalata hai, aur Jekyll dot se shuru hone wale folder
+chhod deta hai. Iska matlab /.well-known/assetlinks.json kabhi serve nahi
+hota — aur usi file se Android ko pata chalta hai ki app aur website ek hi
+maalik ke hain. Wo na mile to TWA app ke upar browser wala URL bar dikhta
+rehta hai.
+
+Ye khali file Jekyll ko band kar deti hai. Ise hataana mat.

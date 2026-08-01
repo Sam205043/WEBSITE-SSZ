@@ -128,7 +128,14 @@ onReady(async () => {
     const { getMany, getOne } = await import("../../firebase/db-service.js");
     const { COLLECTIONS } = await import("../core/constants.js");
 
-    const live = slug ? await getOne(COLLECTIONS.BLOG, slug, { ttl: 10 * 60 * 1000 }) : null;
+    /* Jis slug ka Firestore me doc hi nahi hai (abhi saare post seed se aate
+       hain) uska read rule `resource.data` par tika hota hai — isliye wo
+       "nahi mila" nahi, balki "mana kar diya" bankar throw hota hai. Apna
+       alag catch na ho to niche wali "aur padhein" list bhi saath me mar
+       jaati thi. */
+    const live = slug
+      ? await getOne(COLLECTIONS.BLOG, slug, { ttl: 10 * 60 * 1000 }).catch(() => null)
+      : null;
     if (live && live.isPublished) {
       post = { ...live, slug };
       renderPost(post);

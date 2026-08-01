@@ -121,7 +121,7 @@ function asgForm() {
             </div>
             <div class="field" style="margin:0">
               <label class="field__label" style="font-size:.76rem">Kitne sawaal</label>
-              <input class="input-ssz" name="bankCount" type="number" min="1" max="50" value="10">
+              <input class="input-ssz" name="bankCount" type="number" min="1" max="100" value="25">
             </div>
           </div>
           <div class="cluster" style="margin-top:.6rem;gap:.5rem">
@@ -219,7 +219,7 @@ function asgForm() {
   }
 
   function addFromBank(replace) {
-    const count = Math.max(1, Math.min(50, Number(form.elements.bankCount.value) || 10));
+    const count = Math.max(1, Math.min(100, Number(form.elements.bankCount.value) || 25));
     const picked = pickQuestions(bankSel.value, count);
     if (!picked.length) return toast.warning("Is module me sawaal nahi mile.");
 

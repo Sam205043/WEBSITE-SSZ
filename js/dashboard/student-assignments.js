@@ -12,6 +12,7 @@ import * as data from "./student-data.js";
 import { DEMO_ASSIGNMENTS, DEMO_SUBMISSIONS, DEMO_STUDENT } from "./demo-data.js";
 import { deliver } from "./watermark.js";
 import { open as openModal } from "../core/modal.js";
+import { runQuiz } from "./quiz-runner.js";
 import toast from "../core/toast.js";
 
 let assignments = [], submissions = [], student = null, mode = "preview";
@@ -102,7 +103,7 @@ function card(a) {
    student ko dikhate hain jiska submission ban chuka hai. Isliye console
    kholkar pehle se jawab dekhna mumkin nahi hai.
    ========================================================================== */
-function quizDialog(a) {
+async function quizDialog(a) {
   if (mode === "preview") {
     toast.info("Preview mode: Firebase connect hone ke baad MCQ chalega.");
     return;
@@ -110,51 +111,23 @@ function quizDialog(a) {
   const qs = a.questions || [];
   if (!qs.length) return toast.error("Is assignment me abhi koi sawaal nahi hai.");
 
-  const body = el("div", {});
-  body.appendChild(el("p", { style: { fontSize: ".85rem", marginBottom: "1rem", color: "var(--text-muted)" } },
-    `${qs.length} sawaal · har sahi jawab ka 1 mark · ek hi mauka`));
-
-  qs.forEach((item, qi) => {
-    const card = el("div", { class: "card-ssz", style: { marginBottom: ".75rem" } });
-    card.innerHTML = `
-      <div class="card-ssz__body" style="padding:1rem 1.15rem">
-        <p style="margin:0 0 .75rem;font-weight:600;font-size:.9rem">
-          ${qi + 1}. ${(item.q || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]))}
-        </p>
-        ${(item.options || []).map((opt, oi) => `
-          <label style="display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.5rem;cursor:pointer">
-            <input type="radio" name="sq${qi}" value="${oi}" style="flex-shrink:0;margin-top:.2rem">
-            <span style="font-size:.87rem">${String(opt).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]))}</span>
-          </label>`).join("")}
-      </div>`;
-    body.appendChild(card);
+  /* Ek baar me ek sawaal — runner sab sambhalta hai. Yahan sirf jawab aate
+     hain, aur wahi Firestore me jaate hain. */
+  const answers = await runQuiz({
+    title: a.title,
+    questions: qs,
+    note: "Har sahi jawab ka 1 mark. Ek hi mauka milega, isliye jama karne se pehle review screen par ek baar dekh lein."
   });
+  if (!answers) return;              // student ne band kar diya
 
-  const submitBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, "Jama karein");
-  const cancelBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Baad me");
-  const m = openModal({ title: a.title, size: "lg", body, footer: [cancelBtn, submitBtn] });
-  cancelBtn.addEventListener("click", () => m.close());
-
-  submitBtn.addEventListener("click", async () => {
-    const answers = qs.map((_, qi) => {
-      const picked = body.querySelector(`input[name="sq${qi}"]:checked`);
-      return picked ? Number(picked.value) : -1;
-    });
-    const blank = answers.findIndex((v) => v < 0);
-    if (blank >= 0) return toast.error(`Sawaal ${blank + 1} ka jawab abhi baaki hai.`);
-
-    try {
-      submitBtn.disabled = true;
-      const res = await data.submitMcq(student, a, answers);
-      m.close();
-      submissions = await data.getSubmissions(student);
-      paint();
-      resultDialog(a, res);
-    } catch (err) {
-      submitBtn.disabled = false;
-      toast.error(err.message || "Jama nahi ho paya.");
-    }
-  });
+  try {
+    const res = await data.submitMcq(student, a, answers);
+    submissions = await data.getSubmissions(student);
+    paint();
+    resultDialog(a, res);
+  } catch (err) {
+    toast.error(err.message || "Jama nahi ho paya.");
+  }
 }
 
 function resultDialog(a, res) {

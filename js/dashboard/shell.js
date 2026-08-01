@@ -31,6 +31,7 @@ const NAV = [
   { key: "attendance",  label: "Attendance",     icon: "userCheck",  route: "studentAttendance" },
   { group: "Padhai" },
   { key: "assignments", label: "Assignments",    icon: "clipboard",  route: "studentAssignments" },
+  { key: "practice",    label: "Practice Test",  icon: "checkCircle",route: "studentPractice" },
   { key: "notes",       label: "Notes",          icon: "book",       route: "studentNotes" },
   { key: "certificates",label: "Certificates",   icon: "award",      route: "studentCerts" },
   { group: "Account" },

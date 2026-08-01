@@ -89,3 +89,24 @@ export const DEMO_ENQUIRIES = Object.freeze([
   { id: "e1", name: "Sonu Kumar", mobile: "9801234567", subject: "Course & fees", message: "DCA ki fees aur timing kya hai?", isRead: false, createdAt: at(-0.2) },
   { id: "e2", name: "Khushboo", mobile: "9812340987", subject: "Batch timing", message: "Kya ladkiyon ke liye alag morning batch hai?", isRead: true, createdAt: at(-2) }
 ]);
+
+/* Gallery ke demo tiles: chitra data-URI SVG hain, koi bahar ki file nahi —
+   preview mode bina internet ke bhi theek dikhna chahiye. */
+const tile = (bg, text) => "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="520" height="390" viewBox="0 0 520 390">` +
+  `<rect width="520" height="390" fill="${bg}"/>` +
+  `<text x="260" y="205" font-family="sans-serif" font-size="28" font-weight="700" ` +
+  `fill="#ffffff" text-anchor="middle">${text}</text></svg>`);
+
+export const DEMO_GALLERY = Object.freeze([
+  { id: "g1", title: "Computer lab — DCA batch", category: "classroom", order: 1,
+    imageURL: tile("#4f46e5", "Lab"), thumbURL: tile("#4f46e5", "Lab"), imagePath: "", thumbPath: "" },
+  { id: "g2", title: "Institute ka front", category: "campus", order: 2,
+    imageURL: tile("#0891b2", "Campus"), thumbURL: tile("#0891b2", "Campus"), imagePath: "", thumbPath: "" },
+  { id: "g3", title: "", category: "events", order: 3,
+    imageURL: tile("#7c3aed", "Event"), thumbURL: tile("#7c3aed", "Event"), imagePath: "", thumbPath: "" },
+  { id: "g4", title: "Certificate distribution", category: "awards", order: 4,
+    imageURL: tile("#c2410c", "Awards"), thumbURL: tile("#c2410c", "Awards"), imagePath: "", thumbPath: "" },
+  { id: "g5", title: "Tally batch", category: "students", order: 5,
+    imageURL: tile("#15803d", "Students"), thumbURL: tile("#15803d", "Students"), imagePath: "", thumbPath: "" }
+]);

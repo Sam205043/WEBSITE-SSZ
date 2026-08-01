@@ -33,7 +33,8 @@ const NAV = [
   { group: "Records" },
   { key: "certificates", label: "Certificates", icon: "award", route: "adminCerts" },
   { key: "notify",     label: "Notifications", icon: "bell",   route: "adminNotify" },
-  { key: "enquiries",  label: "Enquiries",  icon: "mail",      route: "adminEnquiries" }
+  { key: "enquiries",  label: "Enquiries",  icon: "mail",      route: "adminEnquiries" },
+  { key: "gallery",    label: "Gallery",    icon: "image",     route: "adminGallery" }
 ];
 
 let shellState = { user: null, mode: "preview" };

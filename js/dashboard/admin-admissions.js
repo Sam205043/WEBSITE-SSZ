@@ -18,6 +18,9 @@ let mode = "preview";
 let all = [];          // full list (all statuses)
 let filter = "pending";
 
+/* Form me value chhoti likhi jaati hai; dikhana theek se chahiye. */
+const GENDER_LABEL = { male: "Male", female: "Female", other: "Other" };
+
 const FILTERS = [
   { v: "pending", l: "Pending" },
   { v: "approved", l: "Approved" },
@@ -80,23 +83,24 @@ function paintFilters() {
 /* ==========================================================================
    Detail + actions
    ========================================================================== */
+
+/* The admission form uploads files but never asks for their download URL —
+   it has no permission to read that folder back. The admin does, so the
+   URL is resolved here, on demand. */
+async function resolveUrl(path) {
+  if (!path) return "";
+  try {
+    const { storage, storageRef, getDownloadURL } = await import("../../firebase/firebase-init.js");
+    return await getDownloadURL(storageRef(storage, path));
+  } catch (err) {
+    console.warn("[admissions] file link nahi mila:", path, err);
+    return "";
+  }
+}
+
 function detailBody(a) {
   const rows = (pairs) => el("dl", { style: { margin: 0 } },
     ...pairs.map(([k, v]) => el("div", { class: "verify-row" }, el("dt", {}, k), el("dd", {}, v || "—"))));
-
-  /* The admission form uploads files but never asks for their download URL —
-     it has no permission to read that folder back. The admin does, so the
-     URL is resolved here, on demand. */
-  async function resolveUrl(path) {
-    if (!path) return "";
-    try {
-      const { storage, storageRef, getDownloadURL } = await import("../../firebase/firebase-init.js");
-      return await getDownloadURL(storageRef(storage, path));
-    } catch (err) {
-      console.warn("[admissions] file link nahi mila:", path, err);
-      return "";
-    }
-  }
 
   const body = el("div", {});
   if (a.photoURL || a.photoPath) {
@@ -111,7 +115,7 @@ function detailBody(a) {
     ["Application No.", a.applicationNo],
     ["Naam", a.fullName],
     ["Pita / Mata", `${a.fatherName} / ${a.motherName}`],
-    ["DOB · Gender", `${a.dob} · ${a.gender}`],
+    ["DOB · Gender", `${a.dob ? formatDate(a.dob) : "—"} · ${GENDER_LABEL[a.gender] || a.gender || "—"}`],
     ["Mobile / WhatsApp", `${formatPhone(a.mobile)} / ${formatPhone(a.whatsapp)}`],
     ["Email", a.email],
     ["Address", `${a.address}, ${a.city} - ${a.pincode}`],
@@ -189,6 +193,13 @@ async function approve(a, modal) {
     const seq = await nextSequence(`students-${year}-${code}`);
     const studentId = ID_FORMATS.student(year, code, seq);
 
+    /* Admission form photo ko sirf Storage me rakhta hai, uska download URL
+       nahi maangta — us folder ko wapas padhne ki ijaazat use nahi hai. Admin
+       ke paas hai, isliye URL yahin nikal kar student ke record me daal dete
+       hain. Warna student ke dashboard par photo kabhi aati hi nahi, kyunki
+       wo bhi us folder ko nahi padh sakta. */
+    const photoURL = a.photoURL || await resolveUrl(a.photoPath);
+
     await createWithId(COLLECTIONS.STUDENTS, studentId, {
       studentId,
       uid: "",                                 // linked when the student signs up / by admin
@@ -204,7 +215,7 @@ async function approve(a, modal) {
       qualification: a.qualification,
       courseId: a.courseId, courseName: a.courseName,
       batchId: a.batchId || "", batchName: "", batchPref: a.batchPref || "",
-      photoURL: a.photoURL || "", documents: a.documents || [],
+      photoURL, photoPath: a.photoPath || "", documents: a.documents || [],
       admissionDate: new Date(),
       status: STUDENT_STATUS.ACTIVE,
       totalFee: (a.courseFee || 0) + (a.admissionFee || 0),
@@ -220,11 +231,14 @@ async function approve(a, modal) {
     modal.close();
     toast.success(`Approve ho gaya! Student ID: ${studentId}`, { duration: 7000 });
 
-    // One-click WhatsApp to inform the student
+    /* Ek tap me student ko khabar. Signup ab Student ID nahi poochhta —
+       admission wale email se account banate hi record apne aap jud jaata
+       hai — isliye message me wahi likha hai jo sach me karna hai. */
     const wa = whatsappLink(a.whatsapp || a.mobile,
       `Namaste ${a.fullName}! Soft Skill Zone me aapka admission confirm ho gaya hai.\n` +
       `Student ID: ${studentId}\nCourse: ${a.courseName}\n` +
-      `Ab website par is ID se student account bana lein. Dhanyavaad!`);
+      `Ab website par "Student Login" se account bana lein — wahi email daaliye ` +
+      `jo form me diya tha (${a.email}), aapka record apne aap jud jaayega. Dhanyavaad!`);
     window.open(wa, "_blank", "noopener");
   } catch (err) {
     console.error(err);

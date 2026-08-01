@@ -23,6 +23,7 @@
 import { $, el, on, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { store } from "../core/utils.js";
+import { param } from "../core/routes.js";
 import { initShell } from "./shell.js";
 import { open as openModal } from "../core/modal.js";
 import { QUESTION_BANK, BANK_MODULES, bankCounts, pickQuestions } from "../config/question-bank.js";
@@ -226,3 +227,8 @@ paint();
 /* Card har baar naye bante hain, isliye click bhi delegation se. */
 on($("#ptFullBox"), "click", "#ptFull", startFull);
 on($("#ptList"), "click", "[data-mod]", (e, btn) => startModule(btn.dataset.mod));
+
+/* Notes page se "Is module ka test dein" dabaya ho to seedha wahi test khul
+   jaata hai — student ko dobara list me se dhoondhna na pade. */
+const wanted = param("module");
+if (wanted && BANK_MODULES.includes(wanted)) startModule(wanted);

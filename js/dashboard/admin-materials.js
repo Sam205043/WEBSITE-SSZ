@@ -414,7 +414,7 @@ function noteRow(n) {
       el("span", { style: { flex: 1, minWidth: "220px" } },
         el("strong", { style: { display: "block", fontSize: ".93rem" } }, n.title),
         el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
-          `${COURSES.find((c) => c.id === n.courseId)?.shortTitle || n.courseId} · ${formatBytes(n.fileSize || 0)} · ${n.downloads || 0} downloads`)),
+          `${COURSES.find((c) => c.id === n.courseId)?.shortTitle || n.courseId} · ${n.module || "Poori book"} · ${formatBytes(n.fileSize || 0)} · ${n.downloads || 0} downloads`)),
       (n.filePath || (n.fileURL && n.fileURL !== "#"))
         ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { openNote: n.id } }, "File")
         : null,
@@ -447,6 +447,15 @@ function noteForm() {
       <div class="field__error"></div>
     </div>
     <div class="field">
+      <label class="field__label">Module</label>
+      <select class="select-ssz" name="module"></select>
+      <p class="field__hint">
+        Module chunne par ye note student ke page par usi module ke neeche
+        aayega, aur uske saath us module ka practice test ka link bhi. Poori
+        book jaisi cheez ho to "Poori book" hi rehne dein.
+      </p>
+    </div>
+    <div class="field">
       <label class="field__label">File <span class="req">*</span></label>
       <input class="input-ssz" name="file" type="file" style="padding:.6rem">
       <p class="field__hint">PDF best rahega — max 25 MB.</p>
@@ -455,6 +464,12 @@ function noteForm() {
   const cSel = form.querySelector('[name="courseId"]');
   cSel.appendChild(el("option", { value: "" }, "Chunein"));
   COURSES.forEach((c) => cSel.appendChild(el("option", { value: c.id }, c.title)));
+
+  /* Module ke naam wahi hain jo sawaalon ke bank me hain — isse padhai aur
+     test ek doosre se jud jaate hain: module padha, wahi module ka test. */
+  const mSel = form.querySelector('[name="module"]');
+  mSel.appendChild(el("option", { value: "" }, "Poori book (kisi ek module ka nahi)"));
+  BANK_MODULES.forEach((m) => mSel.appendChild(el("option", { value: m }, m)));
 
   const validator = createValidator(form, {
     title:    [rules.required(), rules.minLen(4)],
@@ -477,6 +492,7 @@ function noteForm() {
       title: form.elements.title.value.trim(),
       description: form.elements.description.value.trim(),
       courseId: cSel.value,
+      module: mSel.value,
       fileName: file.name, fileType: file.type, fileSize: file.size,
       filePath: "", fileURL: "", downloads: 0, isPublic: false
     };

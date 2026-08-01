@@ -12,6 +12,7 @@
 
 import { onReady, $$ } from "./core/dom.js";
 import { initTheme } from "./core/theme.js";
+import { initPress } from "./core/press.js";
 import { loadIncludes, fixLinks } from "./core/include.js";
 import { observeReveal, observeCounters } from "./core/utils.js";
 import { initNavbar, renderAuthState } from "./components/navbar.js";
@@ -27,6 +28,7 @@ document.documentElement.classList.remove("no-js");
    Theme first — before paint, so there is no white flash in dark mode
    ========================================================================== */
 initTheme();
+initPress();
 
 /* ==========================================================================
    External links get safe rel attributes automatically

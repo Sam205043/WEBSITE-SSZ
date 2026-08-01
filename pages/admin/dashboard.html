@@ -40,6 +40,14 @@ document.documentElement.style.colorScheme=t;})();
     <main class="dash-body" id="dashBody">
 
       <div id="adminStats" class="auto-grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));margin-bottom:2rem"></div>
+      <!-- Batch ke bina student ko na assignment milta hai, na live class ka
+           pata — aur shikayat bhi nahi aati, kyunki use pata hi nahi chalta
+           ki kuchh chhoot raha hai. Isliye ye alert. -->
+      <section class="dash-section" id="noBatchSection" hidden style="margin-bottom:2rem">
+        <div class="dash-section__head"><h2>Batch nahi mila</h2></div>
+        <div id="noBatchBox" class="stack" style="gap:.75rem"></div>
+      </section>
+
       <div class="split" style="align-items:start">
         <section class="dash-section">
           <div class="dash-section__head"><h2>Nayi Applications</h2><a class="btn-ssz btn-ghost-ssz btn-sm-ssz" href="admissions.html">Inbox kholein</a></div>

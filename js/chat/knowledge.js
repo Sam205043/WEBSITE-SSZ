@@ -43,10 +43,12 @@ const SPELLING = [
   [/\bkist\b|\bkisht\b|किस्त|\binstal+ment\b|\binstalment\b/g, "installment"],
   [/\bhazri\b|\bhaziri\b|हाजिरी|उपस्थिति/g, "attendance"],
   [/\bpramaa?n\s*patra\b|प्रमाण\s*पत्र|सर्टिफिकेट/g, "certificate"],
-  [/\bnauk[ai]?ri\b|नौकरी|\bjob\b/g, "job"],
+  [/\bnauk[ai]?ri\b|नौकरी|\bjob\b|\bkaam\b|काम/g, "job"],
   [/\bsamay\b|समय|\btiming?s?\b/g, "timing"],
   [/\bpata\b|पता|\baddres+\b/g, "address"],
-  [/\bmobile\b|\bnumber\b|\bno\b|नंबर|फोन/g, "phone"],
+  /* "no" jaanbujh kar nahi hai: angrezi ka "no" ("nahi") bhi isme fans
+     jaata tha, aur "no" kehne wale ko phone number mil jaata tha. */
+  [/\bmobile\b|\bnumber\b|नंबर|फोन/g, "phone"],
   [/\bsikh\w*\b|\bseekh\w*\b|सीख/g, "seekh"],
   [/\bpadh\w*\b|पढ़|पढ/g, "padhai"],
   [/\bghar\s*se\b|घर\s*से/g, "gharse"],
@@ -56,7 +58,10 @@ const SPELLING = [
 export function normalize(text) {
   let s = String(text || "").toLowerCase();
   SPELLING.forEach(([re, to]) => { s = s.replace(re, to); });
-  s = s.replace(/[^\p{L}\p{N}]+/gu, " ").replace(/\s+/g, " ").trim();
+  /* \p{M} bhi rakhna zaroori hai — Devanagari ki matra aur halant is
+     shreni me aate hain. Inke bina "नमस्ते" tootkar "नमस त" ban jaata tha,
+     aur har Devanagari keyword bekaar ho jaata tha. */
+  s = s.replace(/[^\p{L}\p{N}\p{M}]+/gu, " ").replace(/\s+/g, " ").trim();
   return ` ${s} `;   // gaps taaki \bword\b jaisa match aasaan ho
 }
 
@@ -79,15 +84,15 @@ const MIN_SCORE = 1;
    ========================================================================== */
 const COURSE_ALIASES = {
   "ai-dca":            ["dca", "d c a", "diploma computer"],
-  "ai-tally-prime":    ["tally", "tali", "टैली", "accounting", "account"],
+  "ai-tally-prime":    ["tally", "tali", "टैली", "accounting"],
   "python-314":        ["python", "पाइथन", "programming", "coding"],
   "adca":              ["adca", "a d c a", "advance diploma"],
   "ai-video-editing":  ["video editing", "video", "editing", "reels", "youtube"],
   "icom":              ["i com", "icom", "intermediate commerce"],
   "bcom":              ["b com", "bcom", "bachelor commerce", "graduation"],
-  "gst-master":        ["gst", "जीएसटी"],
+  "gst-2":        ["gst", "जीएसटी"],
   "income-tax-2025":   ["income tax", "itr", "आयकर"],
-  "tds-2025":          ["tds", "टीडीएस"]
+  "tds-finance-2025":          ["tds", "टीडीएस"]
 };
 
 export function findCourse(norm) {
@@ -290,7 +295,7 @@ const PUBLIC_INTENTS = [
   },
   {
     id: "duration",
-    keys: ["duration", "kitne mahine", "kitna time", "kitne din", "kab tak", "period", "avdhi", "months"],
+    keys: ["duration", "kitne mahine", "kitna time", "kitne din", "period", "avdhi", "months"],
     answer: (ctx, course) => {
       if (course) return { text: `**${course.title}** ${course.durationMonths} mahine ka course hai.`, chips: ["Fees kitni hai?", "Admission kaise lein?"] };
       return {
@@ -362,7 +367,12 @@ const PUBLIC_INTENTS = [
   },
   {
     id: "job",
-    keys: ["job", "placement", "rozgar", "kaam milega", "salary", "career", "interview", "resume"],
+    /* "kaam milega" ab yahan bekaar hai — normalize "kaam" ko "job" bana
+       deta hai. Isliye phrase bhi "job" wale roop me likhe hain, warna
+       "course ke baad kaam?" me sirf "course" pakda jaata tha aur bot
+       poori course list de deta tha. */
+    keys: ["job", "placement", "rozgar", "salary", "career", "interview", "resume",
+           "job milega", "job milta", "job lagega", "course ke baad", "job ki guarantee"],
     answer: () => ({
       text: [
         "Hum placement **support** dete hain — resume banane se lekar interview ki tayyari tak. Ye saaf-saaf kehna zaroori hai: **naukri ki guarantee nahi hai**, kyunki wo humare haath me nahi hoti.",
@@ -394,7 +404,12 @@ const PUBLIC_INTENTS = [
   },
   {
     id: "tools",
-    keys: ["tool", "tools", "calculator", "typing", "free tool", "gst calculator", "qr", "invoice", "practice"],
+    /* Tool ke poore naam yahan phrase ki tarah hain (space wale keyword ko
+       teen guna weight milta hai). Bina inke "Typing test kahan hai?" me
+       sirf "kahan" pakda jaata tha aur bot institute ka pata bata deta tha. */
+    keys: ["tool", "tools", "calculator", "typing", "free tool", "gst calculator", "qr", "invoice", "practice",
+           "typing test", "emi calculator", "age calculator", "resume builder", "qr code",
+           "percentage calculator", "invoice generator", "hsn", "quiz"],
     answer: () => ({
       text: [
         `Website par ${TOOLS.length} tools bilkul **free** hain — login ki bhi zaroorat nahi:`,
@@ -451,7 +466,12 @@ const STUDENT_INTENTS = [
   {
     id: "myFees",
     needs: ["student"],
-    keys: ["meri fees", "kitni baaki", "pending", "bakaya", "baki fees", "due", "kist kab", "next installment", "kitna dena"],
+    /* Yahan har keyword "mera/meri" wala ya aisa hona chahiye jo sirf apne
+       record ke baare me poochhne par hi aata ho. "due" aur "pending" jaise
+       akele shabd hata diye — wo aam sawaalon me bhi aate the aur naye
+       aane wale ko bewajah login par bhej dete the. */
+    keys: ["meri fees", "mera bakaya", "kitna baaki", "baki fees", "meri kist",
+           "kist kab", "next installment", "kitna dena", "mera pending"],
     answer: async (ctx) => {
       const s = ctx.student;
       if (!s) return null;
@@ -490,8 +510,13 @@ const STUDENT_INTENTS = [
   {
     id: "myAttendance",
     needs: ["student", "attendance"],
-    keys: ["meri attendance", "attendance kitni", "kitne din aaya", "kitni class", "percentage", "hazir"],
+    keys: ["meri attendance", "attendance kitna", "kitne din aaya", "kitna class",
+           "attendance percentage", "meri hazri", "kitna hazir"],
     answer: async (ctx) => {
+      /* Record abhi juda hi nahi (approve hone se pehle signup) — to "koi
+         attendance nahi hui" kehna jhooth hai. Chup rehkar upar wali layer
+         ko sambhaalne dete hain, jaise myFees karta hai. */
+      if (!ctx.student) return null;
       const rows = ctx.attendance || [];
       if (!rows.length) return { text: "Abhi tak aapki koi attendance mark nahi hui hai." };
 
@@ -549,8 +574,11 @@ const STUDENT_INTENTS = [
   {
     id: "myAssignments",
     needs: ["student", "assignments", "submissions"],
-    keys: ["assignment", "homework", "kaam", "jama karna", "submit", "pending assignment"],
+    keys: ["mera assignment", "meri assignment", "assignment baaki", "assignment pending",
+           "pending assignment", "homework baaki", "mera homework", "assignment jama",
+           "assignment submit", "kaunsa assignment"],
     answer: async (ctx) => {
+      if (!ctx.student) return null;
       const list = ctx.assignments || [];
       const done = new Set((ctx.submissions || []).map((s) => s.assignmentId));
       const pending = list.filter((a) => !done.has(a.id));
@@ -558,8 +586,17 @@ const STUDENT_INTENTS = [
       if (!list.length) return { text: "Abhi tak koi assignment nahi mila hai." };
       if (!pending.length) return { text: `Sab assignment jama ho chuke hain — kul ${list.length}. Shabaash. 👍`, link: { label: "Assignments", route: "studentAssignments" } };
 
+      /* dueDate Firestore se Timestamp bankar aata hai — seedhe likh dene
+         par student ko "Timestamp(seconds=…)" dikh jaata tha. Baaki poore
+         project me yahi kaam formatDate karta hai. */
+      const { formatDate } = await import("../core/utils.js");
+
       return {
-        text: [`**${pending.length} assignment baaki hai:**`, "", ...pending.slice(0, 5).map((a) => `• ${a.title}${a.dueDate ? ` — ${a.dueDate} tak` : ""}`)].join("\n"),
+        text: [
+          `**${pending.length} assignment baaki hai:**`, "",
+          ...pending.slice(0, 5).map((a) =>
+            `• ${a.title}${a.dueDate ? ` — ${formatDate(a.dueDate)} tak` : ""}`)
+        ].join("\n"),
         link: { label: "Assignments kholein", route: "studentAssignments" }
       };
     }
@@ -600,13 +637,20 @@ export const STUDENT_CHIPS = [
 /** Sirf ye batata hai ki sawaal personal hai ya nahi — data load karne se
     pehle poochha jaata hai, taaki bina zaroorat Firestore hit na ho. */
 export function matchStudentIntent(text) {
-  const norm = normalize(text);
+  return studentIntentScore(normalize(text)).intent;
+}
+
+/** Wahi kaam, par score bhi lauta deta hai — taaki `answer()` personal aur
+    aam sawaal ko aapas me tol sake. */
+function studentIntentScore(norm) {
   let best = null, bestScore = MIN_SCORE - 1;
   for (const it of STUDENT_INTENTS) {
     const s = score(norm, it.keys);
     if (s > bestScore) { bestScore = s; best = it; }
   }
-  return bestScore >= MIN_SCORE ? best : null;
+  return bestScore >= MIN_SCORE
+    ? { intent: best, score: bestScore }
+    : { intent: null, score: 0 };
 }
 
 /**
@@ -619,9 +663,25 @@ export async function answer(text, ctx = {}) {
   const norm = normalize(text);
   const course = findCourse(norm);
 
-  /* 1. Personal sawaal pehle — "meri fees" ka matlab aam fees nahi hai. */
-  const personal = matchStudentIntent(text);
-  if (personal) {
+  /* Dono taraf ka score pehle nikaal lete hain.
+
+     Pehle personal intent ko hamesha aage rakha jaata tha, aur wo ek hi
+     aam se shabd par lag jaata tha. Nateeja: "Fees jama karna hai" jaisa
+     seedha sawaal poochhne wale ko bhi "pehle login karna hoga" mil jaata
+     tha — jabki wo shayad naya student tha jiska account hi nahi hai.
+
+     Ab personal tabhi jeetta hai jab wo aam sawaal se kam na ho. "meri
+     fees" jaise phrase 3 point laate hain, isliye asli personal sawaal
+     phir bhi aage hi rehta hai. */
+  const { intent: personal, score: personalScore } = studentIntentScore(norm);
+
+  let best = null, bestScore = MIN_SCORE - 1;
+  for (const it of PUBLIC_INTENTS) {
+    const s = score(norm, it.keys);
+    if (s > bestScore) { bestScore = s; best = it; }
+  }
+
+  if (personal && personalScore >= bestScore) {
     if (!ctx.loggedIn) {
       return {
         text: "Ye aapki apni jaankari hai, isliye pehle login karna hoga.\n\nAdmission wale email se login kijiye — aapka record apne aap jud jaayega.",
@@ -631,13 +691,6 @@ export async function answer(text, ctx = {}) {
     }
     const res = await personal.answer(ctx);
     if (res) return { ...res, source: "kb" };
-  }
-
-  /* 2. Aam sawaal. */
-  let best = null, bestScore = MIN_SCORE - 1;
-  for (const it of PUBLIC_INTENTS) {
-    const s = score(norm, it.keys);
-    if (s > bestScore) { bestScore = s; best = it; }
   }
 
   /* 3. Sirf course ka naam likha (jaise "tally") — detail de do. */

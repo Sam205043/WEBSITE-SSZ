@@ -84,7 +84,12 @@ async function getModel() {
     const existing = getApps().find((a) => a.name === "ssz-ai");
     const app = existing || initializeApp(firebaseConfig, "ssz-ai");
 
-    /* App Check — yahi Gemini ko ajnabi requests se bachata hai. */
+    /* App Check — yahi Gemini ko ajnabi requests se bachata hai. Bina key
+       ke AI chalu karna khatarnaak hai: koi bhi aapke project ka quota
+       kharch kar sakta hai. Isliye saaf chetavni de dete hain. */
+    if (!RECAPTCHA_SITE_KEY) {
+      console.warn("[ssz-ai] AI chalu hai par reCAPTCHA key nahi — App Check ke bina Gemini khula pada hai.");
+    }
     if (RECAPTCHA_SITE_KEY) {
       try {
         const { initializeAppCheck, ReCaptchaEnterpriseProvider } =
@@ -135,7 +140,9 @@ export async function askAI(question, history = []) {
     /* Sirf pichhle 6 message bhejte hain — usse zyada se na context behtar
        hota hai na kharcha. Pehla message user ka hona chahiye, warna SDK
        naaraz hota hai. */
-    const trimmed = history.slice(-6);
+    /* Aakhri message wahi sawaal hai jo abhi sendMessage se bhi ja raha
+       hai — dono bhejne par model ko ek hi baat do baar milti thi. */
+    const trimmed = history.slice(0, -1).slice(-6);
     while (trimmed.length && trimmed[0].role !== "user") trimmed.shift();
 
     const chat = model.startChat({

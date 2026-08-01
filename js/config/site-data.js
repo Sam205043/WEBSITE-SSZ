@@ -435,7 +435,7 @@ export const FAQ_SEED = Object.freeze([
   { category: "Admission", question: "Admission ke liye kya documents chahiye?",
     answer: "Aadhaar card, last qualification ki marksheet aur 2 passport size photo. Online admission form me aap inhe scan/photo karke upload kar sakte hain." },
   { category: "Admission", question: "Kya main online admission le sakta hoon?",
-    answer: "Bilkul. Website par 'Online Admission' page se form bharein, photo aur documents upload karein — application turant institute ko mil jaayegi aur aapko Student ID SMS/WhatsApp par bhej di jaayegi." },
+    answer: "Bilkul. Website par 'Online Admission' page se form bharein, photo aur documents upload karein — application turant institute ko mil jaati hai. Aap wahin apna account bhi bana sakte hain, kisi code ka intezaar kiye bina. Institute approve karta hai to Student ID banti hai, aapko WhatsApp par bhej di jaati hai, aur aapka record apne aap aapke account se jud jaata hai." },
   { category: "Fees", question: "Kya fees installment me de sakte hain?",
     answer: "Haan. Zyadatar courses me monthly ya quarterly installment ka option hai. Aapka pending amount aur due date student dashboard me hamesha dikhta rahega." },
   { category: "Fees", question: "Fees online kaise jama karein?",

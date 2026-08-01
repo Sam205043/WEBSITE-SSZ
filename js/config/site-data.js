@@ -24,9 +24,9 @@ export const INSTITUTE = Object.freeze({
   phone: "+91 62028 56897",
   whatsapp: "+91 62028 56897",
   email: "info@softskillzone.in",
-  address: "Ara, Bhojpur, Bihar - 802301",
-  addressLines: ["Main Road, Ara", "Bhojpur, Bihar - 802301"],
-  mapQuery: "Soft Skill Zone Institute, Ara, Bihar",
+  address: "Near Gym Town, Pakri, Ara, Bhojpur, Bihar - 802301",
+  addressLines: ["Near Gym Town, Pakri", "Ara, Bhojpur, Bihar - 802301"],
+  mapQuery: "Soft Skill Zone Institute, Near Gym Town, Pakri, Ara, Bihar",
 
   timings: [
     { day: "Monday - Saturday", time: "08:00 AM - 08:00 PM" },
@@ -405,11 +405,15 @@ export const TOOLS = Object.freeze([
   { id: "hsn-search",           route: "toolHsn",        title: "HSN Code Search",       desc: "Product ka HSN aur GST rate dhundein",    icon: "search",     color: "#0891b2" },
   { id: "invoice-generator",    route: "toolInvoice",    title: "Invoice Generator",     desc: "GST invoice banayein aur print karein",   icon: "receipt",    color: "#7c3aed" },
   { id: "age-calculator",       route: "toolAge",        title: "Age Calculator",        desc: "Exact age aur next birthday",             icon: "calendar",   color: "#f59e0b" },
-  { id: "percentage-calculator",route: "toolPercentage", title: "Percentage Calculator", desc: "Marks aur percentage ka hisaab",          icon: "trending",   color: "#e11d48" },
+  { id: "percentage-calculator",route: "toolPercentage", title: "Marks & Percentage",    desc: "Subject-wise total, %, grade aur division", icon: "trending",  color: "#e11d48" },
   { id: "emi-calculator",       route: "toolEmi",        title: "EMI Calculator",        desc: "Loan EMI aur total interest",             icon: "wallet",     color: "#059669" },
   { id: "resume-builder",       route: "toolResume",     title: "Resume Builder",        desc: "Professional resume PDF banayein",        icon: "fileText",   color: "#4f46e5" },
   { id: "typing-test",          route: "toolTyping",     title: "Typing Test",           desc: "WPM aur accuracy check karein",           icon: "keyboard",   color: "#0891b2" },
-  { id: "qr-generator",         route: "toolQr",         title: "QR Code Generator",     desc: "Text ya link ka QR banayein",             icon: "qrcode",     color: "#7c3aed" }
+  { id: "qr-generator",         route: "toolQr",         title: "QR Code Generator",     desc: "Text ya link ka QR banayein",             icon: "qrcode",     color: "#7c3aed" },
+  { id: "mega-quiz",            route: "toolMegaQuiz",   title: "MS Office Mega Quiz",   desc: "480 sawaal — module chunkar practice",    icon: "clipboard",  color: "#4f46e5" },
+  { id: "shortcut-trainer",     route: "toolShortcuts",  title: "Shortcut Trainer",      desc: "110 shortcuts flashcard se yaad karein",  icon: "keyboard",   color: "#0891b2" },
+  { id: "excel-practice",       route: "toolExcel",      title: "Excel Formula Practice",desc: "SUM se PMT tak — formula likh kar check", icon: "calculator", color: "#059669" },
+  { id: "interview-qa",         route: "toolInterview",  title: "Interview Q&A Practice",desc: "480 interview aur viva sawaal",           icon: "users",      color: "#7c3aed" }
 ]);
 
 /* ==========================================================================

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<title>Percentage Calculator | Soft Skill Zone Institute</title>
-<meta name="description" content="Marks ka percentage, X ka Y%, ya badhotari/kami — teeno ek jagah.">
+<title>Shortcut Trainer | Soft Skill Zone Institute</title>
+<meta name="description" content="Flashcard se keyboard shortcuts yaad karein — jo na aaye wo dobara aata hai.">
 <script>
 (function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
 if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
@@ -29,31 +29,16 @@ document.documentElement.style.colorScheme=t;})();
 <link rel="icon" href="../../images/logo/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../../images/logo/favicon.ico" sizes="48x48">
 <link rel="apple-touch-icon" href="../../images/logo/apple-touch-icon.png">
-<link rel="canonical" href="https://softskillzone.in/pages/tools/percentage-calculator.html">
+<link rel="canonical" href="https://softskillzone.in/pages/tools/shortcut-trainer.html">
 
 <script type="application/ld+json" id="ssz-static-ld">
 {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://softskillzone.in/index.html"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Free Student Tools",
-      "item": "https://softskillzone.in/pages/tools.html"
-    },
-    {
-      "@type": "ListItem",
-      "position": 3,
-      "name": "Percentage Calculator",
-      "item": "https://softskillzone.in/pages/tools/percentage-calculator.html"
-    }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://softskillzone.in/index.html" },
+    { "@type": "ListItem", "position": 2, "name": "Free Student Tools", "item": "https://softskillzone.in/pages/tools.html" },
+    { "@type": "ListItem", "position": 3, "name": "Shortcut Trainer", "item": "https://softskillzone.in/pages/tools/shortcut-trainer.html" }
   ]
 }
 </script>
@@ -73,47 +58,27 @@ document.documentElement.style.colorScheme=t;})();
   <section class="page-hero">
     <div class="ssz-container">
       <span class="eyebrow">Free Tool</span>
-      <h1 style="margin:.6rem 0 .75rem">Percentage <span class="text-gradient">Calculator</span></h1>
-      <p style="max-width:60ch;margin-inline:auto">Marks ka percentage, X ka Y%, ya badhotari/kami — teeno ek jagah.</p>
+      <h1 style="margin:.6rem 0 .75rem">Shortcut <span class="text-gradient">Trainer</span></h1>
+      <p style="max-width:60ch;margin-inline:auto">Flashcard se keyboard shortcuts yaad karein — jo na aaye wo dobara aata hai.</p>
       <nav class="breadcrumb-ssz" aria-label="Breadcrumb">
         <a href="../../index.html">Home</a><span>/</span>
         <a href="../tools.html">Free Tools</a><span>/</span>
-        <span aria-current="page">Percentage Calculator</span>
+        <span aria-current="page">Shortcut Trainer</span>
       </nav>
     </div>
   </section>
 
   <section class="section">
     <div class="ssz-container">
-      <div class="tool-layout">
+      <div class="tool-layout tool-layout--wide" style="max-width:720px;margin-inline:auto">
         <div class="tool-panel">
-          <div class="tool-panel__head">Calculation</div>
-          <div class="tool-panel__body">
-            <div class="segment" id="pctMode">
-              <button type="button" class="is-active" data-mode="marks">Marks %</button>
-              <button type="button" data-mode="subjects">Subject-wise</button>
-              <button type="button" data-mode="of">X ka Y%</button>
-              <button type="button" data-mode="change">Badhotari / Kami</button>
-            </div>
-            <div id="pctFields"></div>
-            <button class="btn-ssz btn-primary-ssz btn-block-ssz" type="button" id="pctCalc" style="margin-top:.5rem">Calculate Karein</button>
-          </div>
-        </div>
-        <div class="tool-panel">
-          <div class="tool-panel__head">Result</div>
-          <div class="tool-panel__body">
-            <div class="result-hero">
-              <div class="result-hero__label" id="pctLabel">Percentage</div>
-              <div class="result-hero__value" id="pctHero">-</div>
-              <div class="result-hero__sub" id="pctSub"></div>
-            </div>
-            <dl style="margin:0" id="pctBreak"></dl>
-          </div>
+          <div class="tool-panel__head" id="stHead">Practice</div>
+          <div class="tool-panel__body" id="stBody"></div>
         </div>
       </div>
-      <div class="tool-note">
+      <div class="tool-note" style="max-width:720px;margin-inline:auto">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        <span>Board / university me percentage ki ganana ke apne niyam ho sakte hain (jaise best-of-5). Apne institute ka niyam zaroor dekh lein.</span>
+        <span>Keyboard se bhi chala sakte hain — Space se card palatein, Y (aata tha) ya N (nahi aata tha).</span>
       </div>
     </div>
   </section>
@@ -122,7 +87,7 @@ document.documentElement.style.colorScheme=t;})();
 <div data-include="footer"></div>
 
 <script type="module" src="../../js/app.js"></script>
-<script type="module" src="../../js/tools/percentage-calculator.js"></script>
+<script type="module" src="../../js/tools/shortcut-trainer.js"></script>
 
 <script>
 /* PWA: install the service worker so the site opens fast and the free

@@ -250,3 +250,137 @@
   .tool-panel__head, .tool-note, .segment, .btn-ssz { display: none !important; }
   .sheet { box-shadow: none; padding: 0; }
 }
+
+/* ==========================================================================
+   Flashcards — Shortcut Trainer aur Interview Q&A
+   ========================================================================== */
+.flash-card {
+  position: relative;
+  min-height: 190px;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: var(--sp-6) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--bg-surface-2);
+  border: 1.5px solid var(--border-default);
+  text-align: center;
+  cursor: pointer;
+  transition: var(--t-base);
+}
+.flash-card:hover { border-color: var(--brand); }
+/* Palatne par rang badalta hai — nazar turant samajh jaati hai ki ab jawab
+   saamne hai. Asli 3D flip jaanbujh kar nahi rakha: mobile par wo dheema
+   lagta hai aur padhne me rukawat banta hai. */
+.flash-card.is-flipped {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  cursor: default;
+}
+.flash-card--qa { min-height: 220px; }
+
+.flash-card__tag {
+  position: absolute; top: var(--sp-3); left: var(--sp-4);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide); text-transform: uppercase;
+  color: var(--text-muted);
+}
+.flash-card__q {
+  font-size: clamp(1.05rem, 3.5vw, 1.3rem);
+  font-weight: var(--fw-semibold);
+  line-height: 1.5;
+  margin: var(--sp-4) 0 var(--sp-3);
+  color: var(--text-primary);
+}
+.flash-card__a {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 5vw, 1.9rem);
+  font-weight: var(--fw-extrabold);
+  color: var(--brand);
+  margin: 0;
+  word-break: break-word;
+}
+/* Interview ke jawab lambe hote hain — unhe bade display font me dikhana
+   padhne layak nahi rehta. */
+.flash-card__a--long {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.75;
+  color: var(--text-primary);
+  text-align: left;
+}
+.flash-card__hint { font-size: var(--fs-xs); color: var(--text-muted); margin: 0; }
+
+.flash-actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+.flash-actions .btn-ssz { width: 100%; justify-content: center; }
+
+/* ==========================================================================
+   Excel Formula Practice
+   ========================================================================== */
+.excel-scenario {
+  padding: var(--sp-5);
+  border-radius: var(--r-md);
+  background: var(--bg-surface-2);
+  border-left: 3px solid var(--brand);
+  font-size: var(--fs-md);
+  line-height: 1.65;
+  margin: 0 0 var(--sp-5);
+}
+.excel-form { display: flex; gap: var(--sp-2); align-items: stretch; }
+.excel-form .btn-ssz { flex-shrink: 0; }
+/* Formula monospace me hi padhna chahiye — warna I aur l, O aur 0 me farq
+   nahi dikhta. iOS par 16px se chhota font zoom karwa deta hai. */
+.excel-input {
+  flex: 1; min-width: 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+  font-size: 16px;
+  letter-spacing: .02em;
+}
+.excel-answer {
+  display: inline-block;
+  font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+  font-size: .88rem;
+  padding: .3rem .55rem;
+  border-radius: var(--r-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  margin-top: .35rem;
+  word-break: break-all;
+}
+
+/* ==========================================================================
+   Subject-wise marks (Percentage Calculator ka 4th mode)
+   ========================================================================== */
+.subj-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+.subj-row {
+  display: grid;
+  grid-template-columns: 1fr 78px 78px 34px;
+  gap: var(--sp-2);
+  align-items: center;
+}
+.subj-row .input-ssz { padding: .5rem .6rem; font-size: var(--fs-sm); }
+.subj-row--head {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--text-muted);
+  padding: 0 .1rem;
+}
+.subj-del {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 1.2rem; line-height: 1;
+  cursor: pointer;
+  transition: var(--t-fast);
+}
+.subj-del:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+@media (max-width: 400px) {
+  .subj-row { grid-template-columns: 1fr 62px 62px 30px; }
+  .subj-del { width: 28px; height: 28px; }
+}

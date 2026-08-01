@@ -61,7 +61,11 @@ export const ROUTES = Object.freeze({
   toolEmi:        "pages/tools/emi-calculator.html",
   toolResume:     "pages/tools/resume-builder.html",
   toolTyping:     "pages/tools/typing-test.html",
-  toolQr:         "pages/tools/qr-generator.html"
+  toolQr:         "pages/tools/qr-generator.html",
+  toolMegaQuiz:   "pages/tools/mega-quiz.html",
+  toolShortcuts:  "pages/tools/shortcut-trainer.html",
+  toolExcel:      "pages/tools/excel-practice.html",
+  toolInterview:  "pages/tools/interview-qa.html"
 });
 
 /**

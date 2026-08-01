@@ -566,6 +566,20 @@ on($("#asgAdminList"), "click", "[data-del-asg]", async (e, btn) => {
     try {
       const { remove } = await import("../../firebase/db-service.js");
       await remove(COLLECTIONS.ASSIGNMENTS, a.id);
+
+      /* MCQ ke sahi jawab alag doc me rehte hain — assignment jaate hi wo
+         bhi jaane chahiye, warna jawab bina kisi kaam ke pade rehte hain. */
+      if (a.type === "mcq") {
+        await remove(COLLECTIONS.ASSIGNMENT_KEYS, a.id)
+          .catch((err) => console.warn("[materials] answer key nahi hati:", a.id, err));
+      }
+      /* Question file bhi Storage se hata dete hain — warna wo chupke se
+         jagah ghere rehti hai. */
+      if (a.filePath) {
+        const { deleteFile } = await import("../../firebase/storage-service.js");
+        await deleteFile(a.filePath).catch((err) =>
+          console.warn("[materials] file nahi hat payi:", a.filePath, err));
+      }
     } catch (err) { return toast.error(err.message || "Fail ho gaya."); }
   }
   assignments = assignments.filter((x) => x.id !== a.id);
@@ -601,6 +615,15 @@ on($("#noteAdminList"), "click", "[data-del-note]", async (e, btn) => {
     try {
       const { remove } = await import("../../firebase/db-service.js");
       await remove(COLLECTIONS.NOTES, n.id);
+
+      /* Record hatane ke baad file bhi hatani padti hai — warna PDF Storage
+         me pada rehta hai, kisi ko dikhta nahi par jagah (aur bill) khaata
+         rehta hai. File na miley to koi baat nahi: record to ja hi chuka. */
+      if (n.filePath) {
+        const { deleteFile } = await import("../../firebase/storage-service.js");
+        await deleteFile(n.filePath).catch((err) =>
+          console.warn("[materials] file nahi hat payi:", n.filePath, err));
+      }
     } catch (err) { return toast.error(err.message || "Fail ho gaya."); }
   }
   notes = notes.filter((x) => x.id !== n.id);

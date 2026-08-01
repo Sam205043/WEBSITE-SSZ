@@ -472,9 +472,13 @@ const STUDENT_INTENTS = [
       } else {
         try {
           const { currentDue } = await import("../core/fee-plan.js");
+          const { formatDate } = await import("../core/utils.js");
           const due = currentDue(s);
+          /* currentDue `remaining` deta hai (is kist me se kitna baaki),
+             `amount` nahi — aur dueDate ek Date object hai, string nahi.
+             Isliye yahan wahi field padhte hain jo sach me aate hain. */
           if (due) {
-            lines.push("", `**Agli kist:** ${money(due.amount)} — ${due.dueDate}`);
+            lines.push("", `**Kist ${due.no}:** ${money(due.remaining)} — ${formatDate(due.dueDate)} tak`);
             if (due.overdueDays > 0) lines.push(`Ye kist **${due.overdueDays} din** se baaki hai.`);
           }
         } catch { /* plan nahi bana to sirf pending dikha dete hain */ }

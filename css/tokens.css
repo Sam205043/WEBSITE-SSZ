@@ -125,10 +125,43 @@
   --shadow-brand: 0 10px 30px rgba(79,70,229,0.32);
   --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.6);
 
+  /* ---------- Button / card depth ("Shaant" look) ----------
+     Ek hi rang ka flat block dabane jaisa nahi lagta. Isliye button par
+     teen parat hain: neeche halki tight chhaya (button surface se juda
+     dikhe), usse neeche chaudi mulayam chhaya (utha hua lage), aur upar
+     andar ki safed lakeer (kaanch jaisi chamak). Rang seedhe likhe hain,
+     var() se nahi — chhaya ka rang brand ka hi rang hai, aur usme alpha
+     chahiye, jo var() se nahi milta. */
+  --btn-grad:         linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+  --btn-grad-hover:   linear-gradient(180deg, #6d70f3 0%, #5850e8 100%);
+  --btn-lift:         0 1px 2px rgba(79,70,229,0.35),
+                      0 6px 16px -6px rgba(79,70,229,0.55),
+                      inset 0 1px 0 rgba(255,255,255,0.28);
+  --btn-lift-hover:   0 2px 4px rgba(79,70,229,0.40),
+                      0 14px 28px -10px rgba(79,70,229,0.60),
+                      inset 0 1px 0 rgba(255,255,255,0.30);
+  --btn-lift-press:   0 1px 2px rgba(79,70,229,0.30),
+                      inset 0 1px 2px rgba(15,23,42,0.18);
+  /* Neutral (success/danger/warning) buttons ke liye wahi parat, bina
+     indigo ke — warna laal button ke neeche neeli chhaya aati thi. */
+  --btn-lift-neutral: 0 1px 2px rgba(15,23,42,0.18),
+                      0 6px 16px -6px rgba(15,23,42,0.30),
+                      inset 0 1px 0 rgba(255,255,255,0.22);
+  --btn-lift-neutral-hover: 0 2px 4px rgba(15,23,42,0.20),
+                      0 14px 28px -10px rgba(15,23,42,0.34),
+                      inset 0 1px 0 rgba(255,255,255,0.26);
+
+  --card-bg:          linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+  --card-border:      #eceffd;
+  --card-lift:        0 1px 2px rgba(15,23,42,0.04),
+                      0 12px 28px -18px rgba(15,23,42,0.30);
+  --card-lift-hover:  0 2px 4px rgba(15,23,42,0.06),
+                      0 22px 44px -22px rgba(15,23,42,0.38);
+
   /* ---------- Typography ---------- */
-  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont,
+  --font-sans: "Manrope", "Inter", -apple-system, BlinkMacSystemFont,
                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Sora", "Plus Jakarta Sans", -apple-system, sans-serif;
+  --font-display: "Sora", "Manrope", -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Fluid type scale — mobile-first, scales with viewport, no media queries needed */
@@ -267,6 +300,32 @@
   --shadow-xl: 0 28px 64px rgba(0,0,0,0.60);
   --shadow-brand: 0 10px 30px rgba(99,102,241,0.35);
   --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.05);
+
+  /* Andhere par chaudi chhaya dikhti nahi — isliye yahan glow zyada aur
+     kaali parat gehri, taaki button tab bhi utha hua lage. */
+  --btn-grad:         linear-gradient(180deg, #6f72f5 0%, #5b52ea 100%);
+  --btn-grad-hover:   linear-gradient(180deg, #7d80f7 0%, #665dee 100%);
+  --btn-lift:         0 1px 2px rgba(0,0,0,0.45),
+                      0 8px 20px -8px rgba(99,102,241,0.55),
+                      inset 0 1px 0 rgba(255,255,255,0.18);
+  --btn-lift-hover:   0 2px 6px rgba(0,0,0,0.50),
+                      0 16px 32px -12px rgba(99,102,241,0.70),
+                      inset 0 1px 0 rgba(255,255,255,0.22);
+  --btn-lift-press:   0 1px 2px rgba(0,0,0,0.45),
+                      inset 0 1px 2px rgba(0,0,0,0.35);
+  --btn-lift-neutral: 0 1px 2px rgba(0,0,0,0.45),
+                      0 8px 20px -8px rgba(0,0,0,0.55),
+                      inset 0 1px 0 rgba(255,255,255,0.14);
+  --btn-lift-neutral-hover: 0 2px 6px rgba(0,0,0,0.50),
+                      0 16px 32px -12px rgba(0,0,0,0.60),
+                      inset 0 1px 0 rgba(255,255,255,0.18);
+
+  --card-bg:          linear-gradient(180deg, #131e33 0%, #101a2e 100%);
+  --card-border:      rgba(255,255,255,0.08);
+  --card-lift:        0 1px 2px rgba(0,0,0,0.40),
+                      0 14px 30px -18px rgba(0,0,0,0.70);
+  --card-lift-hover:  0 2px 6px rgba(0,0,0,0.45),
+                      0 24px 48px -22px rgba(0,0,0,0.80);
 }
 
 /* Respect OS preference before the user makes an explicit choice */

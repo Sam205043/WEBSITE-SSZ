@@ -23,10 +23,17 @@
 /* ==========================================================================
    BUTTONS
    ========================================================================== */
+/* Button ka poora roop teen cheezon se banta hai: halka upar-se-neeche
+   gradient (ek flat rang plastic lagta hai), teen-parat wali chhaya
+   (--btn-lift), aur hover par sirf 2px ka uthaan. Koi sheen sweep nahi —
+   wo purane phone par har hover par repaint karata tha aur "shaant" look
+   se mel bhi nahi khata. */
 .btn-ssz {
-  --btn-bg: var(--brand);
+  --btn-bg: var(--btn-grad);
   --btn-fg: var(--brand-contrast);
   --btn-bd: transparent;
+  --btn-sh: var(--btn-lift);
+  --btn-sh-hover: var(--btn-lift-hover);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -38,6 +45,7 @@
   border-radius: var(--r-md);
   background: var(--btn-bg);
   color: var(--btn-fg);
+  box-shadow: var(--btn-sh);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-snug);
@@ -46,55 +54,82 @@
   cursor: pointer;
   overflow: hidden;
   isolation: isolate;
-  transition: transform var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-base) var(--ease-out),
-              background var(--dur-base) var(--ease-out),
+  /* Sirf transform aur box-shadow animate hote hain — dono GPU par chalte
+     hain, isliye 4G wale purane phone par bhi hakla nahi. */
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
               color var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out),
               opacity var(--dur-fast) var(--ease-out);
 }
-.btn-ssz:hover  { color: var(--btn-fg); transform: translateY(-2px); }
-.btn-ssz:active { transform: translateY(0) scale(0.985); }
-.btn-ssz:disabled, .btn-ssz.is-disabled { opacity: 0.55; pointer-events: none; }
-
-/* Sheen sweep on hover */
-.btn-ssz::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform var(--dur-slow) var(--ease-out);
-  z-index: -1;
+.btn-ssz:hover {
+  color: var(--btn-fg);
+  transform: translateY(-2px);
+  box-shadow: var(--btn-sh-hover);
 }
-.btn-ssz:hover::after { transform: translateX(120%); }
+.btn-ssz:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: var(--btn-lift-press);
+}
+.btn-ssz:disabled, .btn-ssz.is-disabled {
+  opacity: 0.55; pointer-events: none;
+  box-shadow: none;
+}
+/* Touch par hover ruk jaata hai — ungli hatane ke baad button uthaa hi
+   reh jaata tha. Isliye lift sirf asli pointer wale device par. */
+@media (hover: none) {
+  .btn-ssz:hover { transform: none; box-shadow: var(--btn-sh); }
+}
 
-.btn-primary-ssz  { background: var(--grad-brand); box-shadow: var(--shadow-brand); }
-.btn-primary-ssz:hover { box-shadow: 0 14px 38px rgba(79,70,229,0.42); }
+.btn-primary-ssz  { background: var(--btn-grad); }
+.btn-primary-ssz:hover { background: var(--btn-grad-hover); }
 
 .btn-secondary-ssz {
+  --btn-sh: var(--shadow-xs);
+  --btn-sh-hover: 0 2px 4px rgba(15,23,42,0.06), 0 10px 20px -12px rgba(79,70,229,0.45);
   background: var(--bg-surface);
   color: var(--text-primary);
   border-color: var(--border-default);
-  box-shadow: var(--shadow-xs);
 }
-.btn-secondary-ssz:hover { border-color: var(--brand); color: var(--brand); box-shadow: var(--shadow-sm); }
+.btn-secondary-ssz:hover { border-color: var(--brand); color: var(--brand); }
 
-.btn-ghost-ssz { background: transparent; color: var(--text-secondary); border-color: transparent; }
+.btn-ghost-ssz {
+  --btn-sh: none;
+  --btn-sh-hover: none;
+  background: transparent; color: var(--text-secondary); border-color: transparent;
+}
 .btn-ghost-ssz:hover { background: var(--bg-surface-2); color: var(--text-primary); }
 
-.btn-outline-ssz { background: transparent; color: var(--brand); border-color: var(--brand); }
+.btn-outline-ssz {
+  --btn-sh: none;
+  --btn-sh-hover: 0 8px 18px -10px rgba(79,70,229,0.55);
+  background: transparent; color: var(--brand); border-color: var(--brand);
+}
 .btn-outline-ssz:hover { background: var(--brand-solid); color: var(--brand-contrast); }
 
 .btn-glass-ssz {
+  --btn-sh: var(--shadow-sm);
+  --btn-sh-hover: var(--shadow-md);
   background: var(--glass-bg);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-color: var(--glass-border);
   color: var(--text-primary);
 }
-.btn-success-ssz { background: var(--success); }
-.btn-danger-ssz  { background: var(--danger); }
-.btn-warning-ssz { background: var(--warning); color: #1a1204; }
+/* Inki chhaya neutral hai — laal button ke neeche neeli chhaya galat lagti. */
+.btn-success-ssz, .btn-danger-ssz, .btn-warning-ssz {
+  --btn-sh: var(--btn-lift-neutral);
+  --btn-sh-hover: var(--btn-lift-neutral-hover);
+}
+.btn-success-ssz { background: linear-gradient(180deg, color-mix(in srgb, var(--success) 88%, #fff), var(--success)); }
+.btn-danger-ssz  { background: linear-gradient(180deg, color-mix(in srgb, var(--danger)  88%, #fff), var(--danger)); }
+.btn-warning-ssz { background: linear-gradient(180deg, color-mix(in srgb, var(--warning) 88%, #fff), var(--warning)); color: #1a1204; }
+/* color-mix purane browser me nahi hai — wahan seedha flat rang. */
+@supports not (color: color-mix(in srgb, red, blue)) {
+  .btn-success-ssz { background: var(--success); }
+  .btn-danger-ssz  { background: var(--danger); }
+  .btn-warning-ssz { background: var(--warning); }
+}
 
 .btn-sm-ssz { padding: 0.5rem 0.95rem; min-height: 38px; font-size: var(--fs-xs); border-radius: var(--r-sm); }
 .btn-lg-ssz { padding: 0.95rem 2rem; min-height: 56px; font-size: var(--fs-md); border-radius: var(--r-lg); }
@@ -121,21 +156,26 @@
 /* ==========================================================================
    CARDS
    ========================================================================== */
+/* Card safed par safed hai, isliye halka gradient (upar bilkul safed, neeche
+   zara neela) use hota hai — kinara bina moti border ke bhi dikh jaata hai. */
 .card-ssz {
   position: relative;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--card-lift);
   overflow: hidden;
-  transition: transform var(--dur-base) var(--ease-out),
-              box-shadow var(--dur-base) var(--ease-out),
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
               border-color var(--dur-base) var(--ease-out);
 }
 .card-ssz.is-hoverable:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  box-shadow: var(--card-lift-hover);
   border-color: var(--border-default);
+}
+@media (hover: none) {
+  .card-ssz.is-hoverable:hover { transform: none; box-shadow: var(--card-lift); }
 }
 .card-ssz__body { padding: var(--sp-6); }
 .card-ssz__head {

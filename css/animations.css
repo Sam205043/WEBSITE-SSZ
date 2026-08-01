@@ -152,3 +152,32 @@
   z-index: 0;
 }
 [data-theme="dark"] .deco-blob { opacity: 0.35; }
+
+/* ==========================================================================
+   PRESS RIPPLE — js/core/press.js is span ko button me daalta hai
+   ==========================================================================
+   Sirf transform aur opacity animate hote hain: dono compositor par chalte
+   hain, isliye purane phone par bhi 60fps par rehta hai. Button khud
+   overflow:hidden hai, isliye lehar kinare se bahar nahi nikalti. */
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.38);
+  transform: scale(0);
+  opacity: 1;
+  animation: ssz-ripple 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 0;
+}
+/* Safed/halke button par safed lehar dikhti hi nahi — wahan brand ka rang. */
+.btn-secondary-ssz .btn-ripple,
+.btn-outline-ssz .btn-ripple,
+.btn-glass-ssz .btn-ripple { background: rgba(79, 70, 229, 0.20); }
+
+@keyframes ssz-ripple {
+  to { transform: scale(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-ripple { display: none; }
+}

@@ -239,10 +239,10 @@ const PUBLIC_INTENTS = [
       text: [
         "Admission bahut seedha hai:",
         "",
-        "**1.** Website ke Online Admission page se form bhariye — apna naam, course, aur photo/documents upload kar dijiye.",
-        "**2.** Institute aapki application dekhta hai aur approve karta hai.",
-        "**3.** Approve hote hi aapko Student ID mil jaati hai (jaise SSZ2026DCA0007).",
-        "**4.** Usi email se login karke apna dashboard khol lijiye — fees, class, attendance sab wahin.",
+        "**1.** Website ke Online Admission page se form bhariye — naam, course, photo aur documents. **Email wahi dijiye jo aap sach me istemaal karte hain** — dashboard usi se judega.",
+        "**2.** Chaahein to wahin apna account bhi bana lijiye — **intezaar karne ki zaroorat nahi**. Na koi code aane ka wait, na Student ID type karni. Google se bhi login kar sakte hain.",
+        "**3.** Institute aapki application dekh kar approve karta hai. Student ID (jaise SSZ2026DCA0007) usi waqt banti hai.",
+        "**4.** Approve hote hi aapka record apne aap aapke account se jud jaata hai — agli baar login karte hi fees, class aur attendance dikhne lagti hai.",
         "",
         "Chaahein to seedhe institute aakar bhi admission le sakte hain."
       ].join("\n"),

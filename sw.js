@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v40";
+const VERSION = "ssz-v41";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -85,6 +85,9 @@ const PRECACHE = [
   "js/core/dom.js",
   "js/core/utils.js",
   "js/core/theme.js",
+  /* Button press ki lehar — app.js isse seedhe import karta hai, isliye
+     chhootne par offline par app.js hi nahi chalta. */
+  "js/core/press.js",
   "js/core/icons.js",
   "js/core/routes.js",
   "js/core/constants.js",

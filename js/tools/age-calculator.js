@@ -14,9 +14,13 @@ function diff(from, to) {
   let months = to.getMonth() - from.getMonth();
   let days = to.getDate() - from.getDate();
 
+  /* Udhaar JANM ke mahine ka lena hota hai, target se pehle wale mahine ka
+     nahi. Warna 31 tarikh ko paida hue aadmi ka hisaab February se udhaar
+     leta tha aur din MINUS me chala jaata tha —
+     "26 saal, 1 mahine, -2 din" jaisa. */
   if (days < 0) {
     months--;
-    days += new Date(to.getFullYear(), to.getMonth(), 0).getDate();
+    days += new Date(from.getFullYear(), from.getMonth() + 1, 0).getDate();
   }
   if (months < 0) { years--; months += 12; }
   return { years, months, days };
@@ -38,8 +42,14 @@ function calc() {
   $("#ageSub").textContent = `${dob.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })} se aaj tak`;
 
   /* next birthday */
-  let next = new Date(till.getFullYear(), dob.getMonth(), dob.getDate());
-  if (next < till) next = new Date(till.getFullYear() + 1, dob.getMonth(), dob.getDate());
+  /* 29 February wale ka janmdin aam saal me 1 March par phisal jaata tha.
+     Us mahine me jitne din hain, usi hisaab se din ko seemit kar dete hain. */
+  const birthdayIn = (year) => {
+    const dim = new Date(year, dob.getMonth() + 1, 0).getDate();
+    return new Date(year, dob.getMonth(), Math.min(dob.getDate(), dim));
+  };
+  let next = birthdayIn(till.getFullYear());
+  if (next < till) next = birthdayIn(till.getFullYear() + 1);
   const toGo = Math.ceil((next - till) / DAY);
 
   render($("#ageBreak"),

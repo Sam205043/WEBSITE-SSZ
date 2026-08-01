@@ -102,6 +102,12 @@ function paintQuestion() {
 }
 
 function check() {
+  /* Jawab jaanch hone par input band ho jaata hai. Button phir bhi chalu
+     rehta tha, isliye dobara (ya mobile par galti se do baar) dabane par
+     wahi sahi jawab dobara ginn jaata tha — score 100% se upar chala
+     jaata tha aur wahi galat "sabse achha" save ho jaata tha. */
+  if ($("#exInput").disabled) return;
+
   const q = set[index];
   const given = $("#exInput").value;
   if (!given.trim()) return;

@@ -101,13 +101,21 @@ function paintCard() {
 }
 
 function mark(knew_it) {
-  done++;
+  /* Jo card dobara aaya hai use dobara nahi ginte — warna header
+     "130 / 110" jaisa ho jaata tha. */
+  if (!again.includes(current)) done++;
   if (knew_it) knew++;
   else again.push(current);   // jo nahi aaya, wo round ke aakhir me phir aayega
   nextCard();
 }
 
 function finish() {
+  /* Round khatam — card ka nishaan mita dena zaroori hai. Warna result
+     screen par Y/N dabate rehne se score badhta rehta tha (110 me se 133),
+     aur "dobara" ke baad bhi purana card zinda rehta tha. */
+  current = null;
+  flipped = false;
+
   const pct = total ? Math.round((knew / total) * 100) : 0;
   const best = Number(store.get(BEST_KEY) || 0);
   const isBest = pct > best;

@@ -75,6 +75,38 @@ function paintApps(rows) {
   ));
 }
 
+/* ---------------- Batch ke bina reh gaye students ----------------
+   Ye chup-chaap wali gadbad hai: student ka account chalta hai, fees bhi
+   dikhti hai, par assignment aur live class batchId se judte hain — batch
+   khali ho to uske dashboard par kabhi kuchh aata hi nahi, aur wo poochhega
+   bhi nahi kyunki use pata hi nahi ki kuchh chhoot raha hai. */
+const noBatch = activeStudents.filter((s) => !String(s.batchId || "").trim());
+
+if (noBatch.length) {
+  $("#noBatchSection").hidden = false;
+  render($("#noBatchBox"),
+    el("div", { class: "card-ssz" }, el("div", { class: "card-ssz__body" },
+      el("p", { style: { margin: "0 0 .75rem", fontSize: ".88rem" } },
+        el("strong", {}, `${noBatch.length} student`),
+        " ka batch khali hai — inhe na assignment milega, na live class dikhegi. Student ki profile me batch chun dijiye."),
+      ...noBatch.slice(0, 10).map((s) =>
+        el("a", { class: "search-result", href: url("adminStudents"), style: { marginBottom: ".5rem" } },
+          el("span", { class: "search-result__icon", html: icon("alert", { size: 20 }) }),
+          el("span", { style: { flex: 1 } },
+            el("h3", { style: { margin: "0 0 .2rem", fontSize: "1rem" } }, s.fullName || s.studentId || "Student"),
+            el("p", { style: { margin: 0 } },
+              `${s.studentId || ""}${s.courseName ? ` · ${s.courseName}` : ""} · batch pending`)
+          )
+        )
+      ),
+      noBatch.length > 10
+        ? el("p", { style: { margin: ".5rem 0 0", fontSize: ".8rem", color: "var(--text-muted)" } },
+            `...aur ${noBatch.length - 10} aur.`)
+        : null
+    ))
+  );
+}
+
 /* course-wise table */
 const byCourse = groupBy(activeStudents, "courseName");
 const courseRows = Object.entries(byCourse)

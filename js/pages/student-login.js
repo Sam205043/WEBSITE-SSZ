@@ -3,11 +3,15 @@
    ========================================================================== */
 
 import { $, onReady } from "../core/dom.js";
+import { initI18n } from "../core/i18n.js";
 import { createValidator, rules } from "../core/validators.js";
 import { withButton } from "../core/loader.js";
 import { alertBox, clearAlert, initGoogleButton, initPasswordToggles, requireConfigured, skipIfAuthed } from "./auth-ui.js";
 
 onReady(async () => {
+  /* Student ne portal me jo bhasha chuni thi wahi yahan bhi chale —
+     warna logout karte hi page Hinglish par lautt jata. */
+  await initI18n();
   initPasswordToggles();
 
   const form = $("#loginForm");

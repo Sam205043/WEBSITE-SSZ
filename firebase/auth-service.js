@@ -71,6 +71,13 @@ async function loadProfile(fbUser) {
   };
 }
 
+/* Google apne-aap banaya hua akshar wala avatar deta hai jab account par
+   asli photo na ho. Wo hai to image, par photo nahi — isliye use "photo hai"
+   nahi maanenge, warna institute wali asli photo kabhi upar nahi aayegi. */
+function isAutoLetterAvatar(url) {
+  return /googleusercontent\.com/.test(url || "") && /default-user/.test(url || "");
+}
+
 /* Single global auth listener — everything else hangs off this. */
 onAuthStateChanged(auth, async (fbUser) => {
   try {
@@ -78,6 +85,15 @@ onAuthStateChanged(auth, async (fbUser) => {
     if (currentUser && currentUser.status === USER_STATUS.BLOCKED) {
       await signOut(auth);
       currentUser = null;
+    }
+    /* Jin students ki ID pehle se judi hai unke liye ek baar ka sudhaar:
+       agar login par koi asli photo nahi hai to institute wali utaar lo.
+       Ek baar chalne ke baad shart jhooth ho jaati hai, isliye ye har baar
+       ka kharcha nahi hai. */
+    if (currentUser?.role === ROLES.STUDENT && currentUser.studentId
+        && (!currentUser.photoURL || isAutoLetterAvatar(currentUser.photoURL))) {
+      await syncInstitutePhoto(fbUser, currentUser.studentId);
+      currentUser = await loadProfile(fbUser);
     }
   } catch (err) {
     console.error("[auth] profile load failed:", err);
@@ -110,6 +126,37 @@ async function findStudentIdByEmail(email) {
 }
 
 /**
+ * Admission wali photo ko login ke record par bhi utaar deta hai.
+ *
+ * Google se login karne par Firebase khud photoURL bhar deta hai — aur jis
+ * account par asli photo nahi hai, wahan wo apne-aap bana hua akshar wala
+ * gola (default-user) hota hai. Har jagah avatar wahi dikhta tha, aur
+ * admission form wali asli photo kabhi saamne aati hi nahi thi.
+ *
+ * Isliye ID judte hi institute ki photo yahan copy kar dete hain. Fayda ye
+ * bhi hai ki upar dayein kone ka chhota avatar har page par sirf users doc
+ * padhta hai — student ka record dobara padhne ki zaroorat nahi padti.
+ *
+ * Ye alag updateDoc hai, studentId ke saath nahi — kyunki ID claim wala rule
+ * maangta hai ki us likhai me sirf studentId badle. Kabhi fail nahi karta:
+ * photo na mile to login waise hi chalta rahega.
+ */
+async function syncInstitutePhoto(fbUser, studentId) {
+  try {
+    if (!studentId) return;
+    const snap = await getDoc(doc(db, COLLECTIONS.STUDENTS, studentId));
+    const url = snap.exists() ? (snap.data().photoURL || "") : "";
+    if (!url) return;
+    await updateDoc(doc(db, COLLECTIONS.USERS, fbUser.uid), {
+      photoURL: url,
+      updatedAt: serverTimestamp()
+    });
+  } catch (err) {
+    console.warn("[auth] institute photo copy skipped:", err?.code || err);
+  }
+}
+
+/**
  * Agar login ke saath koi Student ID judi nahi hai to email se dhoondh kar
  * jod deta hai. Kabhi fail nahi karta — record na mile ya rule mana kare to
  * chup-chaap chhod deta hai aur student profile page se khud jod sakta hai.
@@ -121,6 +168,7 @@ export async function autoLinkStudentId(fbUser) {
     const id = await findStudentIdByEmail(fbUser.email);
     if (!id) return "";
     await updateDoc(doc(db, COLLECTIONS.USERS, fbUser.uid), { studentId: id });
+    await syncInstitutePhoto(fbUser, id);
     return id;
   } catch (err) {
     console.warn("[auth] auto-link skipped:", err?.code || err);
@@ -348,6 +396,8 @@ export async function claimStudentId(studentId) {
     }
     throw err;
   }
+
+  await syncInstitutePhoto(fbUser, id);
 
   currentUser = await loadProfile(fbUser);
   emit();

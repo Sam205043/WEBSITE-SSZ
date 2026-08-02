@@ -169,6 +169,35 @@ function watchNewNodes() {
 }
 
 /**
+ * Bhasha chunne ka switch banata hai.
+ *
+ * <select> hi rakha hai, apna banaya menu nahi — phone par ye system ka apna
+ * list kholta hai jo chhote parde par sabse aasan hai, aur keyboard se bhi
+ * chal jata hai. Public navbar aur student topbar, dono yahi use karte hain
+ * taaki dono jagah ek jaisa dikhe aur ek hi jagah sudhaarna pade.
+ */
+export function buildLangPicker() {
+  const sel = document.createElement("select");
+  sel.className = "lang-pick";
+  sel.setAttribute("aria-label", "Bhasha chunein / भाषा चुनें");
+  for (const l of LANGS) {
+    const o = document.createElement("option");
+    o.value = l.code;
+    o.textContent = l.native;
+    if (l.code === lang) o.selected = true;
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", (e) => setLang(e.target.value));
+  return sel;
+}
+
+/** Kisi khaali jagah me switch bitha deta hai. Jagah na mile to chup rehta hai. */
+export function mountLangPicker(node) {
+  if (!node) return;
+  node.replaceChildren(buildLangPicker());
+}
+
+/**
  * Alag se ek aur dictionary jodta hai — jaise quiz ke sawaal.
  *
  * Sawaalon ki dictionary bhaari hai aur har page par nahi chahiye. Isliye

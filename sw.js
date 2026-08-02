@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v52";
+const VERSION = "ssz-v53";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -102,6 +102,10 @@ const PRECACHE = [
   "js/core/icons.js",
   "js/core/routes.js",
   "js/core/constants.js",
+  /* Bhasha ka intezaam. Dictionary yahan nahi rakhi — wo sirf tabhi
+     download hoti hai jab kisi ne Hindi ya English chuni ho, aur phir
+     stale-while-revalidate use apne aap cache kar leta hai. */
+  "js/core/i18n.js",
   "js/core/include.js",
   "js/config/site-data.js",
   "images/logo/favicon.svg",

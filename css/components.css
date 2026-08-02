@@ -669,3 +669,87 @@
 }
 .rating { display: inline-flex; gap: 2px; color: var(--ssz-amber-400); }
 .rating svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* ==========================================================================
+   App install ka card (homepage)
+   --------------------------------------------------------------------------
+   Sirf tab dikhta hai jab browser wakai install kara sakta ho, isliye ise
+   halka rakha hai — CTA band se takrana nahi chahiye.
+   ========================================================================== */
+.install-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.15rem;
+  flex-wrap: wrap;
+  background: var(--card-bg, var(--bg-surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 18px);
+  padding: 1.5rem 1.6rem;
+  box-shadow: var(--card-lift, 0 1px 2px rgba(15, 23, 42, .04));
+}
+
+.install-card__icon {
+  display: grid;
+  place-items: center;
+  width: 48px; height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--brand-soft, rgba(79, 70, 229, .1));
+  color: var(--brand);
+}
+
+/* Body ko badhne dete hain par 0 tak sikudne bhi — warna lambi line
+   chhoti screen par poore card ko chauda kar deti hai. */
+.install-card__body { flex: 1 1 260px; min-width: 0; }
+
+.install-card__body h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 .4rem;
+}
+.install-card__body p {
+  font-size: .9rem;
+  color: var(--text-secondary);
+  margin: 0 0 .75rem;
+  max-width: 60ch;
+  line-height: 1.7;
+}
+
+.install-card__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem .9rem;
+  margin: 0; padding: 0;
+  list-style: none;
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+.install-card__list li::before { content: "✓"; margin-right: .35rem; color: var(--success, #16a34a); }
+
+.install-card__act {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+/* Phone par button poori chaudai le — angootha wahin padta hai. */
+@media (max-width: 640px) {
+  .install-card { padding: 1.25rem 1.15rem; }
+  .install-card__act { width: 100%; }
+  .install-card__act .btn-ssz { width: 100%; }
+}
+
+/* Student sidebar ka install link — dikhne me baaki nav jaisa hi, par
+   button hai kyunki ye kahin le nahi jaata. */
+.dash-side__install { padding: 0 .6rem .4rem; }
+.dash-link--install {
+  width: 100%;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--brand);
+}
+.dash-link--install:hover { background: var(--brand-soft, rgba(79, 70, 229, .08)); }

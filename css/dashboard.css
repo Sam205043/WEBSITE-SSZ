@@ -160,8 +160,25 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border-bottom: 1px solid var(--border-subtle);
 }
-.dash-top__title { font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); }
-.dash-top__actions { margin-left: auto; display: flex; align-items: center; gap: var(--sp-2); }
+/* Title ko sikudne ki ijaazat honi chahiye — warna chhoti screen par wo
+   apni poori chaudai maang leta hai aur dayein wale button (bhasha, theme,
+   bell, naam) parde se bahar nikal jaate hain. min-width:0 ke bina flex ka
+   bachcha apne se chhota hota hi nahi. */
+.dash-top__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-top__actions {
+  margin-left: auto;
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex-shrink: 0;
+}
 
 .dash-body { padding: var(--sp-6) var(--container-pad) var(--sp-16); flex: 1; }
 .dash-body > .dash-section + .dash-section { margin-top: var(--sp-8); }
@@ -345,3 +362,11 @@ html.lang-hi .dash-top__title {
 }
 /* Devanagari ke matra upar-neeche nikalte hain — thodi saans chahiye. */
 html.lang-hi { line-height: 1.75; }
+
+/* Bahut chhoti screen (chhote Android phone) par upar ki patti me chaar
+   cheezein nahi samaatin. Naam aur ID hata dete hain — avatar par tap
+   karke profile wahin khulta hai, aur bhasha badalna dikhta rehta hai. */
+@media (max-width: 430px) {
+  .dash-top { gap: var(--sp-2); }
+  .user-chip__meta { display: none; }
+}

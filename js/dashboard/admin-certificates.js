@@ -6,7 +6,7 @@
 import { $, el, on, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { formatDate, copyToClipboard, debounce } from "../core/utils.js";
-import { open as openModal } from "../core/modal.js";
+import { open as openModal, confirm as confirmModal } from "../core/modal.js";
 import { createValidator, rules } from "../core/validators.js";
 import { initAdminShell } from "./admin-shell.js";
 import { DEMO_STUDENTS } from "./admin-demo.js";
@@ -85,7 +85,8 @@ function row(c) {
         el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" } },
           `${c.certificateNo} · ${c.verifyCode} · ${formatDate(c.issueDate)}`)),
       el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { view: c.id } }, "Certificate"),
-      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { copy: c.verifyCode } }, "Link copy")
+      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { copy: c.verifyCode } }, "Link copy"),
+      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delCert: c.id } }, "Delete")
     ));
 }
 
@@ -220,6 +221,32 @@ on($("#certAdminList"), "click", "[data-view]", (e, btn) => {
 });
 /* Poora link copy hota hai, sirf code nahi — WhatsApp par yahi bhejna hota hai,
    aur saamne wale ko code kahin type nahi karna padta. */
+/* Certificate hataane ka matlab hai ki uska verify link bhi mar jaayega —
+   agar wo link kisi employer ko diya ja chuka hai to unhe "nahi mila"
+   dikhega. Isliye dialog me yahi baat sabse pehle likhi hai. */
+on($("#certAdminList"), "click", "[data-del-cert]", async (e, btn) => {
+  const c = certs.find((x) => x.id === btn.dataset.delCert);
+  if (!c) return;
+  const ok = await confirmModal({
+    title: "Certificate hataayein?",
+    message: `${c.studentName} ka ${c.certificateNo} mit jaayega. Verify link (${c.verifyCode}) bhi kaam karna band kar dega — agar wo kisi ko diya ja chuka hai to unhe "certificate nahi mila" dikhega.`,
+    danger: true, confirmText: "Haan, hata dein"
+  });
+  if (!ok) return;
+  if (mode === "preview") { certs = certs.filter((x) => x.id !== c.id); paint(); return toast.info("Preview mode."); }
+  try {
+    const { remove } = await import("../../firebase/db-service.js");
+    await remove(COLLECTIONS.CERTIFICATES, c.id);
+    if (c.filePath) {
+      const { deleteFile } = await import("../../firebase/storage-service.js");
+      await deleteFile(c.filePath).catch((err) => console.warn("[certs] PDF nahi hati:", err));
+    }
+    certs = certs.filter((x) => x.id !== c.id);
+    paint();
+    toast.success("Certificate hat gaya.");
+  } catch (err) { toast.error(err.message || "Fail ho gaya."); }
+});
+
 on($("#certAdminList"), "click", "[data-copy]", async (e, btn) => {
   const ok = await copyToClipboard(verifyLink(btn.dataset.copy));
   ok ? toast.success("Verify link copy ho gaya — WhatsApp par bhej dein.") : toast.error("Copy nahi ho paya.");

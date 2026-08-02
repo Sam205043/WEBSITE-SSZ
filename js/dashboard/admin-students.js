@@ -58,7 +58,13 @@ function paint() {
       el("td", {}, formatPhone(s.mobile)),
       el("td", { class: "num", style: (s.pendingFee || 0) > 0 ? { color: "var(--danger)", fontWeight: 600 } : {} }, money(s.pendingFee || 0)),
       el("td", {}, el("span", { class: `badge-ssz badge-dot ${cls}` }, label)),
-      el("td", {}, el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { view: s.id } }, "Manage"))
+      el("td", { style: { whiteSpace: "nowrap" } },
+        el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { view: s.id } }, "Manage"),
+        el("button", {
+          class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button",
+          style: { color: "var(--danger)", marginLeft: ".3rem" },
+          dataset: { delStudent: s.id }, title: "Poora record hataayein"
+        }, "Delete"))
     );
   }));
 }
@@ -265,4 +271,46 @@ $("#stExport").addEventListener("click", () => {
 on($("#stRows"), "click", "[data-view]", (e, btn) => {
   const s = students.find((x) => x.id === btn.dataset.view);
   if (s) openStudent(s);
+});
+
+/* Poora record hataana — student ke saath uske fees, haazri, certificate
+   aur files bhi. Ginti pehle dikhti hai, fir Student ID likhwa kar pakka
+   kiya jaata hai. Poora tareeka delete-student.js me hai. */
+on($("#stRows"), "click", "[data-del-student]", async (e, btn) => {
+  const s = students.find((x) => x.id === btn.dataset.delStudent);
+  if (!s) return;
+  if (mode === "preview") return toast.info("Preview mode: Firebase connect hone ke baad chalega.");
+
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = "Dekh rahe hain…";
+  try {
+    const { studentFootprint, confirmDeleteStudent, deleteStudentCascade } =
+      await import("./delete-student.js");
+
+    const fp = await studentFootprint(s);
+    btn.textContent = old;
+    btn.disabled = false;
+
+    if (!(await confirmDeleteStudent(s, fp))) return;
+
+    btn.disabled = true;
+    btn.textContent = "Hata rahe hain…";
+    const problems = await deleteStudentCascade(s, fp, (msg) => { btn.textContent = msg; });
+
+    students = students.filter((x) => x.id !== s.id);
+    paint();
+
+    if (problems.length) {
+      console.warn("[students] kuchh cheezein nahi hatin:", problems);
+      toast.warning(`${s.fullName} hat gaya, par ${problems.length} cheez nahi hat payi — console me dekh lein.`);
+    } else {
+      toast.success(`${s.fullName} ka poora record hat gaya.`);
+    }
+  } catch (err) {
+    toast.error(err.message || "Hataane me dikkat aayi.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
 });

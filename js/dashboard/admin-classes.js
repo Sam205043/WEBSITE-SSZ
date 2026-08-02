@@ -32,7 +32,12 @@ function row(c) {
             c.recordingURL ? (c.recordingPublished ? "Recording ✓" : "Recording — approve baaki") : "Recording daalein")
         : null,
       !past && !cancelled ? el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { edit: c.id } }, "Edit") : null,
-      !past && !cancelled ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { cancel: c.id } }, "Cancel") : null
+      !past && !cancelled ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { cancel: c.id } }, "Cancel") : null,
+      /* Cancel aur Delete alag cheezein hain: cancel se class students ko
+         "cancelled" dikhti hai (unhe pata chalta hai ki nahi hogi), delete
+         se record hi mit jaata hai. Purani/cancelled class ke liye Cancel
+         ka matlab nahi, isliye wahan sirf Delete. */
+      el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delClass: c.id } }, "Delete")
     ));
 }
 
@@ -451,6 +456,25 @@ on(document, "click", "[data-edit]", (e, btn) => {
   const c = classes.find((x) => x.id === btn.dataset.edit);
   if (c) classForm(c);
 });
+on(document, "click", "[data-del-class]", async (e, btn) => {
+  const c = classes.find((x) => x.id === btn.dataset.delClass);
+  if (!c) return;
+  const ok = await confirmModal({
+    title: "Class ka record hataayein?",
+    message: `"${c.title}" ka record poori tarah mit jaayega — students ke dashboard se bhi. Wapas nahi aayega. Sirf "nahi hogi" batana ho to Cancel behtar hai.`,
+    danger: true, confirmText: "Haan, hata dein"
+  });
+  if (!ok) return;
+  if (mode === "preview") { classes = classes.filter((x) => x.id !== c.id); paint(); return toast.info("Preview mode."); }
+  try {
+    const { remove } = await import("../../firebase/db-service.js");
+    await remove(COLLECTIONS.LIVE_CLASSES, c.id);
+    classes = classes.filter((x) => x.id !== c.id);
+    paint();
+    toast.success("Class hat gayi.");
+  } catch (err) { toast.error(err.message || "Fail ho gaya."); }
+});
+
 on(document, "click", "[data-cancel]", async (e, btn) => {
   const c = classes.find((x) => x.id === btn.dataset.cancel);
   if (!c) return;

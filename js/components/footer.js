@@ -34,6 +34,12 @@ function paint(data) {
       else a.remove();
     });
   });
+
+  /* Saare icon hat jaayein to unki patti bhi hata do — warna footer me ek
+     khaali jagah bachi reh jaati hai jo dekhne me galti lagti hai. */
+  $$(".social-row").forEach((row) => {
+    if (!row.querySelector("a")) row.remove();
+  });
 }
 
 /**

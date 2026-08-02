@@ -58,7 +58,21 @@ export function render(target, ...content) {
     if (c instanceof Node) node.append(c);
     else node.insertAdjacentHTML("beforeend", String(c));
   });
+  /* Screen par jo bhi naya aata hai wo yahin se hokar guzarta hai, isliye
+     bhasha ka anuvaad bhi yahin lag jata hai. Hinglish (default) par ye
+     seedha lautt jata hai — koi kharcha nahi. Chhoti si import isliye
+     seedhe upar nahi likhi ki dom.js har page par chalta hai; i18n sirf
+     tabhi jagta hai jab kisi ne bhasha badli ho. */
+  translateRendered(node);
   return node;
+}
+
+/* i18n ko seedhe import karne se dom.js aur i18n aapas me ghoom jaate.
+   Isliye i18n khud aakar apna hook yahan rakh deta hai. Jab tak koi
+   dictionary chalu nahi, ye khaali function hai. */
+let translateRendered = () => {};
+export function setRenderHook(fn) {
+  if (typeof fn === "function") translateRendered = fn;
 }
 
 /** Build a DocumentFragment from an HTML string. */

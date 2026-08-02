@@ -186,3 +186,32 @@ export function storageError(err) {
   if (!err) return "Upload fail ho gaya.";
   return STORAGE_ERRORS[err.code] || err.message || "Upload fail ho gaya.";
 }
+
+/**
+ * Folder ke andar ki SAARI files — folder ke andar ke folder samet.
+ *
+ * `listFolder` sirf ek hi tah dekhta hai (listAll ka `items`), andar ke
+ * folder (`prefixes`) chhod deta hai. Delete karte waqt yahi sabse bada
+ * jaal hai: upar ki files hat jaati hain aur andar ki chupchaap padi reh
+ * jaati hain — dikhti kisi ko nahi, par jagah aur bill dono khaati hain.
+ *
+ * Yahan sirf path lautaya jaata hai, URL nahi — URL maangne par har file
+ * ke liye ek alag request jaati hai, aur hataane ke liye uski zaroorat
+ * hai hi nahi.
+ *
+ * @param {string} path
+ * @returns {Promise<string[]>} har file ka poora path
+ */
+export async function listFolderDeep(path) {
+  const out = [];
+  const walk = async (p) => {
+    const res = await listAll(storageRef(storage, p)).catch(() => null);
+    if (!res) return;
+    res.items.forEach((it) => out.push(it.fullPath));
+    /* Andar ke folder ek saath — ek-ek karke karne par 20 folder wali
+       jagah par 20 chakkar lag jaate. */
+    await Promise.all(res.prefixes.map((pre) => walk(pre.fullPath)));
+  };
+  await walk(path);
+  return out;
+}

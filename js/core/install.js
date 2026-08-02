@@ -69,17 +69,30 @@ export function dismiss() {
 }
 
 /**
- * Kya abhi install ka nyota dikhana chahiye?
- *   "prompt" — browser taiyar hai, ek button kaafi hai
- *   "ios"    — iPhone, haath se kadam batane padenge
- *   ""       — kuchh mat dikhao
+ * Kya dikhana hai?
+ *   "prompt" — browser taiyar hai, ek button dabao aur ho gaya
+ *   "manual" — browser ne nyota nahi diya, par install ho sakta hai —
+ *              haath se kadam bataane padenge
+ *   ""       — app pehle se khuli hui hai, kuchh mat dikhao
+ *
+ * Pehle yahan se "" bhi lautt-ta tha jab browser chup rehta tha — aur tab
+ * button gayab ho jata tha. Wahi sabse badi gadbad thi: student ko pata hi
+ * nahi chalta ki app banayi ja sakti hai. Chrome kai wajah se chup rehta hai
+ * (pehle se install ho, ya usne abhi tak tay na kiya ho), aur wo sab haalat
+ * hamare liye ek jaisi hain — raasta batana chahiye, chhup nahi jana.
+ *
+ * Ab sirf ek hi haalat me kuchh nahi dikhta: jab app khud installed roop me
+ * chal rahi ho. Wahan "install karein" dikhana bewakoofi hoti.
  */
 export function installState() {
   if (isStandalone()) return "";
-  if (dismissedRecently()) return "";
   if (deferredPrompt) return "prompt";
-  if (isIOS()) return "ios";
-  return "";
+  return "manual";
+}
+
+/** Bada card chhupane ke liye — chhota link phir bhi dikhta rehta hai. */
+export function cardDismissed() {
+  return dismissedRecently();
 }
 
 /* ------------------------------------------------------------- events */
@@ -128,24 +141,69 @@ export async function promptInstall() {
 
 /* --------------------------------------------------- iPhone ke kadam */
 
-/** iPhone par kya karna hai — Safari me hain ya nahi, uske hisaab se. */
-export function iosSteps() {
-  if (!isIOSSafari()) {
+/**
+ * Jis browser me student baitha hai, usi ke kadam batata hai.
+ *
+ * Har browser ka raasta alag hai, aur galat raasta batana kuchh na batane se
+ * bura hai — student wahan dhoondhta reh jayega jahan wo cheez hai hi nahi.
+ * Isliye pehle browser pehchante hain, phir usi ke kadam dete hain.
+ */
+export function installSteps() {
+  const ua = navigator.userAgent;
+
+  if (isIOS()) {
+    if (!isIOSSafari()) {
+      return {
+        title: "iPhone par pehle Safari me kholein",
+        steps: [
+          "Ye suvidha Apple sirf Safari me deta hai — Chrome ya kisi aur me milegi hi nahi.",
+          "Safari kholiye aur softskillzone.in likhiye.",
+          "Phir Share (⬆️) → \"Add to Home Screen\" → \"Add\"."
+        ]
+      };
+    }
     return {
-      title: "Pehle Safari me kholein",
+      title: "Teen kadam — bas",
       steps: [
-        "Ye page Safari browser me kholein — Chrome ya kisi aur me ye suvidha Apple deta hi nahi.",
-        "Safari me softskillzone.in kholein.",
-        "Phir niche wale teen kadam dohrayein."
+        "Niche (ya upar) Share ka nishan dabaayein — teer wala chauhkona ⬆️",
+        "List me niche jaakar \"Add to Home Screen\" chunein",
+        "\"Add\" dabaayein — icon aapke phone par aa jayega"
       ]
     };
   }
+
+  /* Android par asli suvidha Chrome me hi hai. Instagram/Facebook ke andar
+     wale browser me to menu hi nahi hota — wahan pehle Chrome me kholna
+     padega, warna student dhoondhta hi reh jayega. */
+  const inApp = /FBAN|FBAV|Instagram|Line\/|Twitter/i.test(ua);
+  if (inApp) {
+    return {
+      title: "Pehle Chrome me kholein",
+      steps: [
+        "Abhi ye page kisi app ke andar khula hai — yahan install ka option hota hi nahi.",
+        "Upar dayein kone ke teen bindu (⋮) dabaakar \"Open in Chrome\" chunein.",
+        "Chrome me khulne par yahi button dobara dabaayein."
+      ]
+    };
+  }
+
+  if (/Android/i.test(ua)) {
+    return {
+      title: "Do kadam",
+      steps: [
+        "Upar dayein kone me teen bindu (⋮) dabaayein",
+        "\"Install app\" ya \"Add to Home screen\" chunein",
+        "\"Install\" dabaayein — icon phone par aa jayega"
+      ]
+    };
+  }
+
   return {
-    title: "Teen kadam — bas",
+    title: "Computer par",
     steps: [
-      "Niche (ya upar) Share ka nishan dabaayein — teer wala chauhkona ⬆️",
-      "List me niche jaakar \"Add to Home Screen\" chunein",
-      "\"Add\" dabaayein — icon aapke phone par aa jayega"
+      "Address bar ke dayein kinare install ka chhota nishan (⊕ ya monitor jaisa) dhoondhein",
+      "Na mile to upar dayein teen bindu (⋮) → \"Cast, save and share\" → \"Install page as app\"",
+      "\"Install\" dabaayein — app alag window me khul jayega"
     ]
   };
 }

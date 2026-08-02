@@ -20,10 +20,23 @@ function infoRow(k, v) {
   return el("div", { class: "verify-row" }, el("dt", {}, k), el("dd", {}, v || "—"));
 }
 
+/* Photo ka kram: pehle institute ki, phir login wali.
+
+   Google se login karne par Firebase users doc me photoURL bhar deta hai —
+   par jis account par asli photo nahi hai, wahan wo khud ka banaya hua
+   akshar wala gola (default-user) hota hai. Wo bhi ek asli image hai,
+   isliye "hai ya nahi" wali jaanch use sahi maan leti thi aur admission
+   wali asli photo kabhi dikhti hi nahi thi.
+
+   Student portal me institute ka record hi asli maana jayega — wahi photo
+   ID card par chhapti hai. Google wali sirf tab, jab institute ke paas
+   koi photo na ho. */
+const avatarSrc = student?.photoURL || user.photoURL || "";
+
 render($("#profileInfo"),
   el("div", { style: { display: "flex", gap: "1.25rem", alignItems: "center", marginBottom: "1.5rem" } },
-    user.photoURL || student?.photoURL
-      ? el("img", { class: "avatar avatar-lg", src: user.photoURL || student.photoURL, alt: user.name, decoding: "async" })
+    avatarSrc
+      ? el("img", { class: "avatar avatar-lg", src: avatarSrc, alt: user.name, decoding: "async" })
       : el("span", { class: "avatar avatar-lg avatar-fallback", style: { fontSize: "1.4rem" } }, initials(user.name)),
     el("span", {},
       el("strong", { style: { display: "block", fontSize: "1.1rem" } }, student?.fullName || user.name),

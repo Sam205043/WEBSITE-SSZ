@@ -53,6 +53,9 @@ export const ROUTES = Object.freeze({
   adminNotify:      "pages/admin/notifications.html",
   adminEnquiries:   "pages/admin/enquiries.html",
   adminGallery:     "pages/admin/gallery.html",
+  /* Reset sidebar me jaan-bujh kar nahi hai — roz ke kaam ke beech aisa
+     button rakhna theek nahi. Sirf pate se khulta hai. */
+  adminReset:       "pages/admin/reset.html",
 
   toolGst:        "pages/tools/gst-calculator.html",
   toolGstQuiz:    "pages/tools/gst-quiz.html",

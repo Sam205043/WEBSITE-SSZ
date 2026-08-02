@@ -288,3 +288,60 @@
   box-shadow: var(--shadow-md);
 }
 .receipt-sheet * { color: inherit; }
+
+/* ==========================================================================
+   Bhasha chunne wala switch (topbar)
+   --------------------------------------------------------------------------
+   Ek saada <select> hai — phone par system ka apna list khulta hai, jo
+   chhote parde par apne banaye menu se kahin aasan hai.
+   ========================================================================== */
+.lang-pick__wrap { display: inline-flex; }
+
+.lang-pick {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .42rem 1.75rem .42rem .8rem;
+  cursor: pointer;
+  line-height: 1.2;
+  /* Teer khud banaya hai — background image se, taaki dark theme me bhi
+     rang apne aap badal jaye. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  transition: border-color .18s ease, color .18s ease;
+}
+.lang-pick:hover { color: var(--text-primary); border-color: var(--brand); }
+.lang-pick:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Bahut chhoti screen par sirf akshar bachte hain — jagah bachane ke liye
+   padding kam, par chhupate nahi: bhasha badalna dhoondhna nahi padna
+   chahiye. */
+@media (max-width: 420px) {
+  .lang-pick { font-size: .76rem; padding: .38rem 1.5rem .38rem .6rem; }
+}
+
+/* Devanagari chunne par body font badal jata hai. Manrope me Devanagari
+   hai hi nahi; Noto Sans Devanagari uske saath achha baithta hai. Heading
+   Poppins hi rehti hai — usme Devanagari maujood hai. */
+html.lang-hi body,
+html.lang-hi .dash-body,
+html.lang-hi .input-ssz,
+html.lang-hi .btn-ssz {
+  font-family: "Noto Sans Devanagari", "Manrope", system-ui, sans-serif;
+}
+html.lang-hi h1, html.lang-hi h2, html.lang-hi h3,
+html.lang-hi .dash-top__title {
+  font-family: "Poppins", "Noto Sans Devanagari", system-ui, sans-serif;
+}
+/* Devanagari ke matra upar-neeche nikalte hain — thodi saans chahiye. */
+html.lang-hi { line-height: 1.75; }

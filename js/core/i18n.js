@@ -118,10 +118,36 @@ function addHindiFont() {
  * deta hai. Har student page shell se hokar guzarta hai, isliye wahin se
  * ek baar bulaya jata hai.
  */
+/* Chrome ka apna "is page ko translate karein?" wala patta band karta hai.
+
+   Zaroorat kyun padi: Hindi chunne par hum <html lang="hi"> laga dete hain.
+   Jis user ke browser ki bhasha English hai, Chrome use dekh kar khud hi
+   translate ka nyota de deta hai — baar-baar.
+
+   Sirf khijhane wali baat nahi hai. Google Translate page ka text badal
+   deta hai, aur hamara apna anuvaad bhi wahi karta hai. Do log ek hi page
+   ko ek saath badlenge to takrav hoga: hamara pehredaar Google ke badle
+   hue text ko naya samajh kar dobara chhedega. Isliye site par apna switch
+   hai, to Chrome wala band hi theek hai.
+
+   Do tarike ek saath — kyunki alag-alag browser alag cheez maante hain:
+   translate="no" (HTML ka apna niyam) aur Google ka purana meta tag. */
+function blockBrowserTranslate() {
+  document.documentElement.setAttribute("translate", "no");
+  document.documentElement.classList.add("notranslate");
+  if (!document.querySelector('meta[name="google"][content="notranslate"]')) {
+    const m = document.createElement("meta");
+    m.name = "google";
+    m.content = "notranslate";
+    document.head.appendChild(m);
+  }
+}
+
 export async function initI18n() {
   lang = readSaved();
   const meta = LANGS.find((l) => l.code === lang);
   document.documentElement.setAttribute("lang", meta?.htmlLang || "en");
+  blockBrowserTranslate();
 
   if (lang !== DEFAULT_LANG) {
     if (lang === "hi") addHindiFont();

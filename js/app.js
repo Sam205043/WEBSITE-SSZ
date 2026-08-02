@@ -21,6 +21,7 @@ import { SEO, INSTITUTE } from "./config/site-data.js";
 /* Install ka listener — jaldi lagna zaroori hai, warna browser ka
    beforeinstallprompt aakar chala jata hai aur button kabhi nahi dikhta. */
 import "./core/install.js";
+import { initI18n, loadPack, mountLangPicker } from "./core/i18n.js";
 
 /* ==========================================================================
    Progressive enhancement flag (css/animations.css uses .no-js)
@@ -119,8 +120,17 @@ async function wireChatbot() {
 onReady(async () => {
   ensureMeta();
 
+  /* Bhasha sabse pehle — navbar/footer ke DOM me aane se pehle dictionary
+     taiyar honi chahiye, warna wo Hinglish me hi ban kar reh jaate. */
+  await initI18n();
+
   await loadIncludes();       // navbar + footer into the DOM
   fixLinks(document);         // also resolve data-href links in page markup
+  mountLangPicker(document.getElementById("navLangPick"));
+  /* Course ke naam, features, students ki raay, FAQ — ye site-data.js se
+     aate hain aur bhaari hain. Alag file me rakhe hain taaki student portal
+     par bewajah download na hon. */
+  loadPack("content");
   initNavbar();
   initFooter();               // static contact values, instantly visible
   hardenExternalLinks();

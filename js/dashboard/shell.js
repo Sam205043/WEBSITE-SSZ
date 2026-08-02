@@ -23,6 +23,9 @@ import { url } from "../core/routes.js";
 import { LS_KEYS } from "../core/constants.js";
 import { DEMO_USER } from "./demo-data.js";
 import { initI18n, t, getLang, setLang, LANGS } from "../core/i18n.js";
+/* Sirf listener jaldi lag jaye — browser ka beforeinstallprompt page load
+   ke turant baad aata hai, aur der se import karne par nikal jata hai. */
+import "../core/install.js";
 import toast from "../core/toast.js";
 
 /* ---------------- Sidebar map ---------------- */
@@ -86,6 +89,9 @@ function buildSidebar(active) {
       )
     ),
     nav,
+    /* Install ka link — nav ke aakhir me, Logout se upar. Khaali rehta hai
+       jab tak install-ui khud tay na kar le ki dikhna chahiye. */
+    el("div", { class: "dash-side__install", id: "installSideMount", hidden: true }),
     el("div", { class: "dash-side__foot" },
       el("button", {
         class: "btn-ssz btn-ghost-ssz btn-block-ssz btn-sm-ssz", type: "button",
@@ -96,6 +102,12 @@ function buildSidebar(active) {
       )
     )
   );
+
+  /* Bhaari nahi hai, par sirf tabhi chahiye jab install ho sakta ho —
+     isliye alag se, page ke rukne ka intezaar kiye bina. */
+  import("../components/install-ui.js")
+    .then(({ installLink }) => installLink($("#installSideMount")))
+    .catch((err) => console.warn("[shell] install link skip:", err.message));
 }
 
 /* ==========================================================================

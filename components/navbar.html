@@ -43,6 +43,11 @@
       <!-- Bhasha chunne ka switch. Khaali rehta hai; js/core/i18n.js page
            taiyar hone par ise bhar deta hai. Yahan sirf jagah hai taaki
            navbar ka kram (search, bhasha, theme) har page par ek jaisa rahe. -->
+      <!-- App install — chhota nishan. Har page par (auth pages par bhi),
+           kyunki navbar sab jagah hai. Chhoti screen par chhup jata hai,
+           wahan drawer wala button kaam karta hai. -->
+      <span id="installNavMount" hidden></span>
+
       <span class="lang-pick__wrap" id="navLangPick"></span>
 
       <button class="icon-btn" type="button" data-theme-toggle aria-label="Dark mode on karein" aria-pressed="false">
@@ -128,5 +133,9 @@
 
     <a class="btn-ssz btn-primary-ssz btn-block-ssz" style="margin-top:1.25rem"
        data-href="pages/admission.html">Online Admission</a>
+
+    <!-- App install — drawer me, taaki phone par har page se mile:
+         homepage se bhi aur student ke login page se bhi. -->
+    <div id="installDrawerMount" style="margin-top:.75rem" hidden></div>
   </div>
 </aside>

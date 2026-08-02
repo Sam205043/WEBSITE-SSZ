@@ -413,7 +413,10 @@ export const TOOLS = Object.freeze([
   { id: "mega-quiz",            route: "toolMegaQuiz",   title: "MS Office Mega Quiz",   desc: "480 sawaal — module chunkar practice",    icon: "clipboard",  color: "#4f46e5" },
   { id: "shortcut-trainer",     route: "toolShortcuts",  title: "Shortcut Trainer",      desc: "110 shortcuts flashcard se yaad karein",  icon: "keyboard",   color: "#0891b2" },
   { id: "excel-practice",       route: "toolExcel",      title: "Excel Formula Practice",desc: "SUM se PMT tak — formula likh kar check", icon: "calculator", color: "#059669" },
-  { id: "interview-qa",         route: "toolInterview",  title: "Interview Q&A Practice",desc: "480 interview aur viva sawaal",           icon: "users",      color: "#7c3aed" }
+  { id: "interview-qa",         route: "toolInterview",  title: "Interview Q&A Practice",desc: "480 interview aur viva sawaal",           icon: "users",      color: "#7c3aed" },
+  { id: "formula-explainer",    route: "toolFormula",    title: "Formula Explainer",     desc: "Koi bhi Excel formula Hinglish me samjhein", icon: "book",   color: "#4f46e5" },
+  { id: "excel-errors",         route: "toolExcelErr",   title: "Excel Error Decoder",   desc: "#N/A, #REF!, #VALUE! ka matlab aur ilaaj",   icon: "alert",  color: "#e11d48" },
+  { id: "excel-datasets",       route: "toolExcelData",  title: "Excel Practice Data",   desc: "Asli jaisa data .xlsx me — kaam ki list ke saath", icon: "grid", color: "#059669" }
 ]);
 
 /* ==========================================================================

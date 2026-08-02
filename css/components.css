@@ -753,3 +753,43 @@
   color: var(--brand);
 }
 .dash-link--install:hover { background: var(--brand-soft, rgba(79, 70, 229, .08)); }
+
+/* Public navbar ka bhasha switch — dashboard wale jaisa hi, par navbar ke
+   icon-button ke saath baithna chahiye. .lang-pick ka roop css/dashboard.css
+   me hai; public pages wo file nahi lete, isliye zaroori hissa yahan bhi. */
+.lang-pick__wrap { display: inline-flex; }
+
+.lang-pick {
+  appearance: none; -webkit-appearance: none;
+  font: inherit; font-size: .82rem; font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .42rem 1.75rem .42rem .8rem;
+  cursor: pointer; line-height: 1.2;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  transition: border-color .18s ease, color .18s ease;
+}
+.lang-pick:hover { color: var(--text-primary); border-color: var(--brand); }
+.lang-pick:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+@media (max-width: 480px) {
+  .lang-pick { font-size: .74rem; padding: .34rem 1.45rem .34rem .58rem; }
+  .lang-pick { background-position: calc(100% - 13px) 52%, calc(100% - 9px) 52%; }
+}
+
+/* Devanagari chunne par padhne wala font badalta hai — Manrope me Devanagari
+   hai hi nahi. Heading Poppins hi rehti hai, usme Devanagari maujood hai. */
+html.lang-hi body, html.lang-hi .input-ssz, html.lang-hi .btn-ssz {
+  font-family: "Noto Sans Devanagari", "Manrope", system-ui, sans-serif;
+}
+html.lang-hi h1, html.lang-hi h2, html.lang-hi h3 {
+  font-family: "Poppins", "Noto Sans Devanagari", system-ui, sans-serif;
+}
+html.lang-hi { line-height: 1.75; }

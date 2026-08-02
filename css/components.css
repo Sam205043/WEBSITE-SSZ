@@ -811,6 +811,33 @@ html.lang-hi { line-height: 1.75; }
 .install-fbtn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .install-fbtn__icon { display: grid; place-items: center; }
 
-/* Navbar ka install nishan — chhoti screen par chhup jata hai, wahan
-   drawer (mobile menu) me poori chaudai ka button milta hai. */
-@media (max-width: 900px) { .install-nav { display: none; } }
+/* Navbar ka install nishan — phone par bhi dikhta hai.
+
+   Pehle ise 900px se neeche chhupa diya tha, ye maan kar ki jagah nahi
+   bachegi. Wo galat tha: phone par logo aur baaki button ke beech kaafi
+   khaali jagah rehti hai. Aur chhupane se sabse zyada nuksaan wahin hota
+   tha jahan ye sabse zaroori hai — phone par, kyunki app phone par hi
+   banti hai. Menu ke andar rakhna kaafi nahi; jise pata hi nahi wo menu
+   kholega hi kyun.
+
+   Bahut chhoti screen (360px se kam) par bhi jagah bani rahe, isliye wahan
+   bhasha wala switch sirf chhota roop leta hai — niche wala niyam. */
+.install-nav { display: grid; place-items: center; }
+
+/* 360px se chhote phone: bhasha ke switch ka padding ghata dete hain taaki
+   install ka nishan bahar na nikle. Naam phir bhi poora dikhta hai. */
+@media (max-width: 380px) {
+  .lang-pick { font-size: .7rem; padding: .3rem 1.25rem .3rem .5rem; }
+  .lang-pick { background-position: calc(100% - 11px) 52%, calc(100% - 8px) 52%; }
+}
+
+/* Bahut chhote phone (320px — purana iPhone SE, Galaxy Fold ka bahar wala
+   parda). Yahan paanch cheezein ek patti me nahi samaatin, isliye icon aur
+   unke beech ki jagah thodi ghata dete hain. Kisi ko chhupaate nahi —
+   chhupane se hi ye gadbad shuru hui thi. */
+@media (max-width: 360px) {
+  .ssz-nav__actions { gap: .25rem; }
+  .ssz-nav__actions .icon-btn { width: 36px; height: 36px; }
+  .lang-pick { font-size: .66rem; padding: .26rem 1.1rem .26rem .42rem; }
+  .lang-pick { background-position: calc(100% - 9px) 52%, calc(100% - 6px) 52%; }
+}

@@ -54,7 +54,7 @@ export const INTERVIEW_QA = [
   { t: "Computer Basics", q: "Scanner kya karta hai?", a: "Kagaz ke document ko photo ki tarah computer me le aata hai." },
   { t: "Computer Basics", q: "OCR kya hai?", a: "Optical Character Recognition — scan ki hui photo me se text pehchaan kar use edit karne layak bana deta hai." },
   { t: "Computer Basics", q: "Software ka license kya hota hai?", a: "Company ki wo ijaazat jiske tehat aap software istemaal kar sakte hain. Bina license ka software galat aur asurakshit hai." },
-  { t: "Computer Basics", q: "Open source software kya hai?", a: "Jiska code sabke liye khula hai aur aksar muft hota hai — jaise LibreOffice, Linux." },
+  { t: "Computer Basics", q: "Open source software kya hai?", a: "Jiska code sabke liye khula hai aur aksar muft hota hai — jaise Linux, Firefox, VLC." },
   { t: "Computer Basics", q: "GUI kya hai?", a: "Graphical User Interface — icon, button aur mouse se computer chalana. Iske pehle sirf command likhni padti thi." },
   { t: "Computer Basics", q: "Shortcut key ka faayda?", a: "Kaam bahut tez ho jaata hai. Mouse tak haath le jaane me jo time jaata hai wo bach jaata hai." },
   { t: "Computer Basics", q: "Data aur Information me farq?", a: "Data kacchi cheez hai — jaise marks ki list. Use process karke jo matlab nikalta hai (result, percentage) wo Information hai." },

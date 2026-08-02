@@ -202,9 +202,9 @@ export const EXCEL_FUNCTIONS = {
   XLOOKUP: {
     grp: "Dhundhna", sig: "XLOOKUP(kya_dhundhein, kahan_dhundhein, kya_wapas_dein, [na_mile_to])",
     one: "VLOOKUP ka naya aur aasaan roop.",
-    how: "Column ginne ki zaroorat nahi, bayein taraf bhi dhundh leta hai, aur exact match apne aap karta hai. Naye Excel aur Google Sheets me milta hai.",
+    how: "Column ginne ki zaroorat nahi, bayein taraf bhi dhundh leta hai, aur exact match apne aap karta hai. Microsoft 365 aur Excel 2021 me hai, Google Sheets me bhi.",
     tell: (a) => `${j(a, 0)} ko ${j(a, 1)} me dhundhega aur usi jagah ki ${j(a, 2)} wali value dega.`,
-    tip: "Purane Excel 2016/2019 me ye nahi chalega — wahan VLOOKUP ya INDEX+MATCH hi lagana padega."
+    tip: "Excel 2016 aur 2019 me ye nahi hai — wahan #NAME? aayega. Un par VLOOKUP ya INDEX+MATCH hi lagana padega. Lab ka Excel kaunsa hai, ek baar dekh lein: File > Account."
   },
   INDEX: {
     grp: "Dhundhna", sig: "INDEX(range, row_number, [column_number])",
@@ -355,9 +355,9 @@ export const EXCEL_FUNCTIONS = {
   ISNUMBER: { grp: "Jaanch (info)", sig: "ISNUMBER(value)", one: "Number hai ya nahi.", how: "Text bane hue numbers pakadne ke liye.", tell: (a) => `${j(a, 0)} number hai ya nahi, wo batayega.` },
   ISTEXT: { grp: "Jaanch (info)", sig: "ISTEXT(value)", one: "Text hai ya nahi.", how: "Data saaf karte waqt.", tell: (a) => `${j(a, 0)} text hai ya nahi, wo batayega.` },
   NA: { grp: "Jaanch (info)", sig: "NA()", one: "Jaan-bujh kar #N/A dalta hai.", how: "Chart me khaali jagah dikhane ke liye.", tell: () => "Yahan jaan-bujh kar #N/A daal dega." },
-  UNIQUE: { grp: "Jaanch (info)", sig: "UNIQUE(range)", one: "Bina dohraav wali list.", how: "Naye Excel aur Google Sheets me. Duplicate hata kar ek-ek naam.", tell: (a) => `${j(a, 0)} me se har cheez ek hi baar dikhayega.` },
-  SORT: { grp: "Jaanch (info)", sig: "SORT(range, [kis_column_se], [1/-1])", one: "Kram me laga deta hai.", how: "Naye Excel me. -1 dene par ulta kram.", tell: (a) => `${j(a, 0)} ko kram me laga dega.` },
-  FILTER: { grp: "Jaanch (info)", sig: "FILTER(range, shart, [na_mile_to])", one: "Shart wali rows chhaant kar nikaalta hai.", how: "Naye Excel me. Jawab apne aap kai cells me fail jaata hai.", tell: (a) => `${j(a, 0)} me se sirf wo rows nikaalega jahan ${j(a, 1)} sach hai.` }
+  UNIQUE: { grp: "Jaanch (info)", sig: "UNIQUE(range)", one: "Bina dohraav wali list.", how: "Duplicate hata kar ek-ek naam. Microsoft 365 aur Excel 2021 me hai, Google Sheets me bhi. Excel 2016/2019 me nahi — wahan Data > Remove Duplicates se kaam chalta hai.", tell: (a) => `${j(a, 0)} me se har cheez ek hi baar dikhayega.` },
+  SORT: { grp: "Jaanch (info)", sig: "SORT(range, [kis_column_se], [1/-1])", one: "Kram me laga deta hai.", how: "-1 dene par ulta kram. Microsoft 365 aur Excel 2021 me hai, Google Sheets me bhi. Excel 2016/2019 me nahi — wahan Data > Sort se karein.", tell: (a) => `${j(a, 0)} ko kram me laga dega.` },
+  FILTER: { grp: "Jaanch (info)", sig: "FILTER(range, shart, [na_mile_to])", one: "Shart wali rows chhaant kar nikaalta hai.", how: "Jawab apne aap kai cells me fail jaata hai. Microsoft 365 aur Excel 2021 me hai, Google Sheets me bhi. Excel 2016/2019 me nahi — wahan Data > Filter se karein.", tell: (a) => `${j(a, 0)} me se sirf wo rows nikaalega jahan ${j(a, 1)} sach hai.` }
 };
 
 /* Function ke naam se dhundhna — aliases bhi chalte hain */

@@ -130,8 +130,8 @@ export const EXCEL_ERRORS = [
         fix: '=IF(A2>50,"Pass","Fail") — Pass aur Fail ke aas-paas double quote zaroori hai.'
       },
       {
-        cause: "Naya function purane Excel me chalaya (XLOOKUP, TEXTJOIN, UNIQUE, IFS).",
-        fix: "Excel 2016/2019 me ye nahi hain. VLOOKUP, CONCATENATE ya nested IF se kaam chalayein."
+        cause: "Naya function purane Excel me chalaya (XLOOKUP, TEXTJOIN, UNIQUE, IFS, SORT, FILTER).",
+        fix: "Ye sirf Microsoft 365 aur Excel 2021 me hain (Google Sheets me bhi). Excel 2016/2019 par VLOOKUP, CONCATENATE ya nested IF se kaam chalayein. Apna version dekhne ke liye: File > Account."
       },
       {
         cause: "Range ke beech ka colon (:) chhoot gaya — A1A10 likh diya.",
@@ -171,7 +171,7 @@ export const EXCEL_ERRORS = [
   {
     code: "#SPILL!",
     name: "Jawab failne ki jagah nahi mil rahi",
-    one: "Formula ka jawab kai cells me failna chahta hai, par aage koi cell bhari hui hai.",
+    one: "Formula ka jawab kai cells me failna chahta hai, par aage koi cell bhari hui hai. (Microsoft 365 / Excel 2021 me hi aata hai.)",
     tags: ["unique", "filter", "sort", "spill", "naya excel", "365"],
     demo: "=UNIQUE(A2:A50)   —  neeche ki kisi cell me pehle se kuchh likha hai",
     why: [
@@ -192,7 +192,7 @@ export const EXCEL_ERRORS = [
   {
     code: "#CALC!",
     name: "Hisaab ho hi nahi sakta",
-    one: "Naye Excel ka error — jaise FILTER ko kuchh mila hi nahi.",
+    one: "Microsoft 365 / Excel 2021 ka error — jaise FILTER ko kuchh mila hi nahi.",
     tags: ["filter", "khaali", "365"],
     demo: '=FILTER(A2:B50, C2:C50="Patna")   —  Patna wala koi hai hi nahi',
     why: [

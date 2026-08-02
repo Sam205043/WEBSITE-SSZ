@@ -90,8 +90,32 @@
   box-shadow: var(--shadow-lg);
   padding: var(--sp-5);
 }
-.hero-card__row { display: flex; align-items: center; gap: var(--sp-3); }
-.hero-card__row + .hero-card__row { margin-top: var(--sp-4); }
+/* Ab ye <a> hai, div nahi — poori line dabaane layak hai. Padding rakhi hai
+   taaki phone par angootha ke liye kaafi jagah mile (44px se upar), aur
+   negative margin se dikhne wali chaudai wahi rehti hai jo pehle thi. */
+.hero-card__row {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-2);
+  margin-inline: calc(var(--sp-2) * -1);
+  border-radius: var(--r-md);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color .16s ease, transform .16s ease;
+}
+.hero-card__row + .hero-card__row { margin-top: var(--sp-2); }
+.hero-card__row:hover { background: rgba(79, 70, 229, .07); }
+.hero-card__row:active { transform: scale(.985); }
+.hero-card__row:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Naam wala hissa badhe bhi aur 0 tak sikude bhi — warna lamba naam poori
+   line ko chaudi kar deta hai aur teer parde se bahar chala jata hai. */
+.hero-card__text { min-width: 0; flex: 1 1 auto; }
+
+/* Chhota teer — batata hai ki line dabaane layak hai. Chhoti screen par
+   chhupa dete hain, wahan jagah badge ko chahiye. */
+.hero-card__go { display: grid; place-items: center; color: var(--text-muted); flex-shrink: 0; }
+.hero-card__row:hover .hero-card__go { color: var(--brand); }
+@media (max-width: 380px) { .hero-card__go { display: none; } }
 .hero-card__icon {
   width: 42px; height: 42px; flex-shrink: 0;
   border-radius: var(--r-md);

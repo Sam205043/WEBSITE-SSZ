@@ -22,7 +22,7 @@ import { initials, store, timeAgo } from "../core/utils.js";
 import { url } from "../core/routes.js";
 import { LS_KEYS } from "../core/constants.js";
 import { DEMO_USER } from "./demo-data.js";
-import { initI18n, t, getLang, setLang, LANGS } from "../core/i18n.js";
+import { initI18n, t, buildLangPicker } from "../core/i18n.js";
 /* Sirf listener jaldi lag jaye — browser ka beforeinstallprompt page load
    ke turant baad aata hai, aur der se import karne par nikal jata hai. */
 import "../core/install.js";
@@ -113,17 +113,10 @@ function buildSidebar(active) {
 /* ==========================================================================
    Topbar
    ========================================================================== */
-/* Bhasha chunne ka chhota sa switch.
-   <select> hi rakha hai, apna banaya hua menu nahi — phone par ye system ka
-   apna list kholta hai jo chhote parde par sabse aasan hai, aur keyboard se
-   bhi chal jata hai. */
+/* Bhasha ka switch — wahi jo public navbar me hai, taaki dono jagah ek
+   jaisa dikhe aur badalna ho to ek hi jagah badle. */
 function langPicker() {
-  const sel = el("select", {
-    class: "lang-pick",
-    "aria-label": "Bhasha chunein / भाषा चुनें",
-    onchange: (e) => setLang(e.target.value)
-  }, ...LANGS.map((l) => el("option", { value: l.code, selected: l.code === getLang() || null }, l.native)));
-  return el("span", { class: "lang-pick__wrap" }, sel);
+  return el("span", { class: "lang-pick__wrap" }, buildLangPicker());
 }
 
 function buildTopbar(user, title) {

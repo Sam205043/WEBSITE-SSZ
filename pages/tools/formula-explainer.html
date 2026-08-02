@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Excel Formula Explainer — Koi bhi formula Hinglish me samjhein | Soft Skill Zone</title>
+<meta name="description" content="Koi bhi Excel formula paste kijiye aur Hinglish me kadam-dar-kadam samajh lijiye. VLOOKUP, IF, SUMIF, INDEX-MATCH — sab. Aam galtiyaan bhi pakadta hai. Free tool, Soft Skill Zone Ara.">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/layout.css">
+<link rel="stylesheet" href="../../css/components.css">
+<link rel="stylesheet" href="../../css/animations.css">
+<link rel="stylesheet" href="../../css/pages.css">
+<link rel="stylesheet" href="../../css/tools.css">
+<link rel="stylesheet" href="../../css/admission.css">
+<link rel="stylesheet" href="../../css/chat.css">
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" href="../../images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="../../images/logo/apple-touch-icon.png">
+<link rel="canonical" href="https://softskillzone.in/pages/tools/formula-explainer.html">
+
+<script type="application/ld+json" id="ssz-static-ld">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://softskillzone.in/index.html" },
+    { "@type": "ListItem", "position": 2, "name": "Free Student Tools", "item": "https://softskillzone.in/pages/tools.html" },
+    { "@type": "ListItem", "position": 3, "name": "Excel Formula Explainer", "item": "https://softskillzone.in/pages/tools/formula-explainer.html" }
+  ]
+}
+</script>
+<link rel="modulepreload" href="../../js/core/dom.js">
+<link rel="modulepreload" href="../../js/core/routes.js">
+<link rel="modulepreload" href="../../js/core/include.js">
+<link rel="modulepreload" href="../../js/core/theme.js">
+<link rel="modulepreload" href="../../js/core/utils.js">
+<link rel="modulepreload" href="../../js/core/icons.js">
+<link rel="modulepreload" href="../../js/tools/formula-parser.js">
+<link rel="modulepreload" href="../../js/config/excel-function-bank.js">
+</head>
+
+<body data-depth="2">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-include="navbar"></div>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="ssz-container">
+      <span class="eyebrow">Free Tool</span>
+      <h1 style="margin:.6rem 0 .75rem">Excel <span class="text-gradient">Formula Explainer</span></h1>
+      <p style="max-width:62ch;margin-inline:auto">
+        Koi bhi formula yahan daaliye — Hinglish me kadam-dar-kadam samajh aa jayega.
+        Wo galtiyaan bhi pakad leta hai jo error nahi detin, bas chupchaap galat jawab deti hain.
+      </p>
+      <nav class="breadcrumb-ssz" aria-label="Breadcrumb">
+        <a href="../../index.html">Home</a><span>/</span>
+        <a href="../tools.html">Free Tools</a><span>/</span>
+        <span aria-current="page">Formula Explainer</span>
+      </nav>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container">
+      <div style="max-width:760px;margin-inline:auto">
+
+        <div class="tool-panel" style="margin-bottom:1.5rem">
+          <div class="tool-panel__head">Formula yahan likhein</div>
+          <div class="tool-panel__body">
+            <div class="field" style="margin-bottom:.75rem">
+              <label class="field__label" for="fxInput">Excel formula</label>
+              <input class="input-ssz" id="fxInput" type="text" spellcheck="false"
+                     autocapitalize="off" autocomplete="off" autocorrect="off"
+                     placeholder="=VLOOKUP(A2,Sheet2!A:C,3,0)">
+              <p class="field__hint" style="font-size:.76rem;color:var(--text-muted);margin:.35rem 0 0">
+                Shuru ka "=" lagayein ya na lagayein, dono chalega. Semicolon (;) ho to bhi samajh lega.
+              </p>
+            </div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn-ssz btn-primary-ssz" type="button" id="fxGo">Samjhaayein</button>
+              <button class="btn-ssz btn-secondary-ssz" type="button" id="fxClear">Saaf karein</button>
+            </div>
+
+            <p style="font-size:.78rem;color:var(--text-muted);margin:1.1rem 0 .45rem;font-weight:600">
+              Ya inme se koi dabaakar dekhein:
+            </p>
+            <div class="filter-row" id="fxExamples" style="justify-content:flex-start"></div>
+          </div>
+        </div>
+
+        <div id="fxOut"></div>
+
+        <div class="tool-note" style="margin-top:1.5rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>Ye tool formula ka <b>matlab</b> batata hai, uska <b>jawab</b> nahi — jawab ke liye aapki apni sheet ka data chahiye hoga.</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="ssz-container">
+      <div style="max-width:900px;margin-inline:auto">
+        <h2 style="font-family:var(--font-display);font-size:1.15rem;margin:0 0 .35rem">Saare functions</h2>
+        <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 1rem">
+          <span id="fxListCount"></span> — kaam ke hisaab se chhaante hue. Dhundhne ke liye niche likhein.
+        </p>
+        <div class="field" style="max-width:340px;margin-bottom:1.5rem">
+          <label class="sr-only" for="fxSearch">Function dhundhein</label>
+          <input class="input-ssz" id="fxSearch" type="search" placeholder="Jaise: vlookup, jodna, date">
+        </div>
+        <div id="fxList"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div data-include="footer"></div>
+
+<script type="module" src="../../js/app.js"></script>
+<script type="module" src="../../js/tools/formula-explainer.js"></script>
+
+<script>
+/* PWA: install the service worker so the site opens fast and the free
+   tools keep working on weak mobile data. Fails silently on file://. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

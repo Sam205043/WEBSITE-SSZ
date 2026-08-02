@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Excel Error Decoder — #N/A, #REF!, #VALUE! ka matlab aur ilaaj | Soft Skill Zone</title>
+<meta name="description" content="Excel me #N/A, #REF!, #VALUE!, #DIV/0!, #NAME? kyun aata hai aur kaise theek karein — Hinglish me, har wajah ka seedha ilaaj. Free tool, Soft Skill Zone Ara.">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/layout.css">
+<link rel="stylesheet" href="../../css/components.css">
+<link rel="stylesheet" href="../../css/animations.css">
+<link rel="stylesheet" href="../../css/pages.css">
+<link rel="stylesheet" href="../../css/tools.css">
+<link rel="stylesheet" href="../../css/admission.css">
+<link rel="stylesheet" href="../../css/chat.css">
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" href="../../images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="../../images/logo/apple-touch-icon.png">
+<link rel="canonical" href="https://softskillzone.in/pages/tools/excel-errors.html">
+
+<script type="application/ld+json" id="ssz-static-ld">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://softskillzone.in/index.html" },
+    { "@type": "ListItem", "position": 2, "name": "Free Student Tools", "item": "https://softskillzone.in/pages/tools.html" },
+    { "@type": "ListItem", "position": 3, "name": "Excel Error Decoder", "item": "https://softskillzone.in/pages/tools/excel-errors.html" }
+  ]
+}
+</script>
+<link rel="modulepreload" href="../../js/core/dom.js">
+<link rel="modulepreload" href="../../js/core/routes.js">
+<link rel="modulepreload" href="../../js/core/include.js">
+<link rel="modulepreload" href="../../js/core/theme.js">
+<link rel="modulepreload" href="../../js/core/utils.js">
+<link rel="modulepreload" href="../../js/core/icons.js">
+<link rel="modulepreload" href="../../js/config/excel-error-bank.js">
+</head>
+
+<body data-depth="2">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-include="navbar"></div>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="ssz-container">
+      <span class="eyebrow">Free Tool</span>
+      <h1 style="margin:.6rem 0 .75rem">Excel <span class="text-gradient">Error Decoder</span></h1>
+      <p style="max-width:62ch;margin-inline:auto">
+        Cell me <code>#N/A</code> ya <code>#REF!</code> dikh raha hai? Yahan har error ka matlab,
+        uski asli wajah, aur seedha ilaaj — us kram me jis kram me ye galtiyaan sach me hoti hain.
+      </p>
+      <nav class="breadcrumb-ssz" aria-label="Breadcrumb">
+        <a href="../../index.html">Home</a><span>/</span>
+        <a href="../tools.html">Free Tools</a><span>/</span>
+        <span aria-current="page">Error Decoder</span>
+      </nav>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container">
+      <div style="max-width:760px;margin-inline:auto">
+
+        <div class="tool-panel" style="margin-bottom:1.5rem">
+          <div class="tool-panel__head">Kaunsa error aa raha hai?</div>
+          <div class="tool-panel__body">
+            <div class="field" style="margin-bottom:.75rem">
+              <label class="field__label" for="xeSearch">Error ya dikkat likhein</label>
+              <input class="input-ssz" id="xeSearch" type="search" spellcheck="false"
+                     autocapitalize="off" autocomplete="off"
+                     placeholder="Jaise: #N/A, ya 'sum 0 aa raha hai'">
+              <p class="field__hint" style="font-size:.76rem;color:var(--text-muted);margin:.35rem 0 0">
+                Cell me jo bilkul likha hai wahi type kar dijiye, ya apni dikkat Hinglish me likh dijiye.
+              </p>
+            </div>
+            <button class="btn-ssz btn-primary-ssz" type="button" id="xeGuess">Jawab dhundhein</button>
+
+            <p style="font-size:.78rem;color:var(--text-muted);margin:1.1rem 0 .45rem;font-weight:600">
+              Ya seedhe yahan se chunein:
+            </p>
+            <div class="filter-row" id="xeQuick" style="justify-content:flex-start"></div>
+          </div>
+        </div>
+
+        <div id="xeList"></div>
+
+        <div class="tool-note" style="margin-top:1.5rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>Aakhri do cheezein error nahi hain — par lab me sabse zyada sawaal unhi se aate hain, isliye shaamil ki hain.</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<div data-include="footer"></div>
+
+<script type="module" src="../../js/app.js"></script>
+<script type="module" src="../../js/tools/excel-errors.js"></script>
+
+<script>
+/* PWA: install the service worker so the site opens fast and the free
+   tools keep working on weak mobile data. Fails silently on file://. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

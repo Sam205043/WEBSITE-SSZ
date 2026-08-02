@@ -793,3 +793,24 @@ html.lang-hi h1, html.lang-hi h2, html.lang-hi h3 {
   font-family: "Poppins", "Noto Sans Devanagari", system-ui, sans-serif;
 }
 html.lang-hi { line-height: 1.75; }
+
+/* Footer ka install button — chhota, par har page par maujood.
+   Yahi ek jagah hai jahan se login kiye bina bhi app banayi ja sakti hai. */
+.install-fbtn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font: inherit; font-size: .84rem; font-weight: var(--fw-semibold);
+  padding: .55rem .95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .1);
+  color: inherit;
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease;
+}
+.install-fbtn:hover { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .45); }
+.install-fbtn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.install-fbtn__icon { display: grid; place-items: center; }
+
+/* Navbar ka install nishan — chhoti screen par chhup jata hai, wahan
+   drawer (mobile menu) me poori chaudai ka button milta hai. */
+@media (max-width: 900px) { .install-nav { display: none; } }

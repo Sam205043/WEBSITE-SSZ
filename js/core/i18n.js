@@ -158,9 +158,7 @@ function watchNewNodes() {
       for (const node of r.addedNodes) {
         if (node.nodeType === Node.ELEMENT_NODE) translateNode(node);
         else if (node.nodeType === Node.TEXT_NODE) {
-          const key = node.nodeValue.trim();
-          const hit = key ? lookupWithNumbers(key) : undefined;
-          if (hit !== undefined) node.nodeValue = node.nodeValue.replace(key, hit);
+          applyToText(node);
         }
       }
     }
@@ -289,12 +287,23 @@ export function translateNode(root) {
     else els.push(n);
   }
 
-  for (const node of texts) {
-    const key = node.nodeValue.trim();
-    const hit = lookupWithNumbers(key);
-    if (hit !== undefined) node.nodeValue = node.nodeValue.replace(key, hit);
-  }
+  for (const node of texts) applyToText(node);
   for (const e of els) translateAttrs(e);
+}
+
+
+/* HTML me lambi line kai panktiyon me tooti hoti hai, isliye browser ko wo
+   text beech me newline aur kai space ke saath milta hai — jabki dictionary
+   me wahi vaakya ek hi line me likha hai. Isliye dhoondhne se pehle beech ki
+   khaali jagah ek space kar dete hain, aur badalte waqt aage-peeche ki jagah
+   waisi hi rehne dete hain (wo layout ke liye zaroori hoti hai). */
+function applyToText(node) {
+  const raw = node.nodeValue;
+  const m = raw.match(/^(\s*)([\s\S]*?)(\s*)$/);
+  if (!m || !m[2]) return;
+  const key = m[2].replace(/\s+/g, " ");
+  const hit = lookupWithNumbers(key);
+  if (hit !== undefined) node.nodeValue = m[1] + hit + m[3];
 }
 
 function translateAttrs(e) {
@@ -303,7 +312,7 @@ function translateAttrs(e) {
     /* value sirf button par — text box me student ka apna likha hua hai. */
     if (a === "value" && e.tagName !== "BUTTON" && e.type !== "submit" && e.type !== "button") continue;
     const v = e.getAttribute(a);
-    const key = String(v).trim();
+    const key = String(v).trim().replace(/\s+/g, " ");
     const hit = lookupWithNumbers(key);
     if (hit !== undefined) e.setAttribute(a, hit);
   }

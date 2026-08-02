@@ -133,17 +133,95 @@ export async function initI18n() {
     const { setRenderHook } = await import("./dom.js");
     setRenderHook(translateNode);
     translateNode(document.body);
+    watchNewNodes();
   }
   return lang;
 }
 
+/**
+ * Modal, toast aur chat panel `render()` se nahi guzarte — wo seedhe
+ * document.body me jud jaate hain. Isliye sirf render() par bharosa karne se
+ * quiz ka modal Hinglish me hi reh jata tha.
+ *
+ * Har jagah alag-alag anuvaad ki line lagane ke bajaye ek pehredaar bitha
+ * diya hai: body me jo bhi naya tukda aayega, wahi apne aap badal jayega —
+ * aaj ka bhi, aur aage jo naya banega wo bhi.
+ *
+ * Ye apne aap ko nahi chhedta: hum sirf jude/hate hue node dekhte hain
+ * (childList), aur anuvaad me text node ki value badalti hai — jisse
+ * childList hilti hi nahi. Isliye koi chakkar nahi banta.
+ */
+function watchNewNodes() {
+  if (!("MutationObserver" in window)) return;
+  const mo = new MutationObserver((records) => {
+    for (const r of records) {
+      for (const node of r.addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE) translateNode(node);
+        else if (node.nodeType === Node.TEXT_NODE) {
+          const key = node.nodeValue.trim();
+          const hit = key ? lookupWithNumbers(key) : undefined;
+          if (hit !== undefined) node.nodeValue = node.nodeValue.replace(key, hit);
+        }
+      }
+    }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+}
+
+/**
+ * Alag se ek aur dictionary jodta hai — jaise quiz ke sawaal.
+ *
+ * Sawaalon ki dictionary bhaari hai aur har page par nahi chahiye. Isliye
+ * wo alag file me rehti hai aur sirf wahi page maangta hai jise zaroorat
+ * ho. Jud-te hi page ka text dobara badal diya jata hai.
+ *
+ *   await loadPack("quiz")   →   lang/hi.quiz.json
+ */
+export async function loadPack(name) {
+  if (lang === DEFAULT_LANG || !name) return false;
+  const depth = Number(document.body?.dataset?.depth || 0);
+  const up = "../".repeat(depth);
+  try {
+    const res = await fetch(`${up}lang/${lang}.${name}.json`, { cache: "no-cache" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const extra = await res.json();
+    dict = { ...(dict || {}), ...extra };
+    translateNode(document.body);
+    return true;
+  } catch (err) {
+    console.warn(`[i18n] pack "${name}" nahi mila:`, err.message);
+    return false;
+  }
+}
+
 /* ------------------------------------------------------------- anuvaad */
+
+/* Kuchh line ginti ke saath jud kar banti hai — "Sawaal 3 / 25",
+   "Poora Test — 100 sawaal". Har ginti ke liye alag entry likhna padta, jo
+   ho hi nahi sakta. Isliye pehle seedhi chaabi dhoondhte hain; na mile to
+   ginti ki jagah {n} rakh kar dobara dhoondhte hain aur anuvaad me wahi
+   ginti wapas bitha dete hain.
+
+   Dictionary me aisa likha jata hai:
+     "Sawaal {n} / {n}" : "Sawaal {n} / {n}"
+   Number अपनी jagah par lautt aate hain, isliye kram badalne ki zaroorat
+   nahi padti. */
+function lookupWithNumbers(key) {
+  if (dict[key] !== undefined) return dict[key];
+  if (!/\d/.test(key)) return undefined;
+  const nums = key.match(/\d+(?:[.,]\d+)?/g) || [];
+  const shape = key.replace(/\d+(?:[.,]\d+)?/g, "{n}");
+  const hit = dict[shape];
+  if (hit === undefined) return undefined;
+  let i = 0;
+  return String(hit).replace(/\{n\}/g, () => (i < nums.length ? nums[i++] : "{n}"));
+}
 
 /** Ek vaakya ka anuvaad. Dictionary me na ho to jaisa hai waisa hi wapas. */
 export function t(text) {
   if (!dict || text == null) return text;
   const key = String(text).trim();
-  const hit = dict[key];
+  const hit = lookupWithNumbers(key);
   if (hit === undefined) return text;
   /* Aage-peeche ki khaali jagah waisi hi rehni chahiye — "Total: " jaise
      tukdon me wo jagah jaan-boojh kar hoti hai. */
@@ -184,7 +262,7 @@ export function translateNode(root) {
 
   for (const node of texts) {
     const key = node.nodeValue.trim();
-    const hit = dict[key];
+    const hit = lookupWithNumbers(key);
     if (hit !== undefined) node.nodeValue = node.nodeValue.replace(key, hit);
   }
   for (const e of els) translateAttrs(e);
@@ -197,7 +275,7 @@ function translateAttrs(e) {
     if (a === "value" && e.tagName !== "BUTTON" && e.type !== "submit" && e.type !== "button") continue;
     const v = e.getAttribute(a);
     const key = String(v).trim();
-    const hit = dict[key];
+    const hit = lookupWithNumbers(key);
     if (hit !== undefined) e.setAttribute(a, hit);
   }
 }

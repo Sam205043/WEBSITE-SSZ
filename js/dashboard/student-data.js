@@ -41,11 +41,33 @@ export async function getStudent(user, { fresh = false } = {}) {
 export async function getClasses(student) {
   const { getMany } = await db();
   if (!student?.batchId) return [];
-  return getMany(COLLECTIONS.LIVE_CLASSES, {
+
+  /* Roz lagne wali class ka batch bahut bada ho jata hai — 3 mahine ka
+     Mon-Sat matlab 70+ classes. Pehle yahan "newest 40" mangte the, aur
+     newest ka matlab hota tha SABSE AAGE ki tareekhein. Natija: student ko
+     October ki classes dikhti thin aur KAL wali — jo use sabse pehle chahiye
+     — list me aati hi nahi thi. "Live Now" bhi kabhi nahi chalta.
+
+     Ab poori list laakar "abhi" ke aas-paas se chunte hain: aage ki 30 aur
+     peechhe ki 20. Ye dono milakar wahi hai jo student ko chahiye. */
+  const rows = await getMany(COLLECTIONS.LIVE_CLASSES, {
     where: [["batchId", "==", student.batchId]],
     orderBy: ["startsAt", "desc"],
-    limit: 40
+    limit: 400
   });
+
+  const now = Date.now();
+  const at = (c) => {
+    const v = c.startsAt;
+    const d = v?.toDate ? v.toDate() : new Date(v);
+    return isNaN(d) ? 0 : d.getTime();
+  };
+
+  /* rows nayi-se-purani hai: aage wali classes upar, isliye "sabse nazdeek
+     aane wali" list ke aakhir me milti hai. */
+  const upcoming = rows.filter((c) => at(c) >= now);
+  const past = rows.filter((c) => at(c) < now);
+  return [...upcoming.slice(-30), ...past.slice(0, 20)];
 }
 
 export async function getAttendance(student) {

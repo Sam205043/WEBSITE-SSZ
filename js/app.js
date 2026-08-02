@@ -133,6 +133,15 @@ onReady(async () => {
   loadPack("content");
   initNavbar();
   initFooter();               // static contact values, instantly visible
+  /* Install ka link footer me — isi wajah se wo student ke login/signup
+     page par bhi milta hai, jahan sidebar hota hi nahi. */
+  import("./components/install-ui.js")
+    .then(({ installFooter, installNav, installDrawer }) => {
+      installFooter(document.getElementById("installFooterMount"));
+      installNav(document.getElementById("installNavMount"));
+      installDrawer(document.getElementById("installDrawerMount"));
+    })
+    .catch((err) => console.warn("[app] install button skip:", err.message));
   hardenExternalLinks();
 
   observeReveal();

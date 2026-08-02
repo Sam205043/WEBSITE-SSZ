@@ -22,6 +22,7 @@ import { initials, store, timeAgo } from "../core/utils.js";
 import { url } from "../core/routes.js";
 import { LS_KEYS } from "../core/constants.js";
 import { DEMO_USER } from "./demo-data.js";
+import { initI18n, t, getLang, setLang, LANGS } from "../core/i18n.js";
 import toast from "../core/toast.js";
 
 /* ---------------- Sidebar map ---------------- */
@@ -100,11 +101,25 @@ function buildSidebar(active) {
 /* ==========================================================================
    Topbar
    ========================================================================== */
+/* Bhasha chunne ka chhota sa switch.
+   <select> hi rakha hai, apna banaya hua menu nahi — phone par ye system ka
+   apna list kholta hai jo chhote parde par sabse aasan hai, aur keyboard se
+   bhi chal jata hai. */
+function langPicker() {
+  const sel = el("select", {
+    class: "lang-pick",
+    "aria-label": "Bhasha chunein / भाषा चुनें",
+    onchange: (e) => setLang(e.target.value)
+  }, ...LANGS.map((l) => el("option", { value: l.code, selected: l.code === getLang() || null }, l.native)));
+  return el("span", { class: "lang-pick__wrap" }, sel);
+}
+
 function buildTopbar(user, title) {
   render($("#dashTop"),
     el("button", { class: "icon-btn", type: "button", id: "btnSidebar", "aria-label": "Menu kholein", html: icon("menu", { size: 19 }) }),
     el("h1", { class: "dash-top__title" }, title),
     el("div", { class: "dash-top__actions" },
+      langPicker(),
       el("button", {
         class: "icon-btn", type: "button", "data-theme-toggle": "true",
         "aria-label": "Theme badlein",
@@ -245,9 +260,13 @@ export function initShell({ active, title }) {
       }
       if (mode === "preview") user = { ...DEMO_USER };
 
-      document.title = `${title} | Soft Skill Zone Student`;
+      /* Bhasha sabse pehle — sidebar aur topbar banne se pehle dictionary
+         aa jani chahiye, warna wo Hinglish me hi ban kar reh jaate. */
+      await initI18n();
+
+      document.title = `${t(title)} | Soft Skill Zone Student`;
       buildSidebar(active);
-      buildTopbar(user, title);
+      buildTopbar(user, t(title));
       wireShell();
       if (mode === "preview") previewBanner();
 

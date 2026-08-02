@@ -86,7 +86,11 @@
 }
 .chat-head__avatar svg { width: 19px; height: 19px; }
 .chat-head__meta { flex: 1; min-width: 0; line-height: 1.3; }
-.chat-head__meta strong { display: block; font-size: .92rem; font-weight: var(--fw-bold); }
+/* base.css me `strong, b { color: var(--text-primary) }` likha hai — wo
+   yahan ki safed rang wali virasat (inherit) ko daba deta tha, aur Nova ka
+   naam baingani header par kaala pad jaata tha (contrast 2.84:1, chahiye
+   4.5:1). `inherit` se wo dabaav hat jaata hai. */
+.chat-head__meta strong { display: block; font-size: .92rem; font-weight: var(--fw-bold); color: inherit; }
 .chat-head__meta span { display: block; font-size: .74rem; opacity: .88; }
 .chat-head__close {
   background: rgb(255 255 255 / .15); border: none; color: #fff;

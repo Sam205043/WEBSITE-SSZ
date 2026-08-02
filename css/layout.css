@@ -79,18 +79,26 @@
 }
 
 .ssz-brand { display: flex; align-items: center; gap: var(--sp-3); flex-shrink: 0; }
+/* Institute ka asli logo. Ye ek hi jagah badla hai — navbar (desktop aur
+   mobile drawer), footer, student dashboard aur admin panel, chaaron wahi
+   class istemaal karte hain, isliye markup kahin chhuna nahi pada.
+
+   Andar "SSZ" text abhi bhi likha hai (aria-hidden ke saath) — font-size 0
+   use chhupa deta hai, par agar kabhi image na khule to markup toota hua
+   nahi lagta.
+
+   Dark mode ke liye ulta version: kaala disc gehre neele background par
+   gum ho jaata hai. */
 .ssz-brand__mark {
   width: 42px; height: 42px;
-  border-radius: var(--r-md);
-  background: var(--grad-brand);
+  border-radius: 50%;
+  background: url("../images/logo/logo.png") center / contain no-repeat;
   display: grid; place-items: center;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: var(--fw-extrabold);
-  font-size: 1rem;
-  letter-spacing: -0.04em;
-  box-shadow: var(--shadow-brand);
+  font-size: 0;
   flex-shrink: 0;
+}
+[data-theme="dark"] .ssz-brand__mark {
+  background-image: url("../images/logo/logo-dark.png");
 }
 .ssz-brand__text { display: flex; flex-direction: column; line-height: 1.1; }
 .ssz-brand__name {

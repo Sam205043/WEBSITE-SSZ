@@ -12,6 +12,7 @@ import { icon, iconFilled } from "../core/icons.js";
 import { initials, whatsappLink } from "../core/utils.js";
 import { url } from "../core/routes.js";
 import { courseGrid } from "../components/course-card.js";
+import { installCard } from "../components/install-ui.js";
 import {
   INSTITUTE, STATS, COURSES, COURSE_CATEGORIES, FEATURES,
   JOURNEY, TESTIMONIALS, TOOLS, HERO_BADGES, coursesByCategory
@@ -277,6 +278,8 @@ onReady(() => {
   renderTestimonials(TESTIMONIALS);
   renderTools();
   wireCTA();
+  /* Install ka card — khud tay karta hai ki dikhna hai ya nahi. */
+  installCard(document.getElementById("installMount"));
 
   // Re-run reveal/counters for everything we just injected
   document.dispatchEvent(new CustomEvent("ssz:content-rendered", { detail: { scope: document } }));

@@ -33,12 +33,16 @@ export const INSTITUTE = Object.freeze({
     { day: "Sunday", time: "10:00 AM - 02:00 PM" }
   ],
 
+  /* Social page abhi bane nahi hain. Khaali chhodne par footer.js us icon ko
+     hata deta hai — aur yahi theek hai: aisa link jo Facebook ke apne
+     homepage par pahuncha de, na hone se bura hai.
+     Page ban jayein to bas yahan poora URL likh dena, aur kuchh nahi. */
   social: {
-    facebook:  "https://facebook.com/",
-    instagram: "https://instagram.com/",
-    youtube:   "https://youtube.com/",
-    linkedin:  "https://linkedin.com/",
-    telegram:  "https://t.me/"
+    facebook:  "",
+    instagram: "",
+    youtube:   "",
+    linkedin:  "",
+    telegram:  ""
   },
 
   /* Fee payment — Razorpay Payment Page (serverless, no backend needed).
@@ -81,7 +85,6 @@ export const COURSES = Object.freeze([
     category: "ai", level: "beginner",
     durationMonths: 6, fee: 6000, admissionFee: 0,
     icon: "sparkles", colorFrom: "#4f46e5", colorTo: "#7c3aed",
-    image: "images/courses/ai-dca.jpg",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
       "AI tools ke saath practical assignments",
@@ -109,7 +112,6 @@ export const COURSES = Object.freeze([
     category: "accounts", level: "beginner",
     durationMonths: 3, fee: 5000, admissionFee: 0,
     icon: "wallet", colorFrom: "#059669", colorTo: "#06b6d4",
-    image: "images/courses/tally-prime.jpg",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
       "Latest Tally Prime version par training",
@@ -137,7 +139,6 @@ export const COURSES = Object.freeze([
     category: "programming", level: "intermediate",
     durationMonths: 4, fee: 7000, admissionFee: 0,
     icon: "zap", colorFrom: "#0891b2", colorTo: "#4f46e5",
-    image: "images/courses/python.jpg",
     isPopular: true, isNew: true, isActive: true,
     highlights: [
       "Python 3.14 latest features",
@@ -165,7 +166,6 @@ export const COURSES = Object.freeze([
     category: "academic", level: "intermediate",
     durationMonths: 12, fee: 10000, admissionFee: 0,
     icon: "graduation", colorFrom: "#7c3aed", colorTo: "#f43f5e",
-    image: "images/courses/adca.jpg",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
       "12 months ka complete syllabus",
@@ -193,7 +193,6 @@ export const COURSES = Object.freeze([
     category: "creative", level: "beginner",
     durationMonths: 3, fee: 6500, admissionFee: 0,
     icon: "video", colorFrom: "#f43f5e", colorTo: "#f59e0b",
-    image: "images/courses/video-editing.jpg",
     isPopular: false, isNew: true, isActive: true,
     highlights: [
       "Reels & shorts editing mastery",
@@ -221,7 +220,6 @@ export const COURSES = Object.freeze([
     category: "academic", level: "beginner",
     durationMonths: 24, fee: 12000, admissionFee: 0,
     icon: "book", colorFrom: "#f59e0b", colorTo: "#059669",
-    image: "images/courses/icom.jpg",
     isPopular: false, isNew: false, isActive: true,
     highlights: [
       "BSEB board pattern ke hisaab se",
@@ -249,7 +247,6 @@ export const COURSES = Object.freeze([
     category: "academic", level: "intermediate",
     durationMonths: 36, fee: 18000, admissionFee: 0,
     icon: "graduation", colorFrom: "#4f46e5", colorTo: "#0891b2",
-    image: "images/courses/bcom.jpg",
     isPopular: false, isNew: false, isActive: true,
     highlights: [
       "University syllabus coverage",
@@ -277,7 +274,6 @@ export const COURSES = Object.freeze([
     category: "taxation", level: "intermediate",
     durationMonths: 2, fee: 4500, admissionFee: 0,
     icon: "receipt", colorFrom: "#059669", colorTo: "#4f46e5",
-    image: "images/courses/gst.jpg",
     isPopular: true, isNew: true, isActive: true,
     highlights: [
       "GST 2.0 updated slabs & rules",
@@ -305,7 +301,6 @@ export const COURSES = Object.freeze([
     category: "taxation", level: "intermediate",
     durationMonths: 2, fee: 4500, admissionFee: 0,
     icon: "fileText", colorFrom: "#7c3aed", colorTo: "#06b6d4",
-    image: "images/courses/income-tax.jpg",
     isPopular: false, isNew: true, isActive: true,
     highlights: [
       "New Act 2025 ke updated provisions",
@@ -333,7 +328,6 @@ export const COURSES = Object.freeze([
     category: "taxation", level: "advanced",
     durationMonths: 2, fee: 3500, admissionFee: 0,
     icon: "clipboard", colorFrom: "#e11d48", colorTo: "#7c3aed",
-    image: "images/courses/tds.jpg",
     isPopular: false, isNew: true, isActive: true,
     highlights: [
       "Finance Act 2025 updated rates",

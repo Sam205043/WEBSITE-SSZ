@@ -384,3 +384,275 @@
   .subj-row { grid-template-columns: 1fr 62px 62px 30px; }
   .subj-del { width: 28px; height: 28px; }
 }
+
+/* ==========================================================================
+   FORMULA EXPLAINER (js/tools/formula-explainer.js)
+   ========================================================================== */
+.fx-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--card-lift);
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.fx-card h3 {
+  font-family: var(--font-display);
+  font-size: .95rem;
+  margin: 0 0 .7rem;
+  letter-spacing: -.01em;
+}
+.fx-card--bad { border-color: rgba(225, 29, 72, .35); }
+
+.fx-summary { margin: 0 0 .75rem; font-size: .95rem; line-height: 1.65; }
+
+/* Formula hamesha ek hi chaudai wale font me — tabhi bracket aur colon
+   ginne me aasaani hoti hai. */
+.fx-formula, .fx-point {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  padding: .6rem .7rem;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.5;
+}
+.fx-point { margin-top: .7rem; color: var(--danger); }
+
+.fx-chip {
+  font-family: var(--font-mono);
+  font-size: .74rem;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  border-radius: var(--r-pill);
+  padding: .25rem .6rem;
+  white-space: nowrap;
+}
+
+/* ---- kadam ---- */
+.fx-steps { margin: 0; padding-left: 1.35rem; display: grid; gap: .8rem; }
+.fx-steps li { font-size: .88rem; line-height: 1.6; }
+.fx-steps__code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--brand-ink);
+  background: var(--bg-surface-2);
+  border-radius: var(--r-sm);
+  padding: .3rem .5rem;
+  margin-bottom: .3rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+.fx-steps__say { color: var(--text-secondary); }
+
+/* ---- dhyan dein ---- */
+.fx-warns { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.fx-warn {
+  display: flex; gap: .6rem; align-items: flex-start;
+  font-size: .86rem; line-height: 1.6;
+  padding: .7rem .8rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+}
+.fx-warn__icon { flex-shrink: 0; display: flex; margin-top: .1rem; }
+.fx-warn--danger { border-color: rgba(225,29,72,.3);  background: rgba(225,29,72,.06); }
+.fx-warn--warn   { border-color: rgba(180,83,9,.3);   background: rgba(245,158,11,.08); }
+
+/* ---- function cards ---- */
+.fx-fn {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  padding: .85rem .95rem;
+  background: var(--bg-surface);
+  margin-bottom: .7rem;
+}
+.fx-fn:last-child { margin-bottom: 0; }
+.fx-fn__sig {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--brand-ink);
+  margin-bottom: .4rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+.fx-fn__one { margin: 0 0 .35rem; font-size: .87rem; font-weight: 600; }
+.fx-fn__how { margin: 0; font-size: .82rem; color: var(--text-muted); line-height: 1.65; }
+.fx-fn__tip {
+  margin: .5rem 0 0; font-size: .8rem; line-height: 1.6;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--warning, #f59e0b);
+  padding-left: .6rem;
+}
+
+/* ---- poori list ---- */
+.fx-group {
+  font-family: var(--font-display);
+  font-size: .9rem;
+  margin: 0 0 .75rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.fx-group__n {
+  font-family: var(--font-sans);
+  font-size: .68rem; font-weight: 700;
+  background: var(--bg-surface-2); color: var(--text-muted);
+  border-radius: var(--r-pill); padding: .15rem .5rem;
+}
+.fx-grid { display: grid; gap: .7rem; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .fx-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Mobile par formula ka input hamesha mono font me — student ko wahi
+   dikhna chahiye jo Excel me dikhta hai. */
+#fxInput { font-family: var(--font-mono); font-size: .88rem; }
+
+/* ==========================================================================
+   EXCEL ERROR DECODER (js/tools/excel-errors.js)
+   ========================================================================== */
+.xe-item {
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  background: var(--card-bg);
+  box-shadow: var(--card-lift);
+  margin-bottom: .7rem;
+  overflow: hidden;
+}
+.xe-item.is-open { border-color: var(--brand); }
+
+.xe-head {
+  width: 100%;
+  display: flex; align-items: center; gap: .8rem;
+  padding: .9rem 1rem;
+  background: none; border: 0; cursor: pointer;
+  text-align: left;
+  color: inherit;
+  /* 52px se kam ka tap target phone par miss ho jaata hai */
+  min-height: 56px;
+}
+.xe-code {
+  font-family: var(--font-mono);
+  font-size: .78rem; font-weight: 700;
+  background: var(--brand-soft); color: var(--brand-ink);
+  border-radius: var(--r-sm);
+  padding: .3rem .55rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.xe-head__text { flex: 1; min-width: 0; display: block; }
+.xe-head__text strong { display: block; font-size: .9rem; }
+.xe-head__one {
+  display: block; font-size: .8rem; color: var(--text-muted);
+  line-height: 1.5; margin-top: .1rem;
+}
+.xe-head__arrow {
+  flex-shrink: 0; display: flex; color: var(--text-muted);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.xe-head.is-open .xe-head__arrow { transform: rotate(180deg); }
+
+.xe-body { padding: 0 1rem 1.1rem; }
+
+.xe-demo {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  padding: .6rem .7rem;
+  margin: 0 0 1rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.xe-why { margin: 0; padding-left: 1.3rem; display: grid; gap: 1rem; }
+.xe-why li { font-size: .87rem; }
+.xe-why__cause { margin: 0 0 .4rem; font-weight: 600; line-height: 1.55; }
+.xe-why__fix {
+  margin: 0; font-size: .84rem; line-height: 1.65;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border-left: 3px solid var(--success, #16a34a);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: .55rem .7rem;
+}
+.xe-why__tag {
+  display: inline-block;
+  font-size: .66rem; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--success, #16a34a);
+  margin-right: .45rem;
+}
+
+/* ==========================================================================
+   EXCEL PRACTICE DATA (js/tools/excel-datasets.js)
+   ========================================================================== */
+.ds-item {
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-lg);
+  background: var(--card-bg);
+  box-shadow: var(--card-lift);
+  margin-bottom: .7rem;
+  overflow: hidden;
+}
+.ds-item.is-open { border-color: var(--brand); }
+
+.ds-head {
+  width: 100%; display: flex; align-items: center; gap: .85rem;
+  padding: .9rem 1rem; min-height: 62px;
+  background: none; border: 0; cursor: pointer; text-align: left; color: inherit;
+}
+.ds-icon {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center; color: #fff;
+}
+.ds-head__text { flex: 1; min-width: 0; }
+.ds-head__text strong { display: block; font-size: .93rem; }
+.ds-head__desc { display: block; font-size: .8rem; color: var(--text-muted); line-height: 1.5; margin-top: .12rem; }
+.ds-head__arrow { flex-shrink: 0; display: flex; color: var(--text-muted); transition: transform var(--dur-base) var(--ease-out); }
+.ds-head.is-open .ds-head__arrow { transform: rotate(180deg); }
+
+.ds-body { padding: 0 1rem 1.1rem; }
+
+.ds-meta { display: flex; flex-wrap: wrap; gap: .9rem; font-size: .78rem; color: var(--text-muted); margin-bottom: .7rem; }
+.ds-meta span::before { content: "•"; margin-right: .4rem; opacity: .5; }
+.ds-meta span:first-child::before { content: none; }
+
+.ds-learn { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .85rem; }
+.ds-tag {
+  font-family: var(--font-mono); font-size: .7rem;
+  background: var(--brand-soft); color: var(--brand-ink);
+  border-radius: var(--r-pill); padding: .2rem .5rem;
+}
+
+.ds-note { font-size: .8rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 .8rem; }
+
+/* Preview me sirf jhalak chahiye — isliye chhota font aur seemit unchai. */
+.ds-preview { max-height: 300px; overflow: auto; margin-bottom: 1rem; }
+.ds-preview table { font-size: .76rem; }
+.ds-preview th, .ds-preview td { white-space: nowrap; }
+.ds-blank {
+  color: var(--brand); font-style: italic; font-size: .72rem;
+  background: var(--brand-soft);
+}
+
+.ds-btns { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+.ds-tasks summary {
+  cursor: pointer; font-size: .85rem; font-weight: 600;
+  padding: .5rem 0; color: var(--brand-ink);
+}
+.ds-tasks ol { margin: .5rem 0 0; padding-left: 1.3rem; display: grid; gap: .6rem; }
+.ds-tasks li { font-size: .85rem; line-height: 1.6; }
+.ds-task__what { display: block; }
+.ds-task__hint {
+  display: inline-block; margin-top: .2rem;
+  font-family: var(--font-mono); font-size: .72rem;
+  background: var(--bg-surface-2); color: var(--text-muted);
+  border-radius: var(--r-sm); padding: .18rem .45rem;
+}

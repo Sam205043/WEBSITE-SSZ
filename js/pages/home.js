@@ -39,18 +39,30 @@ function renderHeroVisual() {
   // Three most popular courses as a glass stack
   const picks = COURSES.filter((c) => c.isPopular).slice(0, 3);
 
+  /* Poori line link hai — sirf "Open" wala nishan nahi.
+
+     "Open" ka matlab hai "is course me admission khula hai" — wo haalat
+     batata hai, kahin le nahi jata. Pehle poori line saada div thi, isliye
+     dabaane par kuchh hota hi nahi tha, aur log gol-hare "Open" ko button
+     samajh kar dabate rahte the. Ab angootha line par kahin bhi pade,
+     course ka page khul jata hai — phone par yahi sabse aasan hai. */
   render(box, picks.map((c) =>
-    el("div", { class: "hero-card__row" },
+    el("a", {
+      class: "hero-card__row",
+      href: url("courseDetail", { id: c.id }),
+      "aria-label": `${c.title} — poora syllabus aur fees dekhein`
+    },
       el("span", {
         class: "hero-card__icon",
         style: { background: `linear-gradient(135deg, ${c.colorFrom}, ${c.colorTo})` },
         html: icon(c.icon, { size: 20 })
       }),
-      el("span", {},
+      el("span", { class: "hero-card__text" },
         el("span", { class: "hero-card__title", style: { display: "block" } }, c.title),
         el("span", { class: "hero-card__sub" }, `${c.durationMonths} months · ${c.modules.length} modules`)
       ),
-      el("span", { class: "badge-ssz badge-success", style: { marginLeft: "auto" } }, "Open")
+      el("span", { class: "badge-ssz badge-success", style: { marginLeft: "auto" } }, "Open"),
+      el("span", { class: "hero-card__go", "aria-hidden": "true", html: icon("chevronRight", { size: 16 }) })
     )
   ));
 }

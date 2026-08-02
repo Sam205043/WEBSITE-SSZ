@@ -18,6 +18,9 @@ import { observeReveal, observeCounters } from "./core/utils.js";
 import { initNavbar, renderAuthState } from "./components/navbar.js";
 import { initFooter } from "./components/footer.js";
 import { SEO, INSTITUTE } from "./config/site-data.js";
+/* Install ka listener — jaldi lagna zaroori hai, warna browser ka
+   beforeinstallprompt aakar chala jata hai aur button kabhi nahi dikhta. */
+import "./core/install.js";
 
 /* ==========================================================================
    Progressive enhancement flag (css/animations.css uses .no-js)

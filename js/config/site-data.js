@@ -416,7 +416,8 @@ export const TOOLS = Object.freeze([
   { id: "interview-qa",         route: "toolInterview",  title: "Interview Q&A Practice",desc: "480 interview aur viva sawaal",           icon: "users",      color: "#7c3aed" },
   { id: "formula-explainer",    route: "toolFormula",    title: "Formula Explainer",     desc: "Koi bhi Excel formula Hinglish me samjhein", icon: "book",   color: "#4f46e5" },
   { id: "excel-errors",         route: "toolExcelErr",   title: "Excel Error Decoder",   desc: "#N/A, #REF!, #VALUE! ka matlab aur ilaaj",   icon: "alert",  color: "#e11d48" },
-  { id: "excel-datasets",       route: "toolExcelData",  title: "Excel Practice Data",   desc: "Asli jaisa data .xlsx me — kaam ki list ke saath", icon: "grid", color: "#059669" }
+  { id: "excel-datasets",       route: "toolExcelData",  title: "Excel Practice Data",   desc: "Asli jaisa data .xlsx me — kaam ki list ke saath", icon: "grid", color: "#059669" },
+  { id: "mini-excel",           route: "toolMiniExcel",  title: "Mini Excel",            desc: "Browser me hi asli formula practice — 5 lesson", icon: "calculator", color: "#0891b2" }
 ]);
 
 /* ==========================================================================

@@ -65,7 +65,10 @@ function buildSidebar(active) {
   render($("#dashSide"),
     el("div", { class: "dash-side__head" },
       el("a", { class: "ssz-brand", href: url("home") },
-        el("span", { class: "ssz-brand__mark", style: { background: "var(--grad-warm)" }, "aria-hidden": "true" }, "SSZ"),
+        /* Pehle yahan narangi gradient tha jo admin panel ko alag dikhata tha.
+           Ab asli logo lagta hai — inline background use dhak deta, isliye hataya.
+           Admin ki pehchaan ke liye saath me "ADMIN PANEL" likha hi hai. */
+        el("span", { class: "ssz-brand__mark", "aria-hidden": "true" }, "SSZ"),
         el("span", { class: "ssz-brand__text" },
           el("span", { class: "ssz-brand__name" }, "Soft Skill Zone"),
           el("span", { class: "ssz-brand__tag" }, "Admin Panel")

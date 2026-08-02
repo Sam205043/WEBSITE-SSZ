@@ -70,7 +70,8 @@ export const ROUTES = Object.freeze({
   toolInterview:  "pages/tools/interview-qa.html",
   toolFormula:    "pages/tools/formula-explainer.html",
   toolExcelErr:   "pages/tools/excel-errors.html",
-  toolExcelData:  "pages/tools/excel-datasets.html"
+  toolExcelData:  "pages/tools/excel-datasets.html",
+  toolMiniExcel:  "pages/tools/mini-excel.html"
 });
 
 /**

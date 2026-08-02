@@ -12,9 +12,10 @@
       checkbox se nahi — kyunki khud ko panel se bahar kar lena wo galti
       hai jiska koi ilaaj panel ke andar se nahi hota.
 
-   2) Counter ka record HATA diya jaata hai, 0 nahi kiya jaata.
-      nextSequence() dekhta hai ki record hai ya nahi — na mile to seedhe
-      1 se shuru karta hai. Isliye hataana hi sahi tareeka hai.
+   2) Counter DELETE nahi hota, 0 kar diya jaata hai. Rules me jaan-bujh
+      kar `allow delete: if false` likha hai taaki koi ginti mita kar dobara
+      wahi ID na bana sake. nextSequence() 0 dekh kar agla 1 hi deta hai,
+      to natija wahi rehta hai aur rule badalna nahi padta.
 
    3) Storage ki safai gehri (recursive) hai. listFolder sirf upar ki tah
       dekhta hai; andar ke folder ki files chupchaap padi reh jaati hain.
@@ -45,7 +46,11 @@ const WIPE = [
   { key: "NOTIFICATIONS",  label: "Notifications" },
   { key: "LIVE_CLASSES",   label: "Live classes" },
   { key: "ENQUIRIES",      label: "Enquiries" },
-  { key: "BATCHES",        label: "Batches" }
+  { key: "BATCHES",        label: "Batches" },
+  /* Ye COLLECTIONS me nahi hai — code me seedhe naam se istemaal hota hai.
+     Certificate ka verify code isi me pointer ki tarah rakha jaata hai.
+     Pehli baar ye chhoot gaya tha aur ek record peeche reh gaya. */
+  { key: "certificateCodes", label: "Certificate verify codes", raw: true }
 ];
 
 const KEEP = [
@@ -64,6 +69,10 @@ const KEEP = [
    public/ jaan-bujh kar chhode gaye hain. */
 const WIPE_FOLDERS = ["students", "admissions", "fees", "certificates", "submissions"];
 
+/* WIPE me kuchh entries seedhe naam wali hain (certificateCodes), isliye
+   collection ka naam ek hi jagah se nikaalte hain. */
+const collOf = (w) => (w.raw ? w.key : COLLECTIONS[w.key]);
+
 let mode = "preview";
 let scan = null;
 let busy = false;
@@ -80,7 +89,10 @@ async function doScan() {
 
   const out = { wipe: {}, keep: {}, users: [], counters: [], files: [], authEmails: [] };
 
-  for (const w of WIPE) out.wipe[w.key] = await count(w.key);
+  for (const w of WIPE) {
+    out.wipe[w.key] =
+      (await getMany(collOf(w), { limit: 1000, useCache: false }).catch(() => [])).length;
+  }
   for (const k of KEEP) out.keep[k.key] = await count(k.key);
 
   const users = await getMany(COLLECTIONS.USERS, { limit: 500, useCache: false }).catch(() => []);
@@ -123,7 +135,7 @@ function paint() {
         WIPE.map((w) => row(w.label, scan.wipe[w.key], "hatega")),
         row("Student logins", others.length, "hatega"),
         row("Aapka admin login", admin.length, "rahega", "kabhi nahi hatega"),
-        row("ID ki ginti (counters)", scan.counters.length, "hatega", "taaki 1 se shuru ho"),
+        row("ID ki ginti (counters)", scan.counters.length, "hatega", "0 ho jaayegi — agli ID 1 se"),
         row("Storage ki files", scan.files.length, "hatega"),
         KEEP.filter((k) => scan.keep[k.key] > 0).map((k) => row(k.label, scan.keep[k.key], "rahega", k.why))
       )));
@@ -134,7 +146,7 @@ function paint() {
      sach me 1 se shuru hogi. */
   render($("#rsCounters"), scan.counters.length
     ? scan.counters.map((c) => el("li", {},
-        el("code", {}, c.id), ` abhi ${c.value ?? 0} par hai → hatne ke baad agla 1 banega`))
+        el("code", {}, c.id), ` abhi ${c.value ?? 0} par hai → 0 hone ke baad agla 1 banega`))
     : el("li", {}, "Koi counter nahi — numbering waise bhi 1 se shuru hogi."));
 
   render($("#rsAuth"), scan.authEmails.length
@@ -186,16 +198,17 @@ async function runReset() {
   /* Kram: pehle jude hue record, aakhir me students aur batches. Ulta
      karne par beech me kuchh atak jaye to jodne wala record hi nahi
      bachta aur baaki dhundhe nahi ja sakte. */
-  const order = ["ATTENDANCE", "SUBMISSIONS", "FEES", "CERTIFICATES", "NOTIFICATIONS",
-                 "LIVE_CLASSES", "ENQUIRIES", "ADMISSIONS", "STUDENTS", "BATCHES"];
+  const order = ["ATTENDANCE", "SUBMISSIONS", "FEES", "certificateCodes", "CERTIFICATES",
+                 "NOTIFICATIONS", "LIVE_CLASSES", "ENQUIRIES", "ADMISSIONS", "STUDENTS", "BATCHES"];
 
   for (const key of order) {
-    const label = WIPE.find((w) => w.key === key).label;
-    const list = await getMany(COLLECTIONS[key], { limit: 1000, useCache: false }).catch(() => []);
-    if (!list.length) { log(`${label} — pehle se khaali`); continue; }
-    log(`${label} — ${list.length} hata rahe hain…`);
+    const w = WIPE.find((x) => x.key === key);
+    const coll = collOf(w);
+    const list = await getMany(coll, { limit: 1000, useCache: false }).catch(() => []);
+    if (!list.length) { log(`${w.label} — pehle se khaali`); continue; }
+    log(`${w.label} — ${list.length} hata rahe hain…`);
     for (const r of list) {
-      await remove(COLLECTIONS[key], r.id).catch((e) => problems.push(`${key}/${r.id}: ${e.message}`));
+      await remove(coll, r.id).catch((e) => problems.push(`${coll}/${r.id}: ${e.message}`));
     }
   }
 
@@ -208,11 +221,21 @@ async function runReset() {
     await remove(COLLECTIONS.USERS, u.id).catch((e) => problems.push(`users/${u.id}: ${e.message}`));
   }
 
-  /* Counters — hataane par nextSequence() apne aap 1 se shuru karta hai */
+  /* Counters — ye DELETE nahi hote. Rules me jaan-bujh kar
+     `allow delete: if false` likha hai taaki koi ginti mita kar dobara wahi
+     ID na bana sake. Isliye 0 par set karte hain: nextSequence() 0 dekh kar
+     agla 1 hi deta hai — (0 || 0) + 1 = 1. Natija wahi, aur rule bhi
+     badalna nahi padta.
+
+     Pehli baar maine inhe remove() karne ki koshish ki thi aur rule ne rok
+     diya — ginti wahin ki wahin reh gayi thi. */
+  const { update } = await import("../../firebase/db-service.js");
   const counters = await getMany(COLLECTIONS.COUNTERS, { limit: 100, useCache: false }).catch(() => []);
-  log(`ID ki ginti — ${counters.length} hata rahe hain…`);
+  log(`ID ki ginti — ${counters.length} ko 0 kar rahe hain…`);
   for (const c of counters) {
-    await remove(COLLECTIONS.COUNTERS, c.id).catch((e) => problems.push(`counters/${c.id}: ${e.message}`));
+    if ((c.value || 0) === 0) continue;
+    await update(COLLECTIONS.COUNTERS, c.id, { value: 0 })
+      .catch((e) => problems.push(`counters/${c.id}: ${e.message}`));
   }
 
   /* Storage — gehri safai */

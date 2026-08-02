@@ -233,8 +233,11 @@ const PREC = {
   "&": 2,
   "=": 1, "<>": 1, "<": 1, ">": 1, "<=": 1, ">=": 1
 };
-/* ^ dayein se judta hai: 2^3^2 = 2^(3^2). Baaki sab bayein se. */
-const RIGHT_ASSOC = { "^": true };
+/* Excel me SAARE operator bayein se dayein judte hain — "^" bhi.
+   Ye ganit ki aam parampara se ULTA hai: kitaab me 2^3^2 = 2^(3^2) = 512
+   hota hai, par Excel (aur LibreOffice) (2^3)^2 = 64 dete hain.
+   LibreOffice se milaan karke ye pakda gaya tha. */
+const RIGHT_ASSOC = {};
 
 export function parse(input) {
   const tokens = tokenize(input);

@@ -19,10 +19,11 @@
 import { COURSES, INSTITUTE, TOOLS, activeCourses } from "../config/site-data.js";
 import { money, formatPhone } from "../core/utils.js";
 
-/* Sahayak ka naam. Ek hi jagah likha hai — badalna ho to sirf yahi line.
-   "Sarathi" = rath chalane wala: jo raasta jaanta hai aur manzil tak le
-   jaata hai, par shrey nahi leta. */
-export const BOT_NAME = "Sarathi";
+/* Sahayak ka naam. Ek hi jagah likha hai — badalna ho to sirf yahi line;
+   baaki poora code ${BOT_NAME} se hi bolta hai.
+   "Nova" = wo taara jo achanak chamak uthta hai. Chhota naam, har bhasha
+   me aasaan, aur phone ki chhoti screen par bhi poora dikh jaata hai. */
+export const BOT_NAME = "Nova";
 
 /* ==========================================================================
    Text normalise
@@ -160,9 +161,9 @@ const PUBLIC_INTENTS = [
   },
   {
     id: "whoareyou",
-    keys: ["tum kaun", "aap kaun", "who are you", "bot", "kaun ho", "tumhara naam", "naam kya", "sarathi", "insaan ho", "aadmi ho", "robot"],
+    keys: ["tum kaun", "aap kaun", "who are you", "bot", "kaun ho", "tumhara naam", "naam kya", "nova", "insaan ho", "aadmi ho", "robot"],
     answer: () => ({
-      text: `Mera naam **${BOT_NAME}** hai — ${INSTITUTE.name} ki website ka sahayak. Ek program hoon, insaan nahi.\n\nSarathi wo hota hai jo raasta jaanta hai aur manzil tak pahunchata hai. Course, fees, timing aur admission ki pakki jaankari de sakta hoon. Jo mujhe na pata ho, us par andaaza nahi lagata — seedhe institute se baat kara deta hoon.`,
+      text: `Mera naam **${BOT_NAME}** hai — ${INSTITUTE.name} ki website ka sahayak. Ek program hoon, insaan nahi.\n\nCourse, fees, timing aur admission ki pakki jaankari de sakta hoon. Jo mujhe na pata ho, us par andaaza nahi lagata — seedhe institute se baat kara deta hoon.`,
       chips: ["Course dekhein", "Baat karni hai"]
     })
   },

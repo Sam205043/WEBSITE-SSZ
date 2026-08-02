@@ -67,7 +67,10 @@ export const ROUTES = Object.freeze({
   toolMegaQuiz:   "pages/tools/mega-quiz.html",
   toolShortcuts:  "pages/tools/shortcut-trainer.html",
   toolExcel:      "pages/tools/excel-practice.html",
-  toolInterview:  "pages/tools/interview-qa.html"
+  toolInterview:  "pages/tools/interview-qa.html",
+  toolFormula:    "pages/tools/formula-explainer.html",
+  toolExcelErr:   "pages/tools/excel-errors.html",
+  toolExcelData:  "pages/tools/excel-datasets.html"
 });
 
 /**

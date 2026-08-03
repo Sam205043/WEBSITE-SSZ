@@ -17,6 +17,14 @@ import toast from "../core/toast.js";
 
 let student, fees = [], mode = "preview", settings = null;
 
+/* pay-service tab pehle se utar liya jaata hai jab payment ka box banta hai.
+   Wajah: click ke andar `await import(...)` karne par browser ka "user ne tap
+   kiya tha" wala nishaan mit jaata hai aur naya tab block ho jaata hai —
+   theek wahi galti Google login me ho chuki hai. Pehle se load hone par
+   click ke waqt sirf ek microtask lagta hai, nishaan bacha rehta hai. */
+let payMod = null;
+const loadPay = () => (payMod ||= import("../../firebase/pay-service.js"));
+
 const MODE_LABEL = { cash: "Cash", upi: "UPI", razorpay: "Razorpay", bank: "Bank", cheque: "Cheque" };
 
 function tile(ic, value, label, tone) {
@@ -122,22 +130,104 @@ function payBox() {
      jaati hai. "Payment ki jaankari dein" wala button phir bhi rakha hai —
      cash ya kisi aur tarike se diya ho to wahan se bataya ja sake.
      -------------------------------------------------------------------- */
-  const payBtn = $("#btnPay");
-  payBtn.addEventListener("click", async () => {
-    payBtn.disabled = true;
-    const label = payBtn.lastChild;
-    const before = label.textContent;
-    label.textContent = " Link ban raha hai\u2026";
+  loadPay();
+  $("#btnPay").addEventListener("click", () => amountDialog(pending));
+}
+
+/* Abhi kitni kist baaki hai — jitna paisa aa chuka hai use plan me se ghata
+   kar pehli aisi kist dhoondhte hain jo poori nahi hui. Yahi rakam dialog me
+   pehle se bhari rehti hai, kyunki 90% students utna hi bharte hain. */
+function nextInstalment(pending) {
+  const plan = Array.isArray(student.feePlan) ? student.feePlan : [];
+  let left = Number(student.paidFee) || 0;
+  for (const k of plan) {
+    const amt = Number(k.amount) || 0;
+    if (left >= amt) { left -= amt; continue; }
+    return Math.min(pending, amt - left);
+  }
+  /* Plan hai hi nahi (purane students, jinka admission kist-plan aane se
+     pehle hua tha) — to hum apni taraf se koi rakam nahi thopte. 0 ka matlab
+     hai: khaana khaali rahega aur student khud likhega. */
+  return 0;
+}
+
+/* --------------------------------------------------------------------------
+   Kitna bharna hai — ye student tay karta hai, hum nahi.
+
+   Pehle button seedha poore bakaye (₹10,000) ka link bana deta tha. Wo galat
+   tha: fees mahine-mahine kist me aati hai, ek saath poori dene ki umeed
+   rakhna hi galat hai. Ab dialog khulta hai jisme agli kist pehle se bhari
+   hai, par student use badal sakta hai.
+
+   Hadd server par bhi lagti hai — function Firestore se asli bakaya padh kar
+   uspar clamp karta hai. Yahan ki jaanch sirf student ki suvidha ke liye hai,
+   suraksha ke liye nahi.
+   -------------------------------------------------------------------------- */
+function amountDialog(pending) {
+  if (mode === "preview") {
+    toast.info("Preview mode: Firebase connect hone ke baad ye chalega.");
+    return;
+  }
+
+  const kist = nextInstalment(pending);
+
+  const body = el("div", {});
+  body.innerHTML = `
+    <p style="font-size:.88rem;margin-bottom:1rem">
+      Kul bakaya <strong>${money(pending)}</strong>. Poora ek saath dena zaroori nahi —
+      jitna abhi de sakte hain utna bhar dein.</p>
+    <div class="field">
+      <label class="field__label" for="payAmt">Kitna pay karna hai? (Rs.) <span class="req">*</span></label>
+      <input class="input-ssz" id="payAmt" type="number" min="1" step="1" inputmode="numeric"
+             max="${pending}" placeholder="Jaise: 1000" value="${kist > 0 ? kist : ""}">
+      <p class="field__hint" id="payWords"
+         style="font-size:.76rem;color:var(--text-muted);margin:.4rem 0 0"></p>
+    </div>
+    <div class="cluster" style="gap:.5rem;flex-wrap:wrap;margin-top:.25rem">
+      ${kist > 0 && kist < pending ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+        data-amt="${kist}">Agli kist ${money(kist)}</button>` : ""}
+      <button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+        data-amt="${pending}">Poora bakaya ${money(pending)}</button>
+    </div>`;
+
+  const input = body.querySelector("#payAmt");
+  const words = body.querySelector("#payWords");
+
+  const showWords = () => {
+    const v = Math.round(Number(input.value) || 0);
+    words.textContent = v > 0 && v <= pending ? amountInWords(v) : "";
+  };
+  showWords();
+  input.addEventListener("input", showWords);
+
+  body.querySelectorAll("button[data-amt]").forEach((b) => {
+    b.addEventListener("click", () => { input.value = b.dataset.amt; showWords(); });
+  });
+
+  const goBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, "Payment page kholein");
+  const cancelBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Cancel");
+  const m = openModal({ title: "Fees pay karein", body, footer: [cancelBtn, goBtn], size: "sm" });
+  cancelBtn.addEventListener("click", () => m.close());
+
+  goBtn.addEventListener("click", async () => {
+    const amount = Math.round(Number(input.value) || 0);
+    if (amount < 1) return toast.error("Kitna pay karna hai wo amount daalein.");
+    if (amount > pending) return toast.error(`Bakaya sirf ${money(pending)} hai — usse zyada nahi bhar sakte.`);
+
+    goBtn.disabled = true;
+    goBtn.textContent = "Link ban raha hai…";
     try {
-      const pay = await import("../../firebase/pay-service.js");
-      await pay.openPaymentLink("student", student.studentId, pending);
+      /* Tab isi click ke andar khulta hai — pehle await karke kholenge to
+         phone ka browser use "bina tap ke popup" samajh kar rok dega. */
+      const pay = await loadPay();
+      await pay.openPaymentLink("student", student.studentId, amount);
+      m.close();
       toast.info("Payment ka page khul gaya. Poora hote hi fees apne aap chadh jayegi.");
     } catch (err) {
-      const pay = await import("../../firebase/pay-service.js");
+      const pay = await loadPay();
       toast.error(pay.payError(err));
-    } finally {
-      label.textContent = before;
-      payBtn.disabled = false;
+      goBtn.disabled = false;
+      goBtn.textContent = "Payment page kholein";
     }
   });
 }

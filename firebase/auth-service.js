@@ -212,31 +212,58 @@ export async function login(email, password, remember = true) {
   return user;
 }
 
+/* Instagram / Facebook / WhatsApp ke andar wala browser popup khol hi nahi
+   sakta — wahan redirect ke alawa koi chara nahi. Aam Chrome aur Safari me
+   redirect ab bharosemand nahi raha, isliye wahan uspar girna ulta nuksan
+   karta hai (wajah neeche likhi hai). */
+const isInAppBrowser = () =>
+  /FBAN|FBAV|Instagram|Line\/|Twitter|WhatsApp|MicroMessenger/i.test(navigator.userAgent);
+
 /**
  * Google se ek-tap login. Naya user ho to uska students profile khud ban
  * jaata hai aur Student ID email se jud jaati hai — kuch type nahi karna.
  *
- * Popup mobile browsers me kabhi-kabhi block hota hai, is halat me redirect
- * par gir jaate hain (wapas aakar completeGoogleRedirect() sambhaal leta hai).
  * @returns {Promise<object|null>} merged user, ya null agar redirect chala
  */
 export async function loginWithGoogle(remember = true) {
-  await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
+
+  /* Persistence set to karte hain, par uska INTEZAAR nahi karte. Popup se
+     pehle ek bhi await aa gaya to browser maan leta hai ki ye window user ke
+     tap se nahi khul rahi — aur use rok deta hai. */
+  const persisting = setPersistence(
+    auth,
+    remember ? browserLocalPersistence : browserSessionPersistence
+  ).catch(() => { /* persistence na bhi bane to login rukna nahi chahiye */ });
 
   let cred;
   try {
     cred = await signInWithPopup(auth, provider);
   } catch (err) {
-    const soft = ["auth/popup-blocked", "auth/operation-not-supported-in-this-environment",
-                  "auth/cancelled-popup-request"];
-    if (soft.includes(err?.code)) {
+    const popupFailed = [
+      "auth/popup-blocked",
+      "auth/cancelled-popup-request",
+      "auth/operation-not-supported-in-this-environment"
+    ].includes(err?.code);
+
+    /* Pehle yahan har haal me redirect chal padta tha. Wahi student ko us
+       safed error page par le jaata tha:
+         "missing initial state ... signInWithRedirect in a storage-partitioned
+          browser environment"
+       Wajah — hamara auth handler soft-skill-zone.firebaseapp.com par hai aur
+       site softskillzone.in par. Naye Chrome/Safari doosre domain ka storage
+       alag rakh dete hain, isliye Google se laut kar aane par redirect ka apna
+       record hi nahi milta.
+
+       Isliye redirect ab sirf wahin, jahan uske alawa koi raasta nahi. */
+    if (popupFailed && isInAppBrowser()) {
       await signInWithRedirect(auth, provider);
       return null;                       // page abhi Google par ja raha hai
     }
     throw err;
   }
+  await persisting;
   return finishGoogleSignIn(cred.user);
 }
 
@@ -441,6 +468,16 @@ const AUTH_ERRORS = {
   "auth/requires-recent-login":    "Security ke liye dobara login karein.",
   "auth/operation-not-allowed":    "Ye sign-in tarika Firebase Console me enable nahi hai.",
   "auth/popup-closed-by-user":     "Google ki window band ho gayi. Dobara try karein.",
+  /* Popup ruk gaya — student ko saaf raasta batana zaroori hai, warna wo
+     wahin atak jaata hai. */
+  "auth/popup-blocked":
+    "Aapke browser ne Google ki window rok di. Address bar me popup ka nishan " +
+    "dabaakar \"Allow\" kar dein aur dobara try karein — ya neeche email aur " +
+    "password se login karein.",
+  "auth/cancelled-popup-request":  "Google ki window band ho gayi. Dobara try karein.",
+  "auth/operation-not-supported-in-this-environment":
+    "Is browser me Google login nahi ho paata. Chrome me kholein, ya neeche " +
+    "email aur password se login karein.",
   "auth/account-exists-with-different-credential":
     "Is email se pehle password wala account bana hua hai. Neeche email aur password se login karein.",
   "auth/unauthorized-domain":      "Ye domain Firebase ki authorized list me nahi hai. Institute se sampark karein.",

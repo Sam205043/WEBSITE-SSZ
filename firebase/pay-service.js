@@ -25,15 +25,16 @@ import { app } from "./firebase-init.js";
    warna SDK us-central1 par jaayega aur "not found" milega. */
 const REGION = "asia-south1";
 
-let callable = null;
+/* Ek hi naam ka callable baar-baar na bane — SDK sirf pehli baar utarta hai. */
+const callables = {};
 
-async function getCallable() {
-  if (callable) return callable;
+async function getCallable(name) {
+  if (callables[name]) return callables[name];
   const { getFunctions, httpsCallable } = await import(
     `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-functions.js`
   );
-  callable = httpsCallable(getFunctions(app, REGION), "createPaymentLink");
-  return callable;
+  callables[name] = httpsCallable(getFunctions(app, REGION), name);
+  return callables[name];
 }
 
 /**
@@ -45,11 +46,27 @@ async function getCallable() {
  * @returns {Promise<{url:string, amount:number}>}
  */
 export async function createPaymentLink(kind, id, amount) {
-  const fn = await getCallable();
+  const fn = await getCallable("createPaymentLink");
   const res = await fn({ kind, id, amount: Math.max(0, Math.round(Number(amount) || 0)) });
   const data = res?.data || {};
   if (!data.url) throw new Error("Payment link nahi ban paaya. Thodi der baad try karein.");
   return data;
+}
+
+/**
+ * "Meri Student ID bani kya?" — payment ke baad admission page yahi poochhta
+ * rehta hai. Jab tak paisa nahi pahuncha, `ready: false` aata rehta hai.
+ *
+ * Email isliye maanga jaata hai kyunki application number sequential hai
+ * (0005, 0006…) — sirf number se koi bhi doosron ka record jhaank leta.
+ *
+ * @param {string} appNo  jaise SSZ-APP-2026-0006
+ * @param {string} email  wahi email jo admission form me diya tha
+ */
+export async function admissionStatus(appNo, email) {
+  const fn = await getCallable("admissionStatus");
+  const res = await fn({ appNo, email });
+  return res?.data || { ready: false };
 }
 
 /**

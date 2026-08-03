@@ -180,10 +180,10 @@ export const COURSES = Object.freeze([
     eligibility: ["10th pass ya usse upar"],
     careerOptions: ["Computer Operator", "Office Assistant", "DTP Operator", "Accounts Assistant"],
     modules: [
-      { title: "Semester 1", topics: ["Computer fundamentals", "Windows", "MS Office", "Internet & email"] },
-      { title: "Semester 2", topics: ["Tally Prime", "GST basics", "Financial accounting", "Billing software"] },
-      { title: "Semester 3", topics: ["Photoshop", "CorelDRAW", "PageMaker / DTP", "Design practical"] },
-      { title: "Semester 4", topics: ["HTML & CSS basics", "AI tools", "Project work", "Final exam"] }
+      { title: "Module 1", topics: ["Computer fundamentals", "Windows", "MS Office", "Internet & email"] },
+      { title: "Module 2", topics: ["Tally Prime", "GST basics", "Financial accounting", "Billing software"] },
+      { title: "Module 3", topics: ["Photoshop", "CorelDRAW", "PageMaker / DTP", "Design practical"] },
+      { title: "Module 4", topics: ["HTML & CSS basics", "AI tools", "Project work", "Final exam"] }
     ]
   },
   {

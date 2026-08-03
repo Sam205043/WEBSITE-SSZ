@@ -95,18 +95,34 @@ export function initGoogleButton(configured) {
   if (!btn) return;
   if (!configured) { btn.disabled = true; return; }
 
-  /* Mobile par popup block hone par redirect chalta hai — wapas aane par
-     session yahin poora hota hai, isliye page load par ek baar dekh lete hain. */
+  /* --------------------------------------------------------------------
+     Module PEHLE se laad lete hain — click ke andar nahi.
+
+     Yahi wo galti thi jisse student ka Google login toot raha tha. Browser
+     popup sirf tab kholne deta hai jab wo us tap ka seedha nateeja ho. Pehle
+     click ke andar `await import(...)` hota tha, jo phone ke internet par
+     aadha second bhi le sakta hai — tab tak "tap ka haq" khatam ho jaata tha
+     aur Chrome popup rok deta tha. Popup ruka to code redirect par gir jaata
+     tha, aur redirect Chrome ki storage-partitioning ki wajah se
+     "missing initial state" wala safed error page dikha deta tha.
+
+     Ab page khulte hi module aa jaata hai, isliye click par ek bhi intezaar
+     nahi bachta aur popup seedha khul jaata hai.
+     -------------------------------------------------------------------- */
+  const authMod = import("../../firebase/auth-service.js");
+  authMod.catch(() => { /* niche wale try/catch me sambhal jaayega */ });
+
+  /* Purane redirect se wapas aaye hon to session yahin poora ho jaata hai. */
   (async () => {
     try {
-      const { completeGoogleRedirect } = await import("../../firebase/auth-service.js");
+      const { completeGoogleRedirect } = await authMod;
       const user = await completeGoogleRedirect();
       if (!user) return;
       const { goHomeFor } = await import("../core/guard.js");
       alertBox("success", `Swagat hai, ${user.name}! Dashboard khul raha hai…`);
       setTimeout(() => goHomeFor(user), 700);
     } catch (err) {
-      const { authError } = await import("../../firebase/auth-service.js");
+      const { authError } = await authMod;
       alertBox("error", authError(err));
     }
   })();
@@ -116,7 +132,7 @@ export function initGoogleButton(configured) {
     btn.disabled = true;
     btn.classList.add("is-loading");
     try {
-      const { loginWithGoogle } = await import("../../firebase/auth-service.js");
+      const { loginWithGoogle } = await authMod;
       const user = await loginWithGoogle();
       if (!user) return;                 // redirect chal pada, page badal raha hai
       const { goHomeFor } = await import("../core/guard.js");
@@ -131,7 +147,7 @@ export function initGoogleButton(configured) {
       alertBox("success", `Swagat hai, ${user.name}! Dashboard khul raha hai…`);
       setTimeout(() => goHomeFor(user), 700);
     } catch (err) {
-      const { authError } = await import("../../firebase/auth-service.js");
+      const { authError } = await authMod;
       alertBox("error", authError(err));
       btn.disabled = false;
       btn.classList.remove("is-loading");

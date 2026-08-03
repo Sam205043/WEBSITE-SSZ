@@ -110,11 +110,48 @@ function payBox() {
 }
 
 /* --------------------------------------------------------------------------
-   UPI QR — payee, amount, aur student ka reference pehle se bhara hua.
+   UPI — payee, amount aur student ka reference pehle se bhara hua.
    QR encoder project ka apna hai (js/tools/qrcode.js), koi external API nahi —
    isliye UPI id aur amount kabhi browser se bahar nahi jaate.
+
+   ASLI DIKKAT JO SAAMNE AAYI (3 Aug 2026)
+   Do alag students ke saath bilkul ek jaisa hua: button se app khul to jaati
+   thi, par payment "limit exceeded" kehkar ruk jaata tha — aur usi account se,
+   usi rakam ka, wahi QR scan karne par turant ho jaata tha. Matlab limit se
+   iska koi lena-dena nahi tha; "limit exceeded" UPI apps ka sabse aam bahana
+   hai jab bheja gaya link unke hisaab se poora nahi hota.
+
+   Isliye ab do alag payload hain:
+
+     qrPayload()   QR ke liye — bilkul wahi jo aaj tak chalta aaya hai.
+                   Jo chal raha hai use chhedna nahi.
+
+     appPayload()  Button ke liye — do sudhaar ke saath:
+                     am -> hamesha do dashamlav ("1.00", na ki "1")
+                     tr -> har koshish ka apna alag reference, taaki dobara
+                           bhejne par app use purani nakal na samjhe
+
+   `mc` (merchant category) jaan-boojh kar nahi daala — wo sirf registered
+   merchant VPA ke liye hai, aam VPA par ulta rukawat ban jaata hai.
    -------------------------------------------------------------------------- */
-function upiPayload(upiId, amount) {
+
+const UPI_APPS = Object.freeze([
+  { label: "PhonePe",    pkg: "com.phonepe.app" },
+  { label: "Google Pay", pkg: "com.google.android.apps.nbu.paisa.user" },
+  { label: "Paytm",      pkg: "net.one97.paytm" }
+]);
+
+const isAndroid = () => /Android/i.test(navigator.userAgent);
+
+/** Har koshish ka apna reference — sirf letters aur ank, 35 se chhota. */
+let refSeq = 0;
+function newRef() {
+  const base = (student.studentId || "SSZ").replace(/[^A-Za-z0-9]/g, "");
+  const tail = Date.now().toString(36) + (++refSeq);
+  return (base + tail).toUpperCase().slice(0, 35);
+}
+
+function upiQuery(upiId, amount, { strictAmount = false, ref = "" } = {}) {
   const name = settings?.accountName || INSTITUTE.payments.accountName || INSTITUTE.name;
   const note = `Fee ${student.studentId || ""}`.trim();
   const q = new URLSearchParams({
@@ -122,10 +159,27 @@ function upiPayload(upiId, amount) {
     pn: name,
     cu: "INR"
   });
-  if (amount > 0) q.set("am", String(amount));
+  if (amount > 0) q.set("am", strictAmount ? Number(amount).toFixed(2) : String(amount));
   if (note) q.set("tn", note);
+  if (ref) q.set("tr", ref);
   // URLSearchParams "+" ke saath encode karta hai; UPI apps %20 expect karti hain
-  return `upi://pay?${q.toString().replace(/\+/g, "%20")}`;
+  return q.toString().replace(/\+/g, "%20");
+}
+
+/** QR ke liye — purana, aazmaaya hua roop. */
+function qrPayload(upiId, amount) {
+  return `upi://pay?${upiQuery(upiId, amount)}`;
+}
+
+/**
+ * Button ke liye. `pkg` diya ho to Android ka `intent://` roop, jo seedha usi
+ * app me jaata hai — aam `upi://` link Chrome kabhi kholta hai kabhi nahi.
+ */
+function appPayload(upiId, amount, pkg = "") {
+  const qs = upiQuery(upiId, amount, { strictAmount: true, ref: newRef() });
+  return pkg
+    ? `intent://pay?${qs}#Intent;scheme=upi;package=${pkg};end`
+    : `upi://pay?${qs}`;
 }
 
 /* Student jitna bhej sakta hai utna bheje — poori fees ka dabav nahi. Amount
@@ -162,15 +216,31 @@ async function upiQrDialog(upiId, pending) {
   );
   body.appendChild(chips);
 
-  /* Phone par ye sabse seedha raasta hai: dabate hi PhonePe/GPay/Paytm khud
-     khul jaati hai, amount aur reference bhare hue. QR sirf tab chahiye jab
-     student kisi doosre phone se scan kar raha ho — ya laptop par ho, jahan
-     upi:// link koi app nahi kholta. */
+  const currentAmt = () => Math.max(0, Math.round(Number(amtInput.value) || 0));
+
+  /* Android par har app ka apna button. `intent://` me app ka package likha
+     hota hai, isliye wo seedha usi app me jaata hai — aam `upi://` link ke
+     bharose nahi rehna padta. Har click par naya reference banta hai, isliye
+     dobara koshish karna bhi safe hai. */
+  if (isAndroid()) {
+    body.appendChild(el("p", { style: { margin: "0 0 .45rem", fontSize: ".78rem", color: "var(--text-muted)" } },
+      "Apni app dabaiye —"));
+    const row = el("div", { class: "cluster", style: { justifyContent: "center", gap: ".45rem", marginBottom: ".75rem" } });
+    UPI_APPS.forEach((app) => {
+      const a = el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: "#" }, app.label);
+      a.addEventListener("click", () => { a.href = appPayload(upiId, currentAmt(), app.pkg); });
+      row.appendChild(a);
+    });
+    body.appendChild(row);
+  }
+
   const payBtn = el("a", { class: "btn-ssz btn-primary-ssz btn-block-ssz", href: "#" },
     el("span", { html: icon("wallet", { size: 18 }) }), "UPI app me pay karein");
+  /* href har click par naya — taaki har koshish ka reference alag rahe. */
+  payBtn.addEventListener("click", () => { payBtn.href = appPayload(upiId, currentAmt()); });
   body.appendChild(payBtn);
   body.appendChild(el("p", { style: { margin: ".5rem 0 1.25rem", fontSize: ".76rem", color: "var(--text-muted)" } },
-    "App na khule to niche wala QR kisi bhi UPI app se scan kar lein."));
+    "Button se na ho paaye to niche wala QR save kar lijiye — wo raasta hamesha chalta hai."));
 
   const canvas = el("canvas", { style: { maxWidth: "100%", height: "auto", borderRadius: "8px" } });
   const holder = el("div", { style: { background: "#fff", padding: "16px", borderRadius: "12px", display: "inline-block" } }, canvas);
@@ -181,6 +251,34 @@ async function upiQrDialog(upiId, pending) {
   body.appendChild(caption);
   const hint = el("p", { style: { margin: ".4rem 0 0", fontSize: ".78rem", color: "var(--warning, #b45309)" } });
   body.appendChild(hint);
+
+  /* Ab tak jo raasta har baar chala hai wahi: QR ki tasveer app me gallery se
+     chun lena. Pehle iske liye student ko khud screenshot lena padta tha, jo
+     bahut logon ko sujhta hi nahi. Ab ek button se seedha save ho jaata hai.
+     Save wali tasveer badi banti hai (scale 12) taaki app use aasaani se
+     padh le — screen wali chhoti QR kabhi-kabhi dhundhli padhi jaati hai. */
+  const saveBtn = el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button" },
+    el("span", { html: icon("download", { size: 16 }) }), " QR save karein");
+  saveBtn.addEventListener("click", async () => {
+    try {
+      const l = lib || (lib = await import("../tools/qrcode.js"));
+      const big = document.createElement("canvas");
+      l.drawQR(big, l.qrMatrix(qrPayload(upiId, currentAmt()), "M"), { scale: 12, margin: 4 });
+      const a = document.createElement("a");
+      a.href = big.toDataURL("image/png");
+      a.download = `SSZ-QR-${student.studentId || "fees"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success("QR save ho gaya.");
+    } catch {
+      toast.error("QR save nahi ho paaya — screenshot le lijiye.");
+    }
+  });
+  body.appendChild(el("div", { style: { marginTop: ".75rem" } }, saveBtn));
+  body.appendChild(el("p", { style: { margin: ".5rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
+    "Save karke apni UPI app kholein → \"Scan QR\" → gallery/photo wala nishan → yahi tasveer chunein."));
+
   body.appendChild(el("p", { style: { margin: "1rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
     "Payment ho jaane ke baad niche \"Ho gaya\" dabaayein — tabhi institute ko pata chalega aur receipt banegi."));
 
@@ -200,7 +298,9 @@ async function upiQrDialog(upiId, pending) {
   let failed = false;
   const redraw = async () => {
     const amt = Math.max(0, Math.round(Number(amtInput.value) || 0));
-    payBtn.href = upiPayload(upiId, amt);
+    /* href yahan bhi bhar dete hain — click par phir se naya ban jaata hai,
+       par tab tak link kaam chalau hona chahiye. */
+    payBtn.href = appPayload(upiId, amt);
     payBtn.lastChild.textContent = amt > 0
       ? ` ${money(amt)} pay karein`
       : " UPI app me pay karein";
@@ -213,7 +313,7 @@ async function upiQrDialog(upiId, pending) {
     if (failed) return;
     try {
       lib = lib || await import("../tools/qrcode.js");
-      lib.drawQR(canvas, lib.qrMatrix(upiPayload(upiId, amt), "M"), { scale: 6, margin: 3 });
+      lib.drawQR(canvas, lib.qrMatrix(qrPayload(upiId, amt), "M"), { scale: 6, margin: 3 });
     } catch {
       failed = true;
       holder.replaceChildren(el("p", { style: { color: "#0f172a", fontSize: ".85rem", margin: 0 } },

@@ -6,6 +6,7 @@
 import { $, el, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { formatDateTime, formatTime, timeAgo, toDate } from "../core/utils.js";
+import { url } from "../core/routes.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_STUDENT, DEMO_CLASSES } from "./demo-data.js";
@@ -49,7 +50,12 @@ function classCard(c, big = false) {
          link save kar dene se student ko kuch nahi milta — warna adhoori ya
          galat recording apne aap chali jaati. */
       ? (c.recordingURL && c.recordingPublished
-          ? el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: c.recordingURL, target: "_blank", rel: "noopener" },
+          /* Drive ka link seedha nahi diya jaata — Drive ke viewer me Download
+             ka button saamne hota hai. Recording apne player page par chalti
+             hai, jahan wo button nahi hota aur video par student ka apna
+             naam-ID chalta rehta hai. */
+          ? el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz",
+                      href: `${url("studentRecording")}?class=${encodeURIComponent(c.id)}` },
               el("span", { html: icon("video", { size: 15 }) }), " Recording dekhein")
           : el("span", { class: "badge-ssz" }, `Ended ${timeAgo(c.endsAt)}`))
       : el("a", {

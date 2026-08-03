@@ -5,7 +5,7 @@
 
 import { $, el, on, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
-import { money, amountInWords, formatDate, formatPhone } from "../core/utils.js";
+import { money, amountInWords, formatDate, formatPhone, copyToClipboard } from "../core/utils.js";
 import { validateFile } from "../core/files.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
@@ -189,7 +189,7 @@ async function upiQrDialog(upiId, pending) {
   const body = el("div", { style: { textAlign: "center" } });
   body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: "1rem" } },
     "Jitna abhi de sakte hain utna amount daalein — poori fees ek saath dena zaroori nahi. " +
-    "Phir neeche wala QR save karke apni UPI app (PhonePe, Google Pay, Paytm) me chun lijiye."));
+    "Phir neeche se UPI ID copy karke apni UPI app (PhonePe, Google Pay, Paytm) me paste kar dijiye."));
 
   const amtInput = el("input", {
     class: "input-ssz", type: "number", id: "upiAmt",
@@ -219,18 +219,47 @@ async function upiQrDialog(upiId, pending) {
   const currentAmt = () => Math.max(0, Math.round(Number(amtInput.value) || 0));
 
   /* ------------------------------------------------------------------
-     QR PEHLE, APP KE BUTTON BAAD ME — aur iski wajah asli tajurba hai.
+     TEEN RAASTE, SABSE AASAAN PEHLE.
 
      Google Pay browser se aaye link ko saaf mana kar deta hai:
        "Your payment is declined for security reasons.
         Please try using a mobile number, UPI ID, or QR code."
-     Yaani GPay khud keh raha hai ki QR use karo. Teen students ke saath
-     yahi hua — button se mana, aur wahi QR usi account se turant chal gaya.
 
-     Isliye ab sabse bada button QR save karne ka hai. App wale button hate
-     nahi hain (PhonePe/Paytm par ye chal sakte hain), bas neeche kar diye
-     gaye hain — taaki student pehle wahi raasta pakde jo chalta hai.
+     Char students ke saath yahi hua. Par gaur kijiye — GPay khud teen raaste
+     bata raha hai, aur unme sabse aasaan hai UPI ID. QR save karke gallery se
+     chunna chalta to hai, par usme kadam zyada hain; UPI ID copy karna sirf
+     do tap ka kaam hai aur har app me chalta hai.
+
+     Isliye kram yahi rakha hai: UPI ID -> QR -> app ka button.
      ------------------------------------------------------------------ */
+
+  const copyBtn = el("button", { class: "btn-ssz btn-primary-ssz btn-block-ssz", type: "button" },
+    el("span", { html: icon("clipboard", { size: 18 }) }), " UPI ID copy karein");
+  copyBtn.addEventListener("click", async () => {
+    const ok = await copyToClipboard(upiId);
+    if (!ok) return toast.error(`Copy nahi hua — haath se likh lijiye: ${upiId}`);
+    copyBtn.lastChild.textContent = " Copy ho gaya ✓";
+    toast.success("UPI ID copy ho gaya.");
+    setTimeout(() => { copyBtn.lastChild.textContent = " UPI ID copy karein"; }, 2200);
+  });
+  body.appendChild(copyBtn);
+  body.appendChild(el("p", {
+    style: { margin: ".55rem 0 .25rem", fontSize: ".82rem", color: "var(--text-muted)", lineHeight: "1.75" }
+  },
+    "Sabse aasaan. Copy kijiye → apni UPI app kholiye → \"Pay to UPI ID\" ya " +
+    "\"New payment\" → paste kijiye → amount daaliye."
+  ));
+  if (student.studentId) {
+    const idLine = el("p", { style: { margin: "0 0 1.25rem", fontSize: ".82rem" } },
+      "Message me likh dijiye: ",
+      el("strong", {}, `Fee ${student.studentId}`)
+    );
+    body.appendChild(idLine);
+  }
+
+  body.appendChild(el("hr", { style: { border: 0, borderTop: "1px solid var(--border-subtle)", margin: "0 0 .9rem" } }));
+  body.appendChild(el("p", { style: { margin: "0 0 .75rem", fontSize: ".8rem", color: "var(--text-muted)" } },
+    "Ya QR se —"));
 
   const canvas = el("canvas", { style: { maxWidth: "100%", height: "auto", borderRadius: "8px" } });
   const holder = el("div", { style: { background: "#fff", padding: "16px", borderRadius: "12px", display: "inline-block" } }, canvas);
@@ -244,7 +273,7 @@ async function upiQrDialog(upiId, pending) {
 
   /* Save wali tasveer badi banti hai (scale 12) taaki app use aasaani se padh
      le — screen wali chhoti QR kabhi-kabhi dhundhli padhi jaati hai. */
-  const saveBtn = el("button", { class: "btn-ssz btn-primary-ssz btn-block-ssz", type: "button" },
+  const saveBtn = el("button", { class: "btn-ssz btn-secondary-ssz btn-block-ssz", type: "button" },
     el("span", { html: icon("download", { size: 18 }) }), " QR save karein");
   saveBtn.addEventListener("click", async () => {
     try {

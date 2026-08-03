@@ -267,13 +267,18 @@ function renderTools() {
    CTA WhatsApp link
    ========================================================================== */
 function wireCTA() {
-  const wa = $("#ctaWhatsapp");
-  if (wa) {
-    wa.href = whatsappLink(
-      INSTITUTE.whatsapp || INSTITUTE.phone,
-      `Namaste! Main ${INSTITUTE.name} me admission ke baare me jaanna chahta/chahti hoon.`
-    );
-  }
+  const msg = `Namaste! Main ${INSTITUTE.name} me admission ke baare me jaanna chahta/chahti hoon.`;
+  const link = whatsappLink(INSTITUTE.whatsapp || INSTITUTE.phone, msg);
+
+  /* Hero ka doosra button aur niche wala CTA — dono par wahi tayyar message.
+     Hero par pehle "Courses Dekhein" tha; WhatsApp isliye rakha kyunki form
+     bharne se pehle log aksar poochhna chahte hain, aur poochhne ka sabse
+     tez raasta yahi hai. Number na ho to href waisa hi rehta hai (contact
+     page), taaki button kabhi khaali na jaye. */
+  ["#ctaWhatsapp", "#heroWhatsapp"].forEach((sel) => {
+    const a = $(sel);
+    if (a && link) { a.href = link; a.target = "_blank"; a.rel = "noopener"; }
+  });
 }
 
 /* ==========================================================================

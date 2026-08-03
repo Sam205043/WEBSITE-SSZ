@@ -15,7 +15,7 @@
 import { $, $$, el, on, onReady, render, scrollTo } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { createValidator, rules, validateFields, clearError } from "../core/validators.js";
-import { store, debounce, dateKey, whatsappLink, money } from "../core/utils.js";
+import { store, debounce, dateKey, whatsappLink, money, amountInWords } from "../core/utils.js";
 import { param, url } from "../core/routes.js";
 import { LS_KEYS } from "../core/constants.js";
 import { COURSES, INSTITUTE, activeCourses } from "../config/site-data.js";
@@ -400,6 +400,113 @@ function uploadWatchdog() {
   return { touch, guard };
 }
 
+/* --------------------------------------------------------------------------
+   Fees ka pehla kadam — application milte hi, isi page par.
+
+   Pehle yahan sirf "Admin 24 ghante me contact karega" likha tha. Wahi wo
+   jagah thi jahan sabse zyada log nikal jaate the: form to bhar diya, par
+   fees dene ke liye baad me wapas aana pada, aur bahut se aaye hi nahi.
+
+   Ab paisa yahin liya jaata hai. Aur fayda sirf itna nahi ki student ruk
+   jaata hai — paisa aate hi Cloud Function apne aap Student ID banata hai,
+   batch deta hai, kist plan banata hai aur admin ko batata hai. Admin ko
+   haath se approve karne ki zaroorat hi nahi padti.
+
+   Rakam par hadd server par lagti hai (kam se kam 10%, gol number me),
+   yahan ki ginti sirf dikhane ke liye hai.
+   -------------------------------------------------------------------------- */
+const MIN_SHARE = 0.10;
+
+function minFirstPayment(total) {
+  return Math.min(total, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100));
+}
+
+function feeCard(appNo, course) {
+  const total = (course?.fee || 0) + (course?.admissionFee || 0);
+  if (!total) return null;
+
+  const min = minFirstPayment(total);
+
+  const box = el("div", {
+    class: "card-ssz",
+    style: { textAlign: "left", marginTop: "1.5rem", borderTop: "3px solid var(--ssz-indigo-600)" }
+  });
+
+  box.innerHTML = `
+    <div class="card-ssz__body">
+      <h3 style="margin:0 0 .35rem;font-size:1.05rem">Ab pehli fees bhar dein</h3>
+      <p style="font-size:.86rem;color:var(--text-muted);margin:0 0 1rem">
+        Payment poora hote hi aapki <strong>Student ID apne aap ban jayegi</strong> —
+        batch aur kist plan ke saath. Kisi ke approve karne ka intezaar nahi karna padega.</p>
+
+      <div class="field" style="margin-bottom:.5rem">
+        <label class="field__label" for="admPayAmt">Kitna abhi bhar rahe hain? (Rs.)</label>
+        <input class="input-ssz" id="admPayAmt" type="number" inputmode="numeric"
+               min="${min}" max="${total}" step="1" value="${min}">
+        <p class="field__hint" id="admPayWords"
+           style="font-size:.76rem;color:var(--text-muted);margin:.4rem 0 0"></p>
+      </div>
+
+      <div class="cluster" style="gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+          data-amt="${min}">Kam se kam ${money(min)}</button>
+        ${min < total ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+          data-amt="${total}">Poori fees ${money(total)}</button>` : ""}
+      </div>
+
+      <button type="button" class="btn-ssz btn-primary-ssz btn-lg-ssz" id="admPayGo"
+        style="width:100%">Fee bharein</button>
+
+      <p class="field__hint" style="margin:.9rem 0 0;font-size:.78rem">
+        Kul course fee ${money(total)}. Baaki rakam har mahine kist me de sakte hain —
+        plan aapke dashboard me apne aap ban jayega.
+        Cash dena ho to institute aakar bhi de sakte hain; tab admin khud aapka
+        admission confirm kar dega.</p>
+    </div>`;
+
+  const input = box.querySelector("#admPayAmt");
+  const words = box.querySelector("#admPayWords");
+  const goBtn = box.querySelector("#admPayGo");
+
+  const showWords = () => {
+    const v = Math.round(Number(input.value) || 0);
+    words.textContent = v >= min && v <= total ? amountInWords(v) : "";
+  };
+  showWords();
+  input.addEventListener("input", showWords);
+
+  box.querySelectorAll("button[data-amt]").forEach((b) => {
+    b.addEventListener("click", () => { input.value = b.dataset.amt; showWords(); });
+  });
+
+  /* Module pehle se utar lete hain: click ke andar `await import(...)` karne
+     par browser ka "user ne tap kiya tha" wala nishaan mit jaata hai aur naya
+     tab block ho jaata hai. */
+  const payMod = import("../../firebase/pay-service.js");
+
+  goBtn.addEventListener("click", async () => {
+    const amount = Math.round(Number(input.value) || 0);
+    if (amount < min) return toast.error(`Kam se kam ${money(min)} bharna zaroori hai.`);
+    if (amount > total) return toast.error(`Poori fees ${money(total)} hai — usse zyada nahi bhar sakte.`);
+
+    goBtn.disabled = true;
+    goBtn.textContent = "Link ban raha hai…";
+    try {
+      const pay = await payMod;
+      await pay.openPaymentLink("admission", appNo, amount);
+      goBtn.textContent = "Payment ka page khul gaya";
+      toast.info("Payment poora karein. Uske baad isi email se dashboard me login kar sakte hain.");
+    } catch (err) {
+      const pay = await payMod;
+      toast.error(pay.payError(err));
+      goBtn.disabled = false;
+      goBtn.textContent = "Fee bharein";
+    }
+  });
+
+  return box;
+}
+
 function showSuccess(appNo, data, documentsPending = false) {
   const course = COURSES.find((c) => c.id === state.courseId);
   const wa = whatsappLink(
@@ -414,8 +521,10 @@ function showSuccess(appNo, data, documentsPending = false) {
       el("div", { class: "adm-success__icon", html: icon("checkCircle", { size: 40 }) }),
       el("h2", { style: { marginBottom: ".5rem" } }, "Application mil gayi!"),
       el("p", { style: { maxWidth: "48ch", marginInline: "auto" } },
-        "Yeh aapka application number hai — isse sambhaal kar rakhein. Admin 24 ghante ke andar aapko contact karega."),
+        "Yeh aapka application number hai — isse sambhaal kar rakhein."),
       el("div", { class: "adm-success__no" }, appNo),
+
+      feeCard(appNo, course),
 
       documentsPending
         ? el("div", { class: "tool-note", style: { textAlign: "left", marginTop: "1.25rem" } },
@@ -427,13 +536,18 @@ function showSuccess(appNo, data, documentsPending = false) {
           )
         : null,
 
-      el("div", { class: "cluster", style: { justifyContent: "center", marginTop: "1rem" } },
-        el("a", { class: "btn-ssz btn-primary-ssz", href: wa, target: "_blank", rel: "noopener" },
+      /* Payment ab mukhya kaam hai, isliye WhatsApp wala button primary se
+         secondary ho gaya — do "sabse zaroori" button saath me rakhne se
+         dono kamzor ho jaate hain. */
+      el("div", { class: "cluster", style: { justifyContent: "center", marginTop: "1.25rem" } },
+        el("a", { class: "btn-ssz btn-secondary-ssz", href: wa, target: "_blank", rel: "noopener" },
           documentsPending ? "WhatsApp par documents bhejein" : "WhatsApp par confirm karein"),
-        el("a", { class: "btn-ssz btn-secondary-ssz", href: url("home") }, "Home par jaayein")
+        el("a", { class: "btn-ssz btn-secondary-ssz", href: url("studentLogin") }, "Dashboard login"),
+        el("a", { class: "btn-ssz btn-ghost-ssz", href: url("home") }, "Home par jaayein")
       ),
       el("p", { class: "field__hint", style: { marginTop: "1.5rem" } },
-        "Tip: WhatsApp wala button dabane se aapka application number seedha institute ko pahunch jaata hai — approval aur tez ho jaata hai.")
+        `Fees bharne ke baad isi email (${data.email}) se dashboard me login karein — ` +
+        "wahan Student ID, batch, classes aur receipt sab mil jayenge.")
     )
   );
   scrollTo("#admCard", 90);

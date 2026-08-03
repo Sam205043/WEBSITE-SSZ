@@ -53,6 +53,10 @@ export const INSTITUTE = Object.freeze({
      do fields rakhkar bina code chhue badla ja sakta hai. */
   payments: {
     razorpayLink: "https://rzp.io/rzp/CCEWjTnM",
+    /* Seedhi UPI id ab website par kahin nahi dikhti (3 Aug 2026). Google Pay
+       browser se aaye link par aam UPI id ko payment karne se mana kar deta
+       hai — char students ke saath yahi hua — isliye online payment sirf
+       Razorpay se hota hai. Ye value sirf record ke liye rakhi hai. */
     upiId: "softskillzone@ybl",
     accountName: "Soft Skill Zone Institute"
   }

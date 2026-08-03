@@ -71,8 +71,6 @@ function payBox() {
     return;
   }
 
-  const rzp = settings?.razorpayLink || INSTITUTE.payments.razorpayLink;
-
   /* --------------------------------------------------------------------
      SIRF RAZORPAY — seedhi UPI id wala raasta 3 Aug 2026 ko hata diya gaya.
 
@@ -98,8 +96,8 @@ function payBox() {
           `Due date: ${student.nextDueDate ? formatDate(student.nextDueDate) : "jald hi"} · ${amountInWords(pending)}`)
       ),
       el("span", { class: "cluster" },
-        rzp ? el("a", { class: "btn-ssz btn-lg-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" }, href: rzp, target: "_blank", rel: "noopener", id: "btnRzp" },
-          el("span", { html: icon("wallet", { size: 18 }) }), " Abhi pay karein") : null,
+        el("button", { class: "btn-ssz btn-lg-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" }, type: "button", id: "btnPay" },
+          el("span", { html: icon("wallet", { size: 18 }) }), " Abhi pay karein"),
         el("button", { class: "btn-ssz btn-glass-ssz", style: { color: "#fff", borderColor: "rgba(255,255,255,.4)" }, type: "button", id: "btnProof" },
           "Payment ki jaankari dein")
       )
@@ -110,13 +108,37 @@ function payBox() {
 
   $("#btnProof").addEventListener("click", () => proofDialog());
 
-  /* Razorpay ka page doosre tab me khulta hai aur website ko kabhi wapas
-     khabar nahi karta — bilkul UPI ki tarah. Isliye link kholte hi yahan
-     wahi "kitna bheja" wali screen kholte hain, warna student payment karke
-     chala jaata hai aur institute ko kabhi pata hi nahi chalta. */
-  const rzpBtn = $("#btnRzp");
-  if (rzpBtn) rzpBtn.addEventListener("click", () => {
-    setTimeout(() => proofDialog(pending, "razorpay", true), 1200);
+  /* --------------------------------------------------------------------
+     Ab har baar NAYA payment link banta hai, jisme is student ki pehchaan
+     juda hoti hai.
+
+     Pehle yahan ek hi sthir Razorpay link tha. Usse paisa to aa jaata tha,
+     par Razorpay ko pata hi nahi chalta tha ki paisa KISKA hai — isliye
+     student ko khud "kitna bheja" batana padta tha aur admin ko dashboard
+     me milaana padta tha.
+
+     Ab link ke saath Student ID judi rehti hai, isliye paisa aate hi
+     Razorpay hamare function ko khabar kar deta hai aur fees apne aap chadh
+     jaati hai. "Payment ki jaankari dein" wala button phir bhi rakha hai —
+     cash ya kisi aur tarike se diya ho to wahan se bataya ja sake.
+     -------------------------------------------------------------------- */
+  const payBtn = $("#btnPay");
+  payBtn.addEventListener("click", async () => {
+    payBtn.disabled = true;
+    const label = payBtn.lastChild;
+    const before = label.textContent;
+    label.textContent = " Link ban raha hai\u2026";
+    try {
+      const pay = await import("../../firebase/pay-service.js");
+      await pay.openPaymentLink("student", student.studentId, pending);
+      toast.info("Payment ka page khul gaya. Poora hote hi fees apne aap chadh jayegi.");
+    } catch (err) {
+      const pay = await import("../../firebase/pay-service.js");
+      toast.error(pay.payError(err));
+    } finally {
+      label.textContent = before;
+      payBtn.disabled = false;
+    }
   });
 }
 

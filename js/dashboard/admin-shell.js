@@ -33,13 +33,14 @@ const NAV = [
   { group: "Records" },
   { key: "certificates", label: "Certificates", icon: "award", route: "adminCerts" },
   { key: "notify",     label: "Notifications", icon: "bell",   route: "adminNotify" },
-  { key: "enquiries",  label: "Enquiries",  icon: "mail",      route: "adminEnquiries" },
+  { key: "enquiries",  label: "Enquiries",  icon: "mail",      route: "adminEnquiries", badge: true },
   { key: "gallery",    label: "Gallery",    icon: "image",     route: "adminGallery" }
 ];
 
 let shellState = { user: null, mode: "preview" };
 let stopWatch = null;
 let stopFeeWatch = null;
+let stopEnquiryWatch = null;
 
 function buildSidebar(active) {
   const nav = el("nav", { class: "dash-side__nav", "aria-label": "Admin navigation" });
@@ -252,6 +253,47 @@ export async function watchPendingFees(cb) {
   return stopFeeWatch;
 }
 
+/**
+ * Nayi enquiry par bhi wahi soochna jo admission par milti hai.
+ *
+ * Pehle Enquiries par koi badge nahi tha — enquiry chupchaap aakar padi
+ * rehti thi aur admin ko tabhi pata chalta jab wo khud wo page kholta. Jo
+ * aadmi poochh kar chala gaya wo doosre institute chala jaata hai, isliye
+ * ye sabse mehnga chup rehna tha.
+ */
+export async function watchNewEnquiries(cb) {
+  if (shellState.mode === "preview") {
+    setNavBadge("enquiries", 0);
+    cb && cb([]);
+    return () => {};
+  }
+
+  const { watchMany } = await import("../../firebase/db-service.js");
+  let first = true;
+  let known = new Set();
+
+  stopEnquiryWatch = watchMany(
+    COLLECTIONS.ENQUIRIES,
+    { where: [["isRead", "==", false]], limit: 50 },
+    (rows) => {
+      setNavBadge("enquiries", rows.length);
+      if (!first) {
+        rows.forEach((r) => {
+          if (known.has(r.id)) return;
+          toast.info(
+            `${r.name || "Koi"}${r.mobile ? ` — ${r.mobile}` : ""}`,
+            { title: "Nayi enquiry aayi hai!" }
+          );
+        });
+      }
+      known = new Set(rows.map((r) => r.id));
+      first = false;
+      cb && cb(rows);
+    }
+  );
+  return stopEnquiryWatch;
+}
+
 export function initAdminShell({ active, title }) {
   return new Promise((resolve) => {
     onReady(async () => {
@@ -291,6 +333,9 @@ export function initAdminShell({ active, title }) {
       watchPendingAdmissions(null);
       // admin-fees.js apna khud ka listener lagata hai, isliye wahan dobara nahi
       if (active !== "fees") watchPendingFees(null);
+      /* Enquiries page par bhi chalta hai — "Padh liya" dabate hi badge apne
+         aap ghat jaaye, iske liye wahan bhi listener zinda rehna chahiye. */
+      watchNewEnquiries(null);
 
       resolve(shellState);
     });

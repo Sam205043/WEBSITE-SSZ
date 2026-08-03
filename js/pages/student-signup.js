@@ -4,6 +4,7 @@
    ========================================================================== */
 
 import { $, onReady } from "../core/dom.js";
+import { param } from "../core/routes.js";
 import { initI18n } from "../core/i18n.js";
 import { createValidator, rules } from "../core/validators.js";
 import { withButton } from "../core/loader.js";
@@ -20,6 +21,17 @@ onReady(async () => {
      wahi email yahan daalte hi system khud uska record dhoondh kar jod deta
      hai — na ID yaad rakhni, na type karni, na galat padne ka darr. */
   const form = $("#signupForm");
+
+  /* Admission ke turant baad student yahan `?email=...` ke saath aata hai.
+     Wahi email bhar dete hain — wahi to record se jodne wala dhaaga hai, aur
+     ek akshar bhi galat hua to jud nahi payega. Cursor seedha naam wale khaane
+     par rakh dete hain, taaki bhara hua khaana dobara na bharna pade. */
+  const preEmail = String(param("email", "") || "").trim();
+  if (preEmail && form.elements.email) {
+    form.elements.email.value = preEmail;
+    setTimeout(() => form.elements.name?.focus(), 60);
+  }
+
   const validator = createValidator(form, {
     name:     [rules.required(), rules.minLen(3)],
     email:    [rules.required("Email daalein."), rules.email()],

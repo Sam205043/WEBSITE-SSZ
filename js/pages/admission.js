@@ -421,7 +421,7 @@ function minFirstPayment(total) {
   return Math.min(total, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100));
 }
 
-function feeCard(appNo, course) {
+function feeCard(appNo, course, email) {
   const total = (course?.fee || 0) + (course?.admissionFee || 0);
   if (!total) return null;
 
@@ -495,7 +495,7 @@ function feeCard(appNo, course) {
       const pay = await payMod;
       await pay.openPaymentLink("admission", appNo, amount);
       goBtn.textContent = "Payment ka page khul gaya";
-      toast.info("Payment poora karein. Uske baad isi email se dashboard me login kar sakte hain.");
+      waitForStudentId(box, appNo, email, payMod);
     } catch (err) {
       const pay = await payMod;
       toast.error(pay.payError(err));
@@ -505,6 +505,85 @@ function feeCard(appNo, course) {
   });
 
   return box;
+}
+
+/* --------------------------------------------------------------------------
+   Payment ke baad ka intezaar
+
+   Paisa Razorpay ke paas jaata hai, phir Razorpay hamare function ko khabar
+   karta hai, phir Student ID banti hai. Isme 5–20 second lagte hain. Us beech
+   student doosre tab me "Payment Completed" dekhkar wapas aata hai — aur agar
+   yahan kuchh na badle to use lagta hai ki kuchh hua hi nahi.
+
+   Isliye yahan se poochhte rehte hain. ID milte hi card badal jaata hai.
+
+   Do baatein soch kar rakhi hain:
+   * Jab tak jawab na aaye, "hua hi nahi" nahi kehte — "aa raha hai" kehte
+     hain. Paisa to ja hi chuka hota hai.
+   * 5 minute baad rukna zaroori hai. Hamesha ghoomta rehne se browser ki
+     battery jaati hai aur function par bekaar bojh padta hai. Ruk kar student
+     ko saaf raasta bata dete hain.
+   -------------------------------------------------------------------------- */
+const POLL_EVERY_MS = 5000;
+const POLL_FOR_MS = 5 * 60 * 1000;
+
+async function waitForStudentId(box, appNo, email, payMod) {
+  const wait = el("div", {
+    class: "tool-note",
+    style: { textAlign: "left", marginTop: "1rem" }
+  });
+  wait.innerHTML = `<span>⏳</span><span>Payment ka intezaar hai… poora hote hi aapki Student ID
+    yahin dikh jaayegi. Ye page khula rehne dijiye.</span>`;
+  box.querySelector(".card-ssz__body").appendChild(wait);
+
+  const pay = await payMod;
+  const till = Date.now() + POLL_FOR_MS;
+
+  while (Date.now() < till) {
+    await new Promise((r) => setTimeout(r, POLL_EVERY_MS));
+    try {
+      const s = await pay.admissionStatus(appNo, email);
+      if (s?.ready) { showAdmitted(box, s, email); return; }
+    } catch {
+      /* Net ek pal ke liye gaya ya function garam ho raha hai — agli baar
+         phir poochh lenge. Yahan rukna galat hoga. */
+    }
+  }
+
+  wait.innerHTML = `<span>ℹ️</span><span>Payment ho gaya ho to bhi kabhi-kabhi thodi der lagti hai.
+    Ghabraiye mat — paisa surakshit hai. Thodi der baad
+    <strong>Dashboard login</strong> se dekh lijiye, ya humein WhatsApp kar dijiye.</span>`;
+}
+
+/* Ho gaya — ab student ko ek hi kaam dikhna chahiye: account banao. */
+function showAdmitted(box, s, email) {
+  const signup = `${url("studentSignup")}?email=${encodeURIComponent(email)}`;
+  box.style.borderTop = "3px solid var(--success)";
+  box.innerHTML = `
+    <div class="card-ssz__body" style="text-align:left">
+      <h3 style="margin:0 0 .35rem;font-size:1.05rem;color:var(--success)">
+        Fees mil gayi — aapka admission ho gaya!</h3>
+      <p style="font-size:.86rem;color:var(--text-muted);margin:0 0 1rem">
+        Ab bas apna account bana lijiye — usi email se, jo aapne form me diya tha.</p>
+
+      <div style="display:grid;gap:.5rem;margin-bottom:1.25rem;font-size:.9rem">
+        <div><span style="color:var(--text-muted)">Student ID</span><br>
+          <strong style="font-size:1.15rem;letter-spacing:.5px">${s.studentId}</strong></div>
+        ${s.batchName ? `<div><span style="color:var(--text-muted)">Batch</span><br><strong>${s.batchName}</strong></div>` : ""}
+        <div><span style="color:var(--text-muted)">Jama hui</span><br>
+          <strong>${money(s.paidFee)}</strong>
+          ${s.pendingFee > 0 ? ` <span style="color:var(--text-muted)">· bakaya ${money(s.pendingFee)}</span>` : ""}</div>
+        ${s.nextDueDate ? `<div><span style="color:var(--text-muted)">Agli kist</span><br><strong>${s.nextDueDate}</strong></div>` : ""}
+      </div>
+
+      <a class="btn-ssz btn-primary-ssz btn-lg-ssz" style="width:100%;justify-content:center"
+         href="${signup}">Apna account banayein</a>
+
+      <p class="field__hint" style="margin:.9rem 0 0;font-size:.78rem">
+        Student ID yaad rakhne ki zaroorat nahi — account isi email se apne aap jud jaayega.
+        Batch aur classes ki jaankari dashboard me milegi.</p>
+    </div>`;
+  scrollTo("#admCard", 90);
 }
 
 function showSuccess(appNo, data, documentsPending = false) {
@@ -524,7 +603,7 @@ function showSuccess(appNo, data, documentsPending = false) {
         "Yeh aapka application number hai — isse sambhaal kar rakhein."),
       el("div", { class: "adm-success__no" }, appNo),
 
-      feeCard(appNo, course),
+      feeCard(appNo, course, data.email),
 
       documentsPending
         ? el("div", { class: "tool-note", style: { textAlign: "left", marginTop: "1.25rem" } },

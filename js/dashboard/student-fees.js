@@ -1,11 +1,11 @@
 /* ==========================================================================
    Soft Skill Zone — Student: Fees
-   Totals, due date, Razorpay/UPI pay-now, proof upload, receipts + print.
+   Totals, due date, Razorpay se pay-now, proof upload, receipts + print.
    ========================================================================== */
 
 import { $, el, on, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
-import { money, amountInWords, formatDate, formatPhone, copyToClipboard } from "../core/utils.js";
+import { money, amountInWords, formatDate, formatPhone } from "../core/utils.js";
 import { validateFile } from "../core/files.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
@@ -72,7 +72,20 @@ function payBox() {
   }
 
   const rzp = settings?.razorpayLink || INSTITUTE.payments.razorpayLink;
-  const upi = settings?.upiId || INSTITUTE.payments.upiId;
+
+  /* --------------------------------------------------------------------
+     SIRF RAZORPAY — seedhi UPI id wala raasta 3 Aug 2026 ko hata diya gaya.
+
+     Wajah: institute ki UPI id ek aam (personal) id hai. Google Pay browser
+     se aaye link par aisi id ko payment karne se saaf mana kar deta hai —
+     "declined for security reasons". Char students ke saath bilkul yahi hua.
+     Bacha raasta tha QR save karke gallery se chunna: chalta to tha, par
+     itne kadam the ki student atak jaata tha.
+
+     Razorpay registered merchant hai, isliye wahan ye rok hai hi nahi — UPI,
+     card, netbanking sab browser me hi chal jaate hain. Uski fee lagti hai,
+     par har student ka payment sach me ho jaana usse zyada zaroori hai.
+     -------------------------------------------------------------------- */
 
   render(box,
     claimStrip(),
@@ -85,19 +98,17 @@ function payBox() {
           `Due date: ${student.nextDueDate ? formatDate(student.nextDueDate) : "jald hi"} · ${amountInWords(pending)}`)
       ),
       el("span", { class: "cluster" },
-        rzp ? el("a", { class: "btn-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" }, href: rzp, target: "_blank", rel: "noopener", id: "btnRzp" },
-          "Pay Now (Razorpay)") : null,
-        upi ? el("button", { class: "btn-ssz btn-glass-ssz", style: { color: "#fff", borderColor: "rgba(255,255,255,.4)" }, type: "button", id: "btnUpiQr" },
-          "UPI QR") : null,
+        rzp ? el("a", { class: "btn-ssz btn-lg-ssz", style: { background: "#fff", color: "var(--ssz-indigo-700)" }, href: rzp, target: "_blank", rel: "noopener", id: "btnRzp" },
+          el("span", { html: icon("wallet", { size: 18 }) }), " Abhi pay karein") : null,
         el("button", { class: "btn-ssz btn-glass-ssz", style: { color: "#fff", borderColor: "rgba(255,255,255,.4)" }, type: "button", id: "btnProof" },
           "Payment ki jaankari dein")
       )
     ),
-    upi ? el("p", { style: { margin: "1rem 0 0", fontSize: ".8rem", opacity: ".85" } }, `UPI se bhi bhej sakte hain: ${upi}`) : null
+    el("p", { style: { margin: "1rem 0 0", fontSize: ".8rem", opacity: ".85" } },
+      "UPI, card ya netbanking — sab isi ek page se. Institute aakar cash bhi de sakte hain.")
   ));
 
   $("#btnProof").addEventListener("click", () => proofDialog());
-  if (upi) $("#btnUpiQr").addEventListener("click", () => upiQrDialog(upi, pending));
 
   /* Razorpay ka page doosre tab me khulta hai aur website ko kabhi wapas
      khabar nahi karta — bilkul UPI ki tarah. Isliye link kholte hi yahan
@@ -105,289 +116,22 @@ function payBox() {
      chala jaata hai aur institute ko kabhi pata hi nahi chalta. */
   const rzpBtn = $("#btnRzp");
   if (rzpBtn) rzpBtn.addEventListener("click", () => {
-    setTimeout(() => proofDialog(pending, "razorpay"), 1200);
+    setTimeout(() => proofDialog(pending, "razorpay", true), 1200);
   });
-}
-
-/* --------------------------------------------------------------------------
-   UPI — payee, amount aur student ka reference pehle se bhara hua.
-   QR encoder project ka apna hai (js/tools/qrcode.js), koi external API nahi —
-   isliye UPI id aur amount kabhi browser se bahar nahi jaate.
-
-   ASLI DIKKAT JO SAAMNE AAYI (3 Aug 2026)
-   Do alag students ke saath bilkul ek jaisa hua: button se app khul to jaati
-   thi, par payment "limit exceeded" kehkar ruk jaata tha — aur usi account se,
-   usi rakam ka, wahi QR scan karne par turant ho jaata tha. Matlab limit se
-   iska koi lena-dena nahi tha; "limit exceeded" UPI apps ka sabse aam bahana
-   hai jab bheja gaya link unke hisaab se poora nahi hota.
-
-   Isliye ab do alag payload hain:
-
-     qrPayload()   QR ke liye — bilkul wahi jo aaj tak chalta aaya hai.
-                   Jo chal raha hai use chhedna nahi.
-
-     appPayload()  Button ke liye — do sudhaar ke saath:
-                     am -> hamesha do dashamlav ("1.00", na ki "1")
-                     tr -> har koshish ka apna alag reference, taaki dobara
-                           bhejne par app use purani nakal na samjhe
-
-   `mc` (merchant category) jaan-boojh kar nahi daala — wo sirf registered
-   merchant VPA ke liye hai, aam VPA par ulta rukawat ban jaata hai.
-   -------------------------------------------------------------------------- */
-
-const UPI_APPS = Object.freeze([
-  { label: "PhonePe",    pkg: "com.phonepe.app" },
-  { label: "Google Pay", pkg: "com.google.android.apps.nbu.paisa.user" },
-  { label: "Paytm",      pkg: "net.one97.paytm" }
-]);
-
-const isAndroid = () => /Android/i.test(navigator.userAgent);
-
-/** Har koshish ka apna reference — sirf letters aur ank, 35 se chhota. */
-let refSeq = 0;
-function newRef() {
-  const base = (student.studentId || "SSZ").replace(/[^A-Za-z0-9]/g, "");
-  const tail = Date.now().toString(36) + (++refSeq);
-  return (base + tail).toUpperCase().slice(0, 35);
-}
-
-function upiQuery(upiId, amount, { strictAmount = false, ref = "" } = {}) {
-  const name = settings?.accountName || INSTITUTE.payments.accountName || INSTITUTE.name;
-  const note = `Fee ${student.studentId || ""}`.trim();
-  const q = new URLSearchParams({
-    pa: upiId,
-    pn: name,
-    cu: "INR"
-  });
-  if (amount > 0) q.set("am", strictAmount ? Number(amount).toFixed(2) : String(amount));
-  if (note) q.set("tn", note);
-  if (ref) q.set("tr", ref);
-  // URLSearchParams "+" ke saath encode karta hai; UPI apps %20 expect karti hain
-  return q.toString().replace(/\+/g, "%20");
-}
-
-/** QR ke liye — purana, aazmaaya hua roop. */
-function qrPayload(upiId, amount) {
-  return `upi://pay?${upiQuery(upiId, amount)}`;
-}
-
-/**
- * Button ke liye. `pkg` diya ho to Android ka `intent://` roop, jo seedha usi
- * app me jaata hai — aam `upi://` link Chrome kabhi kholta hai kabhi nahi.
- */
-function appPayload(upiId, amount, pkg = "") {
-  const qs = upiQuery(upiId, amount, { strictAmount: true, ref: newRef() });
-  return pkg
-    ? `intent://pay?${qs}#Intent;scheme=upi;package=${pkg};end`
-    : `upi://pay?${qs}`;
-}
-
-/* Student jitna bhej sakta hai utna bheje — poori fees ka dabav nahi. Amount
-   badalte hi QR dobara ban jaata hai. Amount khaali chhodne par QR bina rakam
-   ke banta hai, taaki student apni UPI app me khud type kar le. */
-async function upiQrDialog(upiId, pending) {
-  const body = el("div", { style: { textAlign: "center" } });
-  body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: "1rem" } },
-    "Jitna abhi de sakte hain utna amount daalein — poori fees ek saath dena zaroori nahi. " +
-    "Phir neeche se UPI ID copy karke apni UPI app (PhonePe, Google Pay, Paytm) me paste kar dijiye."));
-
-  const amtInput = el("input", {
-    class: "input-ssz", type: "number", id: "upiAmt",
-    min: "1", step: "1", inputmode: "numeric",
-    placeholder: "Jaise 2000",
-    value: pending > 0 ? String(pending) : "",
-    style: { textAlign: "center", fontSize: "1.05rem", fontWeight: "600" }
-  });
-  body.appendChild(el("div", { class: "field", style: { maxWidth: "240px", margin: "0 auto .75rem" } },
-    el("label", { class: "field__label", for: "upiAmt" }, "Kitna bhej rahe hain? (₹)"),
-    amtInput
-  ));
-
-  /* Jaldi ke liye — sirf wahi option jo is student ke bakaya par bante hain. */
-  const presets = [];
-  if (pending > 0) presets.push(["Poora bakaya", pending]);
-  if (pending >= 2000) presets.push(["Aadha", Math.round(pending / 2)]);
-  [500, 1000, 2000, 5000].forEach((v) => { if (v < pending) presets.push([money(v), v]); });
-  presets.push(["App me khud daalunga", 0]);
-
-  const chips = el("div", { class: "cluster", style: { justifyContent: "center", gap: ".4rem", marginBottom: "1rem" } },
-    ...presets.map(([label, v]) =>
-      el("button", { type: "button", class: "chip", dataset: { amt: String(v) } }, label))
-  );
-  body.appendChild(chips);
-
-  const currentAmt = () => Math.max(0, Math.round(Number(amtInput.value) || 0));
-
-  /* ------------------------------------------------------------------
-     TEEN RAASTE, SABSE AASAAN PEHLE.
-
-     Google Pay browser se aaye link ko saaf mana kar deta hai:
-       "Your payment is declined for security reasons.
-        Please try using a mobile number, UPI ID, or QR code."
-
-     Char students ke saath yahi hua. Par gaur kijiye — GPay khud teen raaste
-     bata raha hai, aur unme sabse aasaan hai UPI ID. QR save karke gallery se
-     chunna chalta to hai, par usme kadam zyada hain; UPI ID copy karna sirf
-     do tap ka kaam hai aur har app me chalta hai.
-
-     Isliye kram yahi rakha hai: UPI ID -> QR -> app ka button.
-     ------------------------------------------------------------------ */
-
-  const copyBtn = el("button", { class: "btn-ssz btn-primary-ssz btn-block-ssz", type: "button" },
-    el("span", { html: icon("clipboard", { size: 18 }) }), " UPI ID copy karein");
-  copyBtn.addEventListener("click", async () => {
-    const ok = await copyToClipboard(upiId);
-    if (!ok) return toast.error(`Copy nahi hua — haath se likh lijiye: ${upiId}`);
-    copyBtn.lastChild.textContent = " Copy ho gaya ✓";
-    toast.success("UPI ID copy ho gaya.");
-    setTimeout(() => { copyBtn.lastChild.textContent = " UPI ID copy karein"; }, 2200);
-  });
-  body.appendChild(copyBtn);
-  body.appendChild(el("p", {
-    style: { margin: ".55rem 0 .25rem", fontSize: ".82rem", color: "var(--text-muted)", lineHeight: "1.75" }
-  },
-    "Sabse aasaan. Copy kijiye → apni UPI app kholiye → \"Pay to UPI ID\" ya " +
-    "\"New payment\" → paste kijiye → amount daaliye."
-  ));
-  if (student.studentId) {
-    const idLine = el("p", { style: { margin: "0 0 1.25rem", fontSize: ".82rem" } },
-      "Message me likh dijiye: ",
-      el("strong", {}, `Fee ${student.studentId}`)
-    );
-    body.appendChild(idLine);
-  }
-
-  body.appendChild(el("hr", { style: { border: 0, borderTop: "1px solid var(--border-subtle)", margin: "0 0 .9rem" } }));
-  body.appendChild(el("p", { style: { margin: "0 0 .75rem", fontSize: ".8rem", color: "var(--text-muted)" } },
-    "Ya QR se —"));
-
-  const canvas = el("canvas", { style: { maxWidth: "100%", height: "auto", borderRadius: "8px" } });
-  const holder = el("div", { style: { background: "#fff", padding: "16px", borderRadius: "12px", display: "inline-block" } }, canvas);
-  body.appendChild(holder);
-
-  body.appendChild(el("p", { style: { margin: "1rem 0 .25rem", fontWeight: "600" } }, upiId));
-  const caption = el("p", { style: { margin: 0, fontSize: ".85rem", color: "var(--text-muted)" } });
-  body.appendChild(caption);
-  const hint = el("p", { style: { margin: ".4rem 0 0", fontSize: ".78rem", color: "var(--warning, #b45309)" } });
-  body.appendChild(hint);
-
-  /* Save wali tasveer badi banti hai (scale 12) taaki app use aasaani se padh
-     le — screen wali chhoti QR kabhi-kabhi dhundhli padhi jaati hai. */
-  const saveBtn = el("button", { class: "btn-ssz btn-secondary-ssz btn-block-ssz", type: "button" },
-    el("span", { html: icon("download", { size: 18 }) }), " QR save karein");
-  saveBtn.addEventListener("click", async () => {
-    try {
-      const l = lib || (lib = await import("../tools/qrcode.js"));
-      const big = document.createElement("canvas");
-      l.drawQR(big, l.qrMatrix(qrPayload(upiId, currentAmt()), "M"), { scale: 12, margin: 4 });
-      const a = document.createElement("a");
-      a.href = big.toDataURL("image/png");
-      a.download = `SSZ-QR-${student.studentId || "fees"}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      toast.success("QR save ho gaya.");
-    } catch {
-      toast.error("QR save nahi ho paaya — screenshot le lijiye.");
-    }
-  });
-  body.appendChild(el("div", { style: { marginTop: "1rem" } }, saveBtn));
-  body.appendChild(el("p", { style: { margin: ".5rem 0 1.25rem", fontSize: ".8rem", color: "var(--text-muted)" } },
-    "Sabse pakka tarika. Save kijiye → apni UPI app kholiye → \"Scan QR\" → " +
-    "gallery/photo wala nishan → yahi tasveer chuniye."));
-
-  /* ---------------- doosra raasta: seedha app me ---------------- */
-  body.appendChild(el("hr", { style: { border: 0, borderTop: "1px solid var(--border-subtle)", margin: "0 0 .9rem" } }));
-  body.appendChild(el("p", { style: { margin: "0 0 .5rem", fontSize: ".8rem", color: "var(--text-muted)" } },
-    "Ya seedha app me kholiye —"));
-
-  if (isAndroid()) {
-    const row = el("div", { class: "cluster", style: { justifyContent: "center", gap: ".45rem", marginBottom: ".6rem" } });
-    UPI_APPS.forEach((app) => {
-      const a = el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: "#" }, app.label);
-      /* href har click par naya — taaki har koshish ka reference alag rahe. */
-      a.addEventListener("click", () => { a.href = appPayload(upiId, currentAmt(), app.pkg); });
-      row.appendChild(a);
-    });
-    body.appendChild(row);
-  }
-
-  const payBtn = el("a", { class: "btn-ssz btn-secondary-ssz btn-block-ssz", href: "#" },
-    el("span", { html: icon("wallet", { size: 18 }) }), "UPI app me pay karein");
-  payBtn.addEventListener("click", () => { payBtn.href = appPayload(upiId, currentAmt()); });
-  body.appendChild(payBtn);
-  body.appendChild(el("p", { style: { margin: ".5rem 0 0", fontSize: ".76rem", color: "var(--text-muted)" } },
-    "Google Pay is tarike ko aksar mana kar deta hai (\"declined for security reasons\") — " +
-    "aisa ho to upar wala QR use kar lijiye, wo chal jaayega."));
-
-  body.appendChild(el("p", { style: { margin: "1.25rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
-    "Payment ho jaane ke baad niche \"Ho gaya\" dabaayein — tabhi institute ko pata chalega aur receipt banegi."));
-
-  /* Payment karne ke turant baad wahi se bata dena sabse aasaan hai — amount
-     bhi apne aap agli screen me chala jaata hai, dobara type nahi karna. */
-  const doneBtn = el("button", { class: "btn-ssz btn-success-ssz", type: "button" }, "Ho gaya — bata dein");
-  const closeBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Band karein");
-  const m = openModal({ title: "UPI se pay karein", body, footer: [closeBtn, doneBtn] });
-  closeBtn.addEventListener("click", () => m.close(null));
-  doneBtn.addEventListener("click", () => {
-    const amt = Math.max(0, Math.round(Number(amtInput.value) || 0));
-    m.close(null);
-    setTimeout(() => proofDialog(amt), 220);
-  });
-
-  let lib = null;
-  let failed = false;
-  const redraw = async () => {
-    const amt = Math.max(0, Math.round(Number(amtInput.value) || 0));
-    /* href yahan bhi bhar dete hain — click par phir se naya ban jaata hai,
-       par tab tak link kaam chalau hona chahiye. */
-    payBtn.href = appPayload(upiId, amt);
-    payBtn.lastChild.textContent = amt > 0
-      ? ` ${money(amt)} pay karein`
-      : " UPI app me pay karein";
-    caption.textContent = amt > 0
-      ? `${money(amt)} · ${student.studentId || ""}`
-      : `Amount app me daalein · ${student.studentId || ""}`;
-    hint.textContent = (pending > 0 && amt > pending)
-      ? `Aapka bakaya sirf ${money(pending)} hai.`
-      : "";
-    if (failed) return;
-    try {
-      lib = lib || await import("../tools/qrcode.js");
-      lib.drawQR(canvas, lib.qrMatrix(qrPayload(upiId, amt), "M"), { scale: 6, margin: 3 });
-    } catch {
-      failed = true;
-      holder.replaceChildren(el("p", { style: { color: "#0f172a", fontSize: ".85rem", margin: 0 } },
-        `QR nahi ban paaya. Seedhe is UPI id par bhej dein: ${upiId}`));
-    }
-  };
-
-  let t = null;
-  amtInput.addEventListener("input", () => {
-    clearTimeout(t);
-    t = setTimeout(redraw, 250);
-  });
-  on(chips, "click", ".chip", (e, chip) => {
-    const v = Number(chip.dataset.amt) || 0;
-    amtInput.value = v > 0 ? String(v) : "";
-    redraw();
-  });
-
-  redraw();
 }
 
 /* Screenshot ab zaroori nahi hai — bahut se students phone se pay karke
    turant wapas aate hain aur screenshot lena bhool jaate hain. Sirf amount
    maangte hain, screenshot marzi ka. Bina screenshot ke bhi institute ko
    turant pata chal jaata hai ki kis student ne kitna bheja hai. */
-function proofDialog(prefillAmount = 0, payMode = "upi") {
+function proofDialog(prefillAmount = 0, payMode = "razorpay", fromPayButton = false) {
   if (mode === "preview") {
     toast.info("Preview mode: Firebase connect hone ke baad ye chalega.");
     return;
   }
 
-  const intro = payMode === "razorpay"
-    ? "Razorpay ka page doosre tab me khul gaya hai. Wahan payment poora karne ke baad " +
+  const intro = fromPayButton
+    ? "Payment ka page doosre tab me khul gaya hai. Wahan payment poora karne ke baad " +
       "yahan aakar kitna bheja hai wo bata dein — tabhi institute ko pata chalega."
     : "Payment kar diya? Bas kitna bheja hai wo bata dein — institute ko turant pata chal jaayega.";
 

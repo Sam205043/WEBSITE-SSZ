@@ -32,6 +32,9 @@ export const ROUTES = Object.freeze({
   studentHome:       "pages/student/dashboard.html",
   studentFees:       "pages/student/fees.html",
   studentClasses:    "pages/student/live-classes.html",
+  /* Recording apni site par hi chalti hai, Drive par nahi — Drive ke viewer
+     me Download ka button saamne hota hai. Vistaar student-recording.js me. */
+  studentRecording:  "pages/student/recording.html",
   studentAttendance: "pages/student/attendance.html",
   studentAssignments:"pages/student/assignments.html",
   studentPractice:   "pages/student/practice.html",

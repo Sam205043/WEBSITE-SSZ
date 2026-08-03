@@ -11,7 +11,8 @@ import { open as openModal, confirm as confirmModal, prompt as promptModal } fro
 import { initAdminShell, watchPendingAdmissions, setAdmissionBadge } from "./admin-shell.js";
 import { DEMO_ADMISSIONS } from "./admin-demo.js";
 import { COLLECTIONS, ID_FORMATS, ADMISSION_STATUS, STUDENT_STATUS } from "../core/constants.js";
-import { getCourseCode } from "../config/site-data.js";
+import { getCourseCode, COURSES } from "../config/site-data.js";
+import { buildPlan, nextDueFrom, planDateStr } from "../core/fee-plan.js";
 import toast from "../core/toast.js";
 
 let mode = "preview";
@@ -173,6 +174,73 @@ async function markRead(a) {
  * Approve: sequence -> Student ID -> students/{id} -> admission update.
  * The counter transaction guarantees two admins can never mint the same ID.
  */
+/* --------------------------------------------------------------------------
+   Approve ke saath do cheezein apne aap
+   --------------------------------------------------------------------------
+   Pehle approve sirf Student ID banata tha. Batch aur kist plan admin ko
+   haath se dena padta tha — aur batch dena bhool jaana sabse mehngi galti
+   thi: student login to kar leta tha par use EK BHI class nahi dikhti thi,
+   aur use lagta tha website hi kharab hai.
+   -------------------------------------------------------------------------- */
+
+/** "08:00 AM - 09:00 AM" se pata karo ki ye subah ka batch hai ya shaam ka. */
+function timingPref(timing) {
+  const m = String(timing || "").match(/(\d{1,2})(?::\d{2})?\s*(AM|PM)/i);
+  if (!m) return "";
+  let h = Number(m[1]) % 12;
+  if (/PM/i.test(m[2])) h += 12;
+  if (h < 12) return "morning";
+  if (h < 16) return "afternoon";
+  return "evening";
+}
+
+/**
+ * Us course ka chalu batch dhoondho jo student ki pasand se mile.
+ *
+ * Jaan-boojh kar sirf tab lagate hain jab jawab me koi shak na ho — ek hi
+ * batch bache. Do milte hon to khaali chhod dete hain, kyunki galat batch
+ * daal dena na daalne se bura hai (galat class, galat attendance).
+ */
+async function pickBatch(courseId, pref) {
+  if (!courseId) return null;
+  try {
+    const { getMany } = await import("../../firebase/db-service.js");
+    const rows = await getMany(COLLECTIONS.BATCHES, { limit: 50, useCache: false });
+    const open = rows.filter((b) => b.courseId === courseId && b.status !== "completed");
+    if (open.length === 1) return open[0];
+    const match = open.filter((b) => timingPref(b.timing) === pref);
+    return match.length === 1 ? match[0] : null;
+  } catch { return null; }
+}
+
+/**
+ * Kist plan: 10% abhi, baaki barabar mahine-mahine.
+ *
+ * Pehli kist gol number me hoti hai (₹818 jaisi rakam koi yaad nahi rakhta).
+ * Kiston ki ginti course ki lambai se bandhi hai — fees course khatam hone
+ * se pehle poori ho jani chahiye, warna bakaya lene ke liye student ko
+ * dhoondhna padta hai.
+ */
+function autoPlan(totalFee, durationMonths, fromDate = new Date()) {
+  const total = Math.round(Number(totalFee) || 0);
+  if (total <= 0) return [];
+
+  const first = Math.min(total, Math.max(500, Math.ceil((total * 0.1) / 100) * 100));
+  const rest = total - first;
+
+  const start = new Date(fromDate);
+  const plan = [{ no: 1, amount: first, dueDate: planDateStr(start) }];
+  if (rest <= 0) return plan;
+
+  const months = Math.max(1, Math.min(9, (Number(durationMonths) || 12) - 1));
+  const next = new Date(start);
+  next.setMonth(next.getMonth() + 1);
+
+  return plan.concat(
+    buildPlan(rest, months, planDateStr(next)).map((k) => ({ ...k, no: k.no + 1 }))
+  );
+}
+
 async function approve(a, modal) {
   const ok = await confirmModal({
     title: "Application approve karein?",
@@ -200,6 +268,14 @@ async function approve(a, modal) {
        wo bhi us folder ko nahi padh sakta. */
     const photoURL = a.photoURL || await resolveUrl(a.photoPath);
 
+    /* Batch aur kist plan ab yahin ban jaate hain — admin ko yaad nahi
+       rakhna padta. Batch na mile to khaali rehta hai aur toast bata deta
+       hai, taaki chup-chaap galti na chhup jaye. */
+    const batch = await pickBatch(a.courseId, a.batchPref);
+    const totalFee = (a.courseFee || 0) + (a.admissionFee || 0);
+    const course = COURSES.find((c) => c.id === a.courseId);
+    const feePlan = autoPlan(totalFee, course?.durationMonths);
+
     await createWithId(COLLECTIONS.STUDENTS, studentId, {
       studentId,
       uid: "",                                 // linked when the student signs up / by admin
@@ -214,14 +290,15 @@ async function approve(a, modal) {
       address: `${a.address}, ${a.city} - ${a.pincode}`,
       qualification: a.qualification,
       courseId: a.courseId, courseName: a.courseName,
-      batchId: a.batchId || "", batchName: "", batchPref: a.batchPref || "",
+      batchId: a.batchId || batch?.id || "", batchName: batch?.name || "", batchPref: a.batchPref || "",
       photoURL, photoPath: a.photoPath || "", documents: a.documents || [],
       admissionDate: new Date(),
       status: STUDENT_STATUS.ACTIVE,
-      totalFee: (a.courseFee || 0) + (a.admissionFee || 0),
+      totalFee,
       paidFee: 0,
-      pendingFee: (a.courseFee || 0) + (a.admissionFee || 0),
-      nextDueDate: null
+      pendingFee: totalFee,
+      feePlan,
+      nextDueDate: nextDueFrom({ feePlan, paidFee: 0, totalFee })
     });
 
     await update(COLLECTIONS.ADMISSIONS, a.id, {
@@ -230,6 +307,15 @@ async function approve(a, modal) {
 
     modal.close();
     toast.success(`Approve ho gaya! Student ID: ${studentId}`, { duration: 7000 });
+
+    if (batch) {
+      toast.info(`Batch bhi lag gaya: ${batch.name}`, { duration: 6000 });
+    } else {
+      /* Ye chetavni zaroori hai — batch ke bina student ko ek bhi class
+         nahi dikhegi, aur use lagega website kaam nahi kar rahi. */
+      toast.error("Batch nahi mila — Students me jaakar khud chun lein, warna class nahi dikhegi.",
+        { duration: 9000 });
+    }
 
     /* Ek tap me student ko khabar. Signup ab Student ID nahi poochhta —
        admission wale email se account banate hi record apne aap jud jaata

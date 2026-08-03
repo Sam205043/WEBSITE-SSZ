@@ -189,7 +189,7 @@ async function upiQrDialog(upiId, pending) {
   const body = el("div", { style: { textAlign: "center" } });
   body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: "1rem" } },
     "Jitna abhi de sakte hain utna amount daalein — poori fees ek saath dena zaroori nahi. " +
-    "Phir koi bhi UPI app (PhonePe, Google Pay, Paytm) se scan karein."));
+    "Phir neeche wala QR save karke apni UPI app (PhonePe, Google Pay, Paytm) me chun lijiye."));
 
   const amtInput = el("input", {
     class: "input-ssz", type: "number", id: "upiAmt",
@@ -218,29 +218,19 @@ async function upiQrDialog(upiId, pending) {
 
   const currentAmt = () => Math.max(0, Math.round(Number(amtInput.value) || 0));
 
-  /* Android par har app ka apna button. `intent://` me app ka package likha
-     hota hai, isliye wo seedha usi app me jaata hai — aam `upi://` link ke
-     bharose nahi rehna padta. Har click par naya reference banta hai, isliye
-     dobara koshish karna bhi safe hai. */
-  if (isAndroid()) {
-    body.appendChild(el("p", { style: { margin: "0 0 .45rem", fontSize: ".78rem", color: "var(--text-muted)" } },
-      "Apni app dabaiye —"));
-    const row = el("div", { class: "cluster", style: { justifyContent: "center", gap: ".45rem", marginBottom: ".75rem" } });
-    UPI_APPS.forEach((app) => {
-      const a = el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: "#" }, app.label);
-      a.addEventListener("click", () => { a.href = appPayload(upiId, currentAmt(), app.pkg); });
-      row.appendChild(a);
-    });
-    body.appendChild(row);
-  }
+  /* ------------------------------------------------------------------
+     QR PEHLE, APP KE BUTTON BAAD ME — aur iski wajah asli tajurba hai.
 
-  const payBtn = el("a", { class: "btn-ssz btn-primary-ssz btn-block-ssz", href: "#" },
-    el("span", { html: icon("wallet", { size: 18 }) }), "UPI app me pay karein");
-  /* href har click par naya — taaki har koshish ka reference alag rahe. */
-  payBtn.addEventListener("click", () => { payBtn.href = appPayload(upiId, currentAmt()); });
-  body.appendChild(payBtn);
-  body.appendChild(el("p", { style: { margin: ".5rem 0 1.25rem", fontSize: ".76rem", color: "var(--text-muted)" } },
-    "Button se na ho paaye to niche wala QR save kar lijiye — wo raasta hamesha chalta hai."));
+     Google Pay browser se aaye link ko saaf mana kar deta hai:
+       "Your payment is declined for security reasons.
+        Please try using a mobile number, UPI ID, or QR code."
+     Yaani GPay khud keh raha hai ki QR use karo. Teen students ke saath
+     yahi hua — button se mana, aur wahi QR usi account se turant chal gaya.
+
+     Isliye ab sabse bada button QR save karne ka hai. App wale button hate
+     nahi hain (PhonePe/Paytm par ye chal sakte hain), bas neeche kar diye
+     gaye hain — taaki student pehle wahi raasta pakde jo chalta hai.
+     ------------------------------------------------------------------ */
 
   const canvas = el("canvas", { style: { maxWidth: "100%", height: "auto", borderRadius: "8px" } });
   const holder = el("div", { style: { background: "#fff", padding: "16px", borderRadius: "12px", display: "inline-block" } }, canvas);
@@ -252,13 +242,10 @@ async function upiQrDialog(upiId, pending) {
   const hint = el("p", { style: { margin: ".4rem 0 0", fontSize: ".78rem", color: "var(--warning, #b45309)" } });
   body.appendChild(hint);
 
-  /* Ab tak jo raasta har baar chala hai wahi: QR ki tasveer app me gallery se
-     chun lena. Pehle iske liye student ko khud screenshot lena padta tha, jo
-     bahut logon ko sujhta hi nahi. Ab ek button se seedha save ho jaata hai.
-     Save wali tasveer badi banti hai (scale 12) taaki app use aasaani se
-     padh le — screen wali chhoti QR kabhi-kabhi dhundhli padhi jaati hai. */
-  const saveBtn = el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button" },
-    el("span", { html: icon("download", { size: 16 }) }), " QR save karein");
+  /* Save wali tasveer badi banti hai (scale 12) taaki app use aasaani se padh
+     le — screen wali chhoti QR kabhi-kabhi dhundhli padhi jaati hai. */
+  const saveBtn = el("button", { class: "btn-ssz btn-primary-ssz btn-block-ssz", type: "button" },
+    el("span", { html: icon("download", { size: 18 }) }), " QR save karein");
   saveBtn.addEventListener("click", async () => {
     try {
       const l = lib || (lib = await import("../tools/qrcode.js"));
@@ -275,11 +262,36 @@ async function upiQrDialog(upiId, pending) {
       toast.error("QR save nahi ho paaya — screenshot le lijiye.");
     }
   });
-  body.appendChild(el("div", { style: { marginTop: ".75rem" } }, saveBtn));
-  body.appendChild(el("p", { style: { margin: ".5rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
-    "Save karke apni UPI app kholein → \"Scan QR\" → gallery/photo wala nishan → yahi tasveer chunein."));
+  body.appendChild(el("div", { style: { marginTop: "1rem" } }, saveBtn));
+  body.appendChild(el("p", { style: { margin: ".5rem 0 1.25rem", fontSize: ".8rem", color: "var(--text-muted)" } },
+    "Sabse pakka tarika. Save kijiye → apni UPI app kholiye → \"Scan QR\" → " +
+    "gallery/photo wala nishan → yahi tasveer chuniye."));
 
-  body.appendChild(el("p", { style: { margin: "1rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
+  /* ---------------- doosra raasta: seedha app me ---------------- */
+  body.appendChild(el("hr", { style: { border: 0, borderTop: "1px solid var(--border-subtle)", margin: "0 0 .9rem" } }));
+  body.appendChild(el("p", { style: { margin: "0 0 .5rem", fontSize: ".8rem", color: "var(--text-muted)" } },
+    "Ya seedha app me kholiye —"));
+
+  if (isAndroid()) {
+    const row = el("div", { class: "cluster", style: { justifyContent: "center", gap: ".45rem", marginBottom: ".6rem" } });
+    UPI_APPS.forEach((app) => {
+      const a = el("a", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", href: "#" }, app.label);
+      /* href har click par naya — taaki har koshish ka reference alag rahe. */
+      a.addEventListener("click", () => { a.href = appPayload(upiId, currentAmt(), app.pkg); });
+      row.appendChild(a);
+    });
+    body.appendChild(row);
+  }
+
+  const payBtn = el("a", { class: "btn-ssz btn-secondary-ssz btn-block-ssz", href: "#" },
+    el("span", { html: icon("wallet", { size: 18 }) }), "UPI app me pay karein");
+  payBtn.addEventListener("click", () => { payBtn.href = appPayload(upiId, currentAmt()); });
+  body.appendChild(payBtn);
+  body.appendChild(el("p", { style: { margin: ".5rem 0 0", fontSize: ".76rem", color: "var(--text-muted)" } },
+    "Google Pay is tarike ko aksar mana kar deta hai (\"declined for security reasons\") — " +
+    "aisa ho to upar wala QR use kar lijiye, wo chal jaayega."));
+
+  body.appendChild(el("p", { style: { margin: "1.25rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
     "Payment ho jaane ke baad niche \"Ho gaya\" dabaayein — tabhi institute ko pata chalega aur receipt banegi."));
 
   /* Payment karne ke turant baad wahi se bata dena sabse aasaan hai — amount

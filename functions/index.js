@@ -1,0 +1,815 @@
+/* ==========================================================================
+   Soft Skill Zone — Cloud Functions
+   --------------------------------------------------------------------------
+   YE KYUN BANA
+
+   Website GitHub Pages par hai — wahan koi server nahi chalta. Isliye jab
+   student Razorpay par paisa deta tha, website ko kabhi pata hi nahi chalta
+   tha. Student ko khud "kitna bheja" likhna padta tha aur admin ko Razorpay
+   dashboard me jaakar milaana padta tha.
+
+   Pehle do function paise ke liye hain, aur dono ka maqsad ek hi hai: paisa
+   aane ki khabar SEEDHE Razorpay se lena, student ke browser se nahi. Browser
+   jhooth bol sakta hai — Razorpay ka signature nahi.
+
+     createPaymentLink   har student/admission ka apna payment link banata
+                         hai, jisme uski pehchaan (reference) juda hota hai.
+     razorpayWebhook     paisa aate hi Razorpay khud yahan khabar karta hai;
+                         yahin Student ID, fee record aur receipt ban jaate
+                         hain.
+     publishRecording    class ki recording ka Drive link Pankaj ke laptop se
+                         aata hai aur us din ki class ke saamne chadh jaata
+                         hai. Isi tarah dastakhat se pehra rakha gaya hai.
+     admissionStatus     payment ke baad admission page poochhta rehta hai
+                         "meri Student ID bani kya?" — taaki student khaali
+                         page par baitha na rah jaye.
+
+   TEEN NIYAM JO YAHAN NIBHAAYE GAYE HAIN
+
+   1. Rakam kabhi browser se nahi maani jaati. Client sirf "kaun" aur "kitna"
+      maangta hai; asli fees Firestore se padhi jaati hai aur us par hadd
+      lagayi jaati hai. Warna koi ₹10,000 ki fees ₹1 me bhar leta.
+
+   2. Signature ke bina koi webhook nahi maana jaata. Razorpay ka webhook URL
+      public hota hai — koi bhi usme nakli payment bhej sakta hai.
+
+   3. Ek payment do baar nahi ginega. Razorpay kabhi-kabhi wahi webhook
+      dobara bhejta hai (retry). Isliye fees ka document ID Razorpay ke
+      payment id se hi banta hai — dobara aane par wahi document dobara
+      likha jaata hai, naya nahi banta.
+   ========================================================================== */
+
+const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
+/* NOTE: "firebase-functions/v2" (poora bundle) jaan-boojh kar nahi liya.
+   Wo apne saath Realtime Database ka provider bhi kheench laata hai, jo
+   @firebase/app maangta hai — aur wo package install hi nahi hota. Deploy
+   ke waqt CLI code padhte hi "Cannot find module '@firebase/app'" par ruk
+   jaata tha. Sirf options wala hissa lene se ye jhamela hi khatam. */
+const { setGlobalOptions } = require("firebase-functions/v2/options");
+const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
+const crypto = require("crypto");
+const Razorpay = require("razorpay");
+
+admin.initializeApp();
+const db = admin.firestore();
+
+/* Firestore aur Storage dono asia-south1 me hain — function bhi wahin rakha
+   hai, taaki har read-write ka safar chhota rahe. */
+setGlobalOptions({ region: "asia-south1", maxInstances: 5 });
+
+const RZP_KEY_ID = defineSecret("RZP_KEY_ID");
+const RZP_KEY_SECRET = defineSecret("RZP_KEY_SECRET");
+const RZP_WEBHOOK_SECRET = defineSecret("RZP_WEBHOOK_SECRET");
+
+/* Class recording ka link chadhane wala raasta. Isse Pankaj ke laptop par
+   chalne wala chhota program baat karta hai — wahi secret dono taraf hai. */
+const REC_SECRET = defineSecret("REC_SECRET");
+
+/* --------------------------------------------------------------------------
+   Course ki jaankari
+
+   Ye website ke js/config/site-data.js se li gayi hai. Function browser ka
+   module import nahi kar sakta, isliye yahan dobara likhni padi.
+
+   >>> Fees ya duration badlein to DONO jagah badalna — warna Student ID ka
+   >>> code ya kist ka plan galat banega. <<<
+   -------------------------------------------------------------------------- */
+const COURSES = {
+  "ai-dca":           { code: "DCA", months: 6,  fee: 6000 },
+  "ai-tally-prime":   { code: "TLY", months: 3,  fee: 5000 },
+  "python-314":       { code: "PYT", months: 4,  fee: 7000 },
+  "adca":             { code: "ADC", months: 12, fee: 10000 },
+  "ai-video-editing": { code: "VID", months: 3,  fee: 6500 },
+  "icom":             { code: "ICM", months: 24, fee: 12000 },
+  "bcom":             { code: "BCM", months: 36, fee: 18000 },
+  "gst-2":            { code: "GST", months: 2,  fee: 4500 },
+  "income-tax-2025":  { code: "ITX", months: 2,  fee: 4500 },
+  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500 }
+};
+
+/* Admission ke waqt kam se kam itna hissa — baaki kisten ban jaati hain. */
+const MIN_SHARE = 0.10;
+
+/* ==========================================================================
+   Chhoti madad
+   ========================================================================== */
+
+const rupees = (n) => Math.max(0, Math.round(Number(n) || 0));
+const dateStr = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** Counter ek transaction me badhta hai, taaki do admission ek hi ID na le lein. */
+async function nextSequence(name, start = 1) {
+  const ref = db.collection("counters").doc(name);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const next = snap.exists ? (snap.data().value || 0) + 1 : start;
+    tx.set(ref, { value: next, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    return next;
+  });
+}
+
+/**
+ * Kist plan — website ke admin panel jaisa hi hisaab, taaki dono jagah ek
+ * hi jawab bane: 10% (gol number me) abhi, baaki barabar mahine-mahine.
+ * Kiston ki ginti course ki lambai se bandhi hai, taaki fees course khatam
+ * hone se pehle poori ho jaye.
+ */
+function buildFeePlan(totalFee, durationMonths, from = new Date()) {
+  const total = rupees(totalFee);
+  if (!total) return [];
+
+  const first = Math.min(total, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100));
+  const plan = [{ no: 1, amount: first, dueDate: dateStr(from) }];
+
+  const rest = total - first;
+  if (rest <= 0) return plan;
+
+  const n = Math.max(1, Math.min(9, (Number(durationMonths) || 12) - 1));
+  const base = Math.floor(rest / n);
+  const extra = rest - base * n;
+
+  for (let i = 0; i < n; i++) {
+    const d = new Date(from);
+    d.setMonth(d.getMonth() + i + 1);
+    plan.push({ no: i + 2, amount: base + (i === 0 ? extra : 0), dueDate: dateStr(d) });
+  }
+  return plan;
+}
+
+/** Pehli aisi kist jiska paisa poora nahi aaya — student dashboard isi se "agli due date" dikhata hai. */
+function nextDueDate(plan, paidFee) {
+  let left = rupees(paidFee);
+  for (const k of plan) {
+    if (left >= k.amount) { left -= k.amount; continue; }
+    return new Date(`${k.dueDate}T00:00:00`);
+  }
+  return null;
+}
+
+/** "08:00 AM - 09:00 AM" se pata karo ki subah ka batch hai ya shaam ka. */
+function timingPref(timing) {
+  const m = String(timing || "").match(/(\d{1,2})(?::\d{2})?\s*(AM|PM)/i);
+  if (!m) return "";
+  let h = Number(m[1]) % 12;
+  if (/PM/i.test(m[2])) h += 12;
+  if (h < 12) return "morning";
+  if (h < 16) return "afternoon";
+  return "evening";
+}
+
+/**
+ * Batch tabhi lagta hai jab jawab me koi shak na ho — us course ka ek hi
+ * chalu batch ho, ya student ki pasand se sirf ek mile. Do milen to khaali
+ * chhod dete hain: galat batch dena na dene se bura hai.
+ */
+async function pickBatch(courseId, pref) {
+  if (!courseId) return null;
+  const snap = await db.collection("batches").where("courseId", "==", courseId).limit(50).get();
+  const open = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((b) => b.status !== "completed");
+
+  if (open.length === 1) return open[0];
+  const match = open.filter((b) => timingPref(b.timing) === pref);
+  return match.length === 1 ? match[0] : null;
+}
+
+/* --------------------------------------------------------------------------
+   "Ye link kiske liye maanga ja raha hai — kya maangne wala wahi hai?"
+
+   PEHLE YAHAN KUCH BHI NAHI THA, AUR WO EK BADI GALTI THI.
+
+   Website GitHub Pages par hai, isliye is function ka pata sabko maloom ho
+   sakta hai. Student ID ginti me chalti hai (SSZ2026ADC0001, 0002, …) aur
+   application number bhi. Bina kisi jaanch ke, koi bhi ek-ek number aazma
+   kar poore institute ki list nikaal sakta tha — naam, phone, email, aur
+   kitna bakaya hai. Har koshish par ek asli Razorpay link bhi ban jaata,
+   yaani account bharkar asli students ke payment rok dena bhi mumkin tha.
+
+   Ab do me se koi ek sabooti chahiye:
+
+     1. LOGIN — student apne hi record ke liye maang raha ho (ya admin ho).
+        Admission ke waqt ye mumkin nahi hota, kyunki tab account bana hi
+        nahi hota — isliye doosra raasta bhi rakha hai.
+
+     2. EMAIL — wahi email jo us record me likha hai. Student apna email
+        jaanta hai; anjaan aadmi nahi. Yahi tareeka `admissionStatus` me
+        bhi hai, dono jagah ek jaisa.
+
+   Na mile to wahi "Record nahi mila" jaata hai jo galat id par jaata hai —
+   taaki ye bhi pata na chale ki record maujood hai ya nahi.
+   -------------------------------------------------------------------------- */
+async function assertMayPay(req, kind, id, rec) {
+  const askedEmail = String(req.data?.email || "").trim().toLowerCase();
+  const recEmail = String(rec.email || "").trim().toLowerCase();
+
+  /* Raasta 2 — email mel khaata hai. Dono taraf khaali na ho, warna jinke
+     record me email hi nahi likha unke liye darwaza khul jaata. */
+  if (askedEmail && recEmail && askedEmail === recEmail) return;
+
+  /* Raasta 1 — login. */
+  const uid = req.auth?.uid;
+  if (uid) {
+    const u = (await db.collection("users").doc(uid).get()).data() || {};
+    if (u.role === "admin") return;                       // admin kisi ke liye bhi
+    if (kind === "student" && u.studentId === id) return; // student sirf apne liye
+    /* Admission ke waqt user ke paas abhi studentId hoti hi nahi, isliye
+       login se admission ka koi raasta nahi — wahan email hi sabooti hai. */
+  }
+
+  logger.warn("payment link — bina sabooti ke maanga gaya", { kind, id, hadAuth: !!uid });
+  throw new HttpsError("not-found", "Record nahi mila.");
+}
+
+/* ==========================================================================
+   1) createPaymentLink — har koshish ka apna link
+   --------------------------------------------------------------------------
+   Chaar pehre —
+     * maangne wala wahi ho (login ya email) — upar `assertMayPay`
+     * jis record ke liye link maanga hai wo Firestore me hona chahiye
+     * rakam hamesha Firestore ki fees se tay hoti hai, client se nahi
+     * kam se kam 10%, aur bakaya se zyada kabhi nahi
+   ========================================================================== */
+exports.createPaymentLink = onCall(
+  { secrets: [RZP_KEY_ID, RZP_KEY_SECRET], cors: true },
+  async (req) => {
+    const kind = String(req.data?.kind || "");
+    const id = String(req.data?.id || "").trim();
+    const asked = rupees(req.data?.amount);
+
+    if (!["admission", "student"].includes(kind) || !id) {
+      throw new HttpsError("invalid-argument", "kind aur id dono chahiye.");
+    }
+
+    const snap = await db.collection(kind === "admission" ? "admissions" : "students").doc(id).get();
+    if (!snap.exists) throw new HttpsError("not-found", "Record nahi mila.");
+    const rec = snap.data();
+
+    /* Rakam ki koi baat isse pehle nahi — pehle ye tay ho ki poochhne ka
+       haq hai bhi ya nahi. */
+    await assertMayPay(req, kind, id, rec);
+
+    /* --------------------------------------------------------------------
+       Admission approve ho chuka ho to hisaab student ke record se lo.
+
+       PEHLE YAHAN EK MEHNGI GALTI THI. Admission wale raaste me "pehle kitna
+       diya" hamesha shunya maan liya jaata tha. Iska matlab tha ki uska
+       bakaya hamesha POORI fees rehta tha — chahe student paise de chuka ho.
+
+       Kaise pakda jaata: student poori ₹10,000 admission page se deta, page
+       refresh karta (ya doosre tab me wahi page khula hota), aur dobara
+       "Fee bharein" dabate hi use phir se ₹10,000 ka asli link mil jaata.
+       De diya to `paidFee` 20,000 ho jaata aur `pendingFee` chup-chaap 0 par
+       ruk jaata — ₹10,000 zyada le liye, aur kahin darj bhi nahi hota ki
+       zyada hue hain.
+
+       Ab: paisa aate hi webhook student ka record bana deta hai aur
+       admission par uski ID likh deta hai. Wo ID dikhte hi hum aage ka poora
+       hisaab student ke record se karte hain — jaise webhook khud karta hai.
+       Kist ki hadd bhi tab ₹100 ho jaati hai, kyunki 10% to aa hi chuka.
+
+       Ek chhoti khidki phir bhi bachti hai: paisa dene ke baad, webhook
+       pahunchne se pehle ke kuchh second. Us beech dono link poore bakaye ke
+       hi banenge. Wo khidki band karne ke liye payment ke waqt ka record
+       chahiye hoga — abhi ke liye asli dikkat (refresh karke dobara dena)
+       khatam ho gayi hai.
+       -------------------------------------------------------------------- */
+    let feeRec = rec;
+    let feeKind = kind;
+    if (kind === "admission" && rec.studentId) {
+      const sSnap = await db.collection("students").doc(rec.studentId).get();
+      if (sSnap.exists) { feeRec = sSnap.data(); feeKind = "student"; }
+    }
+
+    /* Asli rakam yahin tay hoti hai. Client jo bheje, uski hadd hum lagate
+       hain — warna ₹10,000 ki fees ₹1 me bhar li jaati. */
+    const total = feeKind === "admission"
+      ? rupees((feeRec.courseFee || 0) + (feeRec.admissionFee || 0))
+      : rupees(feeRec.totalFee);
+    const alreadyPaid = feeKind === "admission" ? 0 : rupees(feeRec.paidFee);
+    const due = Math.max(0, total - alreadyPaid);
+
+    if (due <= 0) throw new HttpsError("failed-precondition", "Koi bakaya nahi hai.");
+
+    /* Do alag hadd, do alag wajah.
+
+       Admission par 10% isliye ki usi payment par Student ID, batch aur kist
+       plan ban jaate hain — ₹1 me ye sab de dena galat hoga.
+
+       Baad ki kist par hadd sirf ₹100 hai, aur wo rokne ke liye nahi hai.
+       Paisa aane me jitni rukawat kam, utna achha — jo student aaj ₹300 de
+       sakta hai use rokne se institute ko ₹300 milte hi nahi. Ye ₹100 to
+       bas do cheezon ke liye hai: ₹1,000 ki jagah ₹1 wala typo, aur ₹5-₹10
+       wale payment se receipt ki ginti bhar jaana.
+
+       Dono halat me `due` se zyada kabhi nahi — aakhri kist chhoti bachi ho
+       to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai. */
+    const min = feeKind === "admission"
+      ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))
+      : Math.min(due, 100);
+
+    const amount = Math.min(due, Math.max(min, asked || min));
+
+    const rzp = new Razorpay({
+      key_id: RZP_KEY_ID.value(),
+      key_secret: RZP_KEY_SECRET.value()
+    });
+
+    const link = await rzp.paymentLink.create({
+      amount: amount * 100,                       // Razorpay paise me leta hai
+      currency: "INR",
+      description: `${feeRec.courseName || rec.courseName || "Course"} fees — ${rec.fullName || ""}`.trim(),
+      customer: {
+        name: rec.fullName || "",
+        contact: String(rec.mobile || "").replace(/\D/g, "").slice(-10),
+        email: rec.email || ""
+      },
+      notify: { sms: false, email: false },       // WhatsApp/email hum khud bhejte hain
+      reminder_enable: false,
+      /* Razorpay reference_id 40 akshar se lamba nahi le sakta, warna poora
+         call INTERNAL error de deta hai. Pehle yahan "admission:<appNo>:<ms>"
+         tha — student ke liye 36 akshar ka banta tha (chal jaata tha) par
+         admission ke liye 41 ka, isliye har admission ka payment link fail
+         hota tha. Ab kind hata diya (wo notes me hai hi) aur time base-36 me
+         likha jaata hai — 26 akshar. slice() aakhri pehra hai, taaki kabhi
+         koi lamba id aaye to bhi call na toote.
+
+         Pehchan isse hoti hi nahi — webhook `notes` padhta hai. Ye sirf
+         student ko dikhne wala "RECEIPT" number hai. */
+      reference_id: `${id}-${Date.now().toString(36)}`.slice(0, 40),
+      notes: { kind, recordId: id, studentId: rec.studentId || "" }
+    });
+
+    await snap.ref.set({
+      lastPaymentLinkId: link.id,
+      lastPaymentLinkAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    logger.info("payment link bana", { kind, id, amount, linkId: link.id });
+    return { url: link.short_url, amount };
+  }
+);
+
+/* ==========================================================================
+   2) razorpayWebhook — paisa aane ki asli khabar
+   ========================================================================== */
+exports.razorpayWebhook = onRequest(
+  { secrets: [RZP_WEBHOOK_SECRET], cors: false },
+  async (req, res) => {
+    if (req.method !== "POST") return res.status(405).send("POST only");
+
+    /* Signature ki jaanch SABSE PEHLE. Ye URL public hai — koi bhi ise
+       jaan kar nakli "payment ho gaya" bhej sakta hai. Bina signature ke
+       aage ek line bhi nahi chalni chahiye. */
+    const given = req.get("x-razorpay-signature") || "";
+    const expected = crypto
+      .createHmac("sha256", RZP_WEBHOOK_SECRET.value())
+      .update(req.rawBody)
+      .digest("hex");
+
+    const ok = given.length === expected.length &&
+      crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+
+    if (!ok) {
+      logger.warn("webhook signature galat — chhod diya");
+      return res.status(401).send("bad signature");
+    }
+
+    const event = req.body?.event || "";
+    if (event !== "payment_link.paid") {
+      // Baaki event abhi kaam ke nahi. 200 dena zaroori hai, warna Razorpay
+      // baar-baar dobara bhejta rahega.
+      return res.status(200).send("ignored");
+    }
+
+    try {
+      const payment = req.body?.payload?.payment?.entity || {};
+      const link = req.body?.payload?.payment_link?.entity || {};
+      const notes = link.notes || payment.notes || {};
+
+      const kind = notes.kind;
+      const recordId = notes.recordId;
+      const amount = rupees((payment.amount || link.amount_paid || 0) / 100);
+      const paymentId = payment.id || link.id;
+
+      if (!kind || !recordId || !amount || !paymentId) {
+        logger.error("webhook me zaroori jaankari nahi", { kind, recordId, amount, paymentId });
+        return res.status(200).send("missing notes");
+      }
+
+      if (kind === "admission") await onAdmissionPaid(recordId, amount, paymentId);
+      else await onStudentPaid(recordId, amount, paymentId);
+
+      return res.status(200).send("ok");
+    } catch (err) {
+      logger.error("webhook fail", err);
+      /* 500 dene par Razorpay dobara bhejega — aur idempotency ki wajah se
+         dobara aana surakshit hai. Isliye galti chhupana nahi hai. */
+      return res.status(500).send("error");
+    }
+  }
+);
+
+/* --------------------------------------------------------------------------
+   Admission ka pehla payment — yahin student "ban" jaata hai
+   --------------------------------------------------------------------------
+   PEHLE YAHAN TEEN ALAG-ALAG LIKHAI THI, EK KE BAAD EK, BINA KISI BANDHAN KE:
+     1) students/{id} banana
+     2) admissions/{id} par studentId chipkana
+     3) fees darj karna
+
+   Beech me kuchh bhi toot jaye — function ka timeout, Firestore ka ek pal
+   ka jhatka, deploy ke waqt instance ka mar jaana — to haalat kharab ho
+   jaati thi. Sabse buri soorat 1 aur 2 ke beech ki thi: student ban chuka
+   hai, par admission ko iski khabar hi nahi. Razorpay 500 dekh kar webhook
+   DOBARA bhejta hai, code phir se `a.studentId` khali paata hai, aur EK AUR
+   student bana deta hai — usi insaan ke do record, do ID. Pehla record
+   hamesha ke liye ₹0 par pada rehta.
+
+   Yahi cheez bina kisi crash ke bhi ho sakti thi: Razorpay kabhi-kabhi ek
+   hi event do baar, lagbhag ek saath bhejta hai. Dono chalte, dono ko
+   `studentId` khali milta, dono student bana dete.
+
+   Ab 1 aur 2 EK transaction me hain. Ya to dono hote hain ya koi nahi.
+   Do ek saath chalein to Firestore khud unhe line me laga deta hai — doosre
+   ko `studentId` bhara hua milta hai aur wo wahi laut aata hai.
+   -------------------------------------------------------------------------- */
+async function onAdmissionPaid(admissionId, amount, paymentId) {
+  const studentId = await claimStudentId(admissionId);
+  await onStudentPaid(studentId, amount, paymentId);
+}
+
+/**
+ * Is admission ka student record — agar hai to wahi, nahi to bana kar.
+ * Hamesha ek hi studentId lautata hai, chaahe kitni baar bulao.
+ */
+async function claimStudentId(admissionId) {
+  const admRef = db.collection("admissions").doc(admissionId);
+
+  const first = await admRef.get();
+  if (!first.exists) throw new Error(`admission ${admissionId} nahi mila`);
+  const a = first.data();
+
+  /* Pehle se approve ho chuka ho (webhook dobara aaya, ya admin ne haath se
+     kar diya) to nayi ID banane ki zaroorat hi nahi. */
+  if (a.studentId) return a.studentId;
+
+  const year = new Date().getFullYear();
+  const course = COURSES[a.courseId] || {};
+  const code = course.code || String(a.courseId || "GEN").slice(0, 3).toUpperCase();
+
+  /* Ye teenon transaction ke BAAHAR hone hi padte hain: nextSequence ka apna
+     transaction hai (transaction ke andar transaction nahi chalta), aur
+     pickBatch ek query hai. Inka bahar hona surakshit hai — inme se koi
+     kuchh aisa nahi likhta jise wapas lena pade. Sirf ek chhota kharcha hai:
+     race haarne par ye sequence number kisi ke kaam nahi aata, aur student
+     IDs me ek number ki khaali jagah reh jaati hai. Do record ban jaane se
+     ye bahut sasta sauda hai. */
+  const seq = await nextSequence(`students-${year}-${code}`);
+  const candidateId = `SSZ${year}${code}${String(seq).padStart(4, "0")}`;
+  const batch = await pickBatch(a.courseId, a.batchPref);
+
+  const totalFee = rupees((a.courseFee || 0) + (a.admissionFee || 0));
+  const feePlan = buildFeePlan(totalFee, course.months);
+
+  const studentId = await db.runTransaction(async (tx) => {
+    /* Transaction ke ANDAR dobara padhna hi asli taala hai. Bahar wali read
+       purani ho sakti hai; ye wali nahi. */
+    const admSnap = await tx.get(admRef);
+    const cur = admSnap.data() || {};
+    if (cur.studentId) return cur.studentId;
+
+    tx.set(db.collection("students").doc(candidateId), {
+      studentId: candidateId,
+      uid: "",
+      rollNo: String(seq).padStart(2, "0"),
+      admissionId,
+      fullName: a.fullName || "", fatherName: a.fatherName || "", motherName: a.motherName || "",
+      dob: a.dob || "", gender: a.gender || "",
+      mobile: a.mobile || "", whatsapp: a.whatsapp || "",
+      email: String(a.email || "").trim().toLowerCase(),
+      address: `${a.address || ""}, ${a.city || ""} - ${a.pincode || ""}`,
+      qualification: a.qualification || "",
+      courseId: a.courseId || "", courseName: a.courseName || "",
+      batchId: batch?.id || "", batchName: batch?.name || "", batchPref: a.batchPref || "",
+      photoURL: a.photoURL || "", photoPath: a.photoPath || "", documents: a.documents || [],
+      admissionDate: admin.firestore.FieldValue.serverTimestamp(),
+      status: "active",
+      totalFee,
+      paidFee: 0,
+      pendingFee: totalFee,
+      feePlan,
+      nextDueDate: nextDueDate(feePlan, 0)
+    });
+
+    tx.set(admRef, {
+      status: "approved",
+      studentId: candidateId,
+      isRead: true,
+      approvedBy: "razorpay-webhook"
+    }, { merge: true });
+
+    return candidateId;
+  });
+
+  if (studentId === candidateId) {
+    logger.info("admission approve hua", { admissionId, studentId, batch: batch?.id || null });
+  } else {
+    logger.info("student pehle hi ban chuka tha — nayi ID chhod di", {
+      admissionId, studentId, chhoda: candidateId
+    });
+  }
+  return studentId;
+}
+
+/* --------------------------------------------------------------------------
+   Fees darj karna — pehli kist ho ya baad ki, dono yahin se
+   -------------------------------------------------------------------------- */
+async function onStudentPaid(studentId, amount, paymentId) {
+  const stuRef = db.collection("students").doc(studentId);
+
+  /* Document ka naam Razorpay ke payment id se banta hai. Wahi webhook
+     dobara aaya to yahi document dobara likha jayega — do baar paisa nahi
+     ginega. Isi wajah se transaction ke andar pehle iski maujoodgi dekhi
+     jaati hai. */
+  const feeRef = db.collection("fees").doc(`rzp_${paymentId}`);
+
+  const result = await db.runTransaction(async (tx) => {
+    const [feeSnap, stuSnap] = await Promise.all([tx.get(feeRef), tx.get(stuRef)]);
+
+    /* Paisa pehle hi gina ja chuka hai. Par ye maan lena ki "sab ho chuka
+       hoga" galat tha: receipt number aur notification is transaction ke
+       BAAD bante hain. Agar pichhli baar function beech me hi mar gaya, to
+       fees ka record to bana hai par receipt number kabhi nahi mila — aur
+       purana code yahin se laut jaata tha, isliye wo receipt hamesha bina
+       number ke padi rehti. Ab paisa dobara nahi ginte (wo transaction ka
+       kaam hai), par adhoora kaam poora karke jaate hain. */
+    if (feeSnap.exists) {
+      const f = feeSnap.data() || {};
+      const s = stuSnap.exists ? stuSnap.data() : {};
+      return {
+        duplicate: true,
+        receiptNo: f.receiptNo || "",
+        amount: rupees(f.amount),
+        pendingFee: rupees(s.pendingFee)
+      };
+    }
+    if (!stuSnap.exists) throw new Error(`student ${studentId} nahi mila`);
+
+    const s = stuSnap.data();
+    const paidFee = rupees(s.paidFee) + amount;
+    const totalFee = rupees(s.totalFee);
+    const plan = Array.isArray(s.feePlan) ? s.feePlan : [];
+
+    tx.set(feeRef, {
+      studentId,
+      studentName: s.fullName || "",
+      courseId: s.courseId || "", courseName: s.courseName || "",
+      amount,
+      mode: "razorpay",
+      status: "paid",
+      razorpayPaymentId: paymentId,
+      verifiedBy: "razorpay-webhook",
+      paidOn: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    tx.set(stuRef, {
+      paidFee,
+      pendingFee: Math.max(0, totalFee - paidFee),
+      nextDueDate: nextDueDate(plan, paidFee)
+    }, { merge: true });
+
+    return { duplicate: false, paidFee, pendingFee: Math.max(0, totalFee - paidFee), name: s.fullName || "" };
+  });
+
+  /* Yahan se aage ka har kadam "jitni baar chalao, natija wahi" wala hai.
+     Isliye dobara aaye webhook par bhi hum wapas nahi jaate — jo adhoora
+     chhoot gaya tha wo poora karke jaate hain. Paisa upar transaction me
+     hi gina ja chuka hai, wo yahan dobara nahi ginega. */
+  const amountShown = result.duplicate ? result.amount : amount;
+  const pendingShown = result.pendingFee;
+
+  let receiptNo = result.receiptNo || "";
+  if (!receiptNo) {
+    if (result.duplicate) {
+      logger.warn("adhoora record mila — receipt number poora kar rahe hain", { paymentId, studentId });
+    }
+    /* Receipt number transaction ke BAAHAR — counter ka apna transaction hai
+       aur do transaction ek doosre ke andar nahi chal sakte. */
+    const year = new Date().getFullYear();
+    const seq = await nextSequence(`receipts-${year}`);
+    receiptNo = `SSZ/RCPT/${year}/${String(seq).padStart(4, "0")}`;
+    await feeRef.set({ receiptNo }, { merge: true });
+  }
+
+  /* Notification ka naam bhi payment id se banta hai, aur `add()` ke bajaye
+     `create()`. Teen faayde:
+       - webhook dobara aaye to doosra sandesh nahi banega
+       - receipt ban chuki thi par sandesh reh gaya tha, to ab chala jayega
+       - aur — ye sabse zaroori — student ne padh liya ho to `isRead: true`
+         mitega nahi. `set()` use mita deta.
+     Pehle se maujood hone par create() shikayat karta hai; wahi hamara
+     jawab hai, isliye use chupchaap chhod dete hain. */
+  try {
+    await db.collection("notifications").doc(`rzp_${paymentId}`).create({
+      audience: "student",
+      studentId,
+      title: "Fees mil gayi",
+      message: `₹${amountShown.toLocaleString("en-IN")} mil gaye. Receipt ${receiptNo}. ` +
+        (pendingShown > 0
+          ? `Ab bakaya ₹${pendingShown.toLocaleString("en-IN")} hai.`
+          : "Aapki poori fees jama ho gayi — dhanyavaad!"),
+      isRead: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    if (err?.code !== 6 /* ALREADY_EXISTS */) throw err;
+  }
+
+  if (result.duplicate) {
+    logger.info("wahi payment dobara aaya — paisa dobara nahi gina", { paymentId, receiptNo });
+  } else {
+    logger.info("fees darj hui", { studentId, amount: amountShown, receiptNo, pending: pendingShown });
+  }
+}
+
+/* ==========================================================================
+   3) publishRecording — class ki recording ka link, apne aap
+   --------------------------------------------------------------------------
+   Pankaj ke laptop par ek chhota program chalta hai. Class khatam hone par
+   OBS jo MP4 banata hai, wo program use Google Drive par chadhata hai, uska
+   share link leta hai, aur yahan bhej deta hai. Yahan se link us din ki
+   class ke saamne chadh jaata hai aur batch ko notification chala jaata hai.
+
+   Pehle ye kaam haath se hota tha: file chadhao, link copy karo, admin panel
+   kholo, sahi class dhoondho, paste karo. Paanch kadam, roz. Ab shunya.
+
+   Suraksha: koi bhi is URL par POST kar sakta hai, isliye har request par
+   HMAC-SHA256 dastakhat maangte hain — wahi tareeka jo Razorpay webhook me
+   hai. Bina sahi dastakhat ke request 401 me hi mar jaati hai, Firestore
+   tak pahunchti hi nahi.
+   ========================================================================== */
+
+/** IST ke ek din ki shuruaat aur ant — UTC me. Firestore sab UTC me rakhta
+    hai, par class "4 August" ki hai ye Ara ke hisaab se tay hota hai. */
+function istDayRange(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || "").trim());
+  if (!m) return null;
+  const [, y, mo, d] = m.map(Number);
+  /* IST = UTC + 5:30, isliye IST ki aadhi raat UTC me pichhle din 18:30 hai. */
+  const start = new Date(Date.UTC(y, mo - 1, d, 0, 0, 0) - 5.5 * 3600 * 1000);
+  const end = new Date(start.getTime() + 24 * 3600 * 1000 - 1);
+  return { start, end };
+}
+
+exports.publishRecording = onRequest(
+  { secrets: [REC_SECRET] },
+  async (req, res) => {
+    if (req.method !== "POST") return res.status(405).send("POST only");
+
+    const given = String(req.get("x-ssz-signature") || "");
+    const expected = crypto
+      .createHmac("sha256", REC_SECRET.value())
+      .update(req.rawBody)
+      .digest("hex");
+
+    /* Lambai pehle jaanchna zaroori hai — timingSafeEqual alag lambai par
+       exception phenk deta hai, aur wo exception hi bata deta ki dastakhat
+       galat thi. */
+    const ok = given.length === expected.length &&
+      crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+
+    if (!ok) {
+      logger.warn("recording: dastakhat galat — chhod diya");
+      return res.status(401).send("bad signature");
+    }
+
+    try {
+      const { date, url, batchId, file } = req.body || {};
+      if (!url || !/^https?:\/\//i.test(String(url))) {
+        return res.status(400).json({ error: "url theek nahi hai" });
+      }
+      const range = istDayRange(date);
+      if (!range) return res.status(400).json({ error: "date YYYY-MM-DD me bhejein" });
+
+      /* Sirf tareekh se dhoondhte hain, batch ka chhanta baad me code me —
+         is tarah kisi naye composite index ki zaroorat nahi padti. */
+      const snap = await db.collection("liveClasses")
+        .where("startsAt", ">=", admin.firestore.Timestamp.fromDate(range.start))
+        .where("startsAt", "<=", admin.firestore.Timestamp.fromDate(range.end))
+        .get();
+
+      let rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .filter((c) => c.status !== "cancelled");
+
+      if (batchId) rows = rows.filter((c) => c.batchId === batchId);
+
+      if (!rows.length) {
+        logger.warn("recording: us din koi class nahi mili", { date, batchId });
+        return res.status(404).json({ error: "us din koi class nahi mili" });
+      }
+
+      /* Do class mil gayin aur batch bataya nahi gaya — galat class par
+         recording chadhane se accha hai ki rukein aur bata dein. */
+      if (rows.length > 1) {
+        logger.warn("recording: ek se zyada class", { date, count: rows.length });
+        return res.status(409).json({
+          error: "us din ek se zyada class hai — batchId bhi bhejein",
+          batches: rows.map((c) => ({ id: c.id, batchId: c.batchId, title: c.title }))
+        });
+      }
+
+      const cls = rows[0];
+
+      /* Dobara bhej diya (program restart hua, ya file phir se mili) to
+         chup-chaap "ho chuka hai" keh dete hain — dobara notification bhej
+         kar student ko pareshan nahi karte. */
+      if (cls.recordingURL === url && cls.recordingPublished) {
+        return res.status(200).json({ ok: true, already: true, classId: cls.id });
+      }
+
+      await db.collection("liveClasses").doc(cls.id).set({
+        recordingURL: String(url),
+        recordingPublished: true,
+        recordingFile: String(file || ""),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      if (cls.batchId) {
+        await db.collection("notifications").add({
+          audience: "batch",
+          batchId: cls.batchId,
+          studentId: "",
+          title: "Class ki recording aa gayi",
+          message: `${cls.title || "Class"} ki recording ab dashboard me dekh sakte hain.`,
+          type: "class",
+          priority: "normal",
+          readBy: [],
+          createdBy: "recording-bot",
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      logger.info("recording chadh gayi", { classId: cls.id, date, file });
+      return res.status(200).json({ ok: true, classId: cls.id, title: cls.title });
+    } catch (err) {
+      logger.error("recording fail", err);
+      return res.status(500).json({ error: "andar dikkat aayi" });
+    }
+  }
+);
+
+/* ==========================================================================
+   4) admissionStatus — "meri Student ID bani kya?"
+   --------------------------------------------------------------------------
+   Payment ke baad admission page yahi poochhta rehta hai. Jaise hi webhook
+   Student ID bana deta hai, page us par card badal kar ID, batch aur agli
+   kist dikha deta hai.
+
+   Iske bina student payment karke khaali page par baitha rehta tha — usse
+   pata hi nahi chalta tha ki uska admission ho chuka hai. Wahi jagah thi
+   jahan wo haath se nikal jaata.
+
+   Suraksha: application number sequential hai (0005, 0006…), yaani koi bhi
+   andaza laga sakta hai. Isliye email BHI maanga jaata hai, aur wo record se
+   milna chahiye. Na mile to wahi "nahi mila" jawab jaata hai jo galat number
+   par jaata — taaki koi ye bhi na jaan sake ki record hai ya nahi.
+
+   Yahan koi secret nahi lagta: ye kisi ko kuchh badalne nahi deta, sirf ye
+   batata hai ki jo payment usne abhi kiya wo pahuncha ya nahi.
+   ========================================================================== */
+exports.admissionStatus = onCall({ cors: true }, async (req) => {
+  const appNo = String(req.data?.appNo || "").trim();
+  const email = String(req.data?.email || "").trim().toLowerCase();
+  if (!appNo || !email) throw new HttpsError("invalid-argument", "appNo aur email dono chahiye.");
+
+  const snap = await db.collection("admissions").doc(appNo).get();
+  const a = snap.exists ? snap.data() : null;
+
+  if (!a || String(a.email || "").trim().toLowerCase() !== email) {
+    throw new HttpsError("not-found", "Record nahi mila.");
+  }
+
+  if (!a.studentId) return { ready: false, status: a.status || "pending" };
+
+  const sSnap = await db.collection("students").doc(a.studentId).get();
+  const s = sSnap.exists ? sSnap.data() : {};
+
+  return {
+    ready: true,
+    status: a.status || "approved",
+    studentId: a.studentId,
+    courseName: s.courseName || a.courseName || "",
+    batchName: s.batchName || "",
+    paidFee: rupees(s.paidFee),
+    pendingFee: rupees(s.pendingFee),
+    /* Date ko seedha nahi bhejte — JSON me Timestamp ka roop bigad jaata
+       hai. Saaf "YYYY-MM-DD" bhejna dono taraf ek jaisa padha jaata hai. */
+    nextDueDate: s.nextDueDate?.toDate ? dateStr(s.nextDueDate.toDate()) : ""
+  };
+});

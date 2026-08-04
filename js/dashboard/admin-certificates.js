@@ -179,10 +179,34 @@ function issueForm() {
       const id = certificateNo.replace(/\//g, "-");
       await createWithId(COLLECTIONS.CERTIFICATES, id, doc);
 
-      /* Public verification fetches certificates by document id only — a query
-         would mean letting any visitor list every certificate. So the short
-         verify code gets its own tiny pointer document. */
-      await createWithId("certificateCodes", verifyCode, { certificateId: id, certificateNo });
+      /* --------------------------------------------------------------
+         Public verification SIRF is chhote document se hoti hai.
+
+         Pehle ye sirf ek pointer tha (certificateId) aur asli record
+         `certificates` se padha jaata tha, jo sabke liye khula tha. Us
+         khulepan ka fayda uthakar koi bhi certificate number 0001, 0002…
+         ghumakar har student ka naam, course aur grade nikal sakta tha —
+         kyunki number ginti me chalta hai.
+
+         Ab dikhane laayak sab kuchh yahin rakh dete hain. Verify code
+         random hai, isliye ise ghumaya nahi ja sakta. `certificates`
+         collection ab sirf admin aur khud us student ke liye khula hai.
+
+         Thoda dohraav hai (wahi data do jagah), par yahan ye theek hai:
+         certificate ek baar banta hai aur baad me badalta nahi.
+
+         >>> Aage kabhi certificate ki PDF chadhane ka intezaam banaye, to
+         >>> `certificateURL` DONO jagah likhni hogi — warna public verify
+         >>> par PDF ka button aayega hi nahi. <<<
+         -------------------------------------------------------------- */
+      await createWithId("certificateCodes", verifyCode, {
+        certificateId: id,
+        certificateNo, verifyCode,
+        studentId: s.studentId, studentName: s.fullName, courseName,
+        grade, percentage,
+        issueDate: doc.issueDate,
+        certificateURL: ""
+      });
 
       certs.unshift({ id, ...doc });
       m.close(); paint();

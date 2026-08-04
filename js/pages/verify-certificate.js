@@ -1,6 +1,6 @@
 /* ==========================================================================
    Soft Skill Zone — Public certificate verification
-   Looks up Firestore `certificates` by verifyCode or certificateNo.
+   Verify code se lookup — vistaar `verify()` ke upar likha hai.
    ========================================================================== */
 
 import { $, el, onReady, render } from "../core/dom.js";
@@ -55,37 +55,40 @@ function showInvalid(message) {
 }
 
 /* --------------------------------------------------------------------------
-   Lookup is deliberately by document id — never a query.
+   Verification SIRF verify code se hoti hai — certificate number se nahi.
 
-   A query would need `list` permission on the certificates collection, and
-   anything a visitor can list, a visitor can also page through: every
-   student's name, course and grade. Fetching by id means you can only ever
-   see a certificate whose number or verify code you already hold.
+   PEHLE DONO CHALTE THE, AUR WAHI GALTI THI. Certificate number ginti me
+   chalta hai (SSZ/CERT/2026/0001, 0002, 0003 …). Jab tak number se
+   verification hoti thi, tab tak `certificates` collection sabke liye khula
+   rakhna padta tha — aur khula hone ka matlab tha ki koi bhi 1 se 500 tak
+   ghumakar har student ka naam, course aur grade nikal le.
 
-   Two shapes are accepted:
-     SSZ/CERT/2026/0001  ->  certificates/SSZ-CERT-2026-0001
-     SSZ-VER-AB12C01     ->  certificateCodes/SSZ-VER-AB12C01 -> certificates/…
+   Verify code (SSZ-VER-AB12C01) random hai. Use ghumaya nahi ja sakta.
+   Isliye ab dikhane laayak sab kuchh `certificateCodes/{verifyCode}` me hi
+   rakha jaata hai, aur `certificates` sirf admin aur khud us student ke
+   liye khula hai.
+
+   Certificate par ye code chhapa hota hai, QR ke saath — to employer ke
+   paas wo hamesha hota hai. Koi number type kar de to hum use saaf-saaf
+   bata dete hain ki code kahan milega.
    -------------------------------------------------------------------------- */
+const looksLikeCertNo = (s) => /^SSZ-CERT-/.test(s);
+
 async function verify(code) {
   const asDocId = code.trim().toUpperCase().replace(/\s+/g, "").replace(/\//g, "-");
 
   try {
     const { getOne } = await import("../../firebase/db-service.js");
-    const { COLLECTIONS } = await import("../core/constants.js");
+    const hit = await getOne("certificateCodes", asDocId, { useCache: false });
 
-    // 1. Certificate number — slashes and dashes both land on the same id
-    let hit = await getOne(COLLECTIONS.CERTIFICATES, asDocId, { useCache: false });
+    if (hit) return showValid(hit);
 
-    // 2. Short verify code -> pointer doc -> certificate
-    if (!hit) {
-      const pointer = await getOne("certificateCodes", asDocId, { useCache: false });
-      if (pointer && pointer.certificateId) {
-        hit = await getOne(COLLECTIONS.CERTIFICATES, pointer.certificateId, { useCache: false });
-      }
-    }
-
-    if (hit) showValid(hit);
-    else showInvalid("Is code se koi certificate nahi mila. Code dobara check karein — ho sakta hai koi digit galat ho. Phir bhi na mile to institute se sampark karein.");
+    showInvalid(looksLikeCertNo(asDocId)
+      ? "Ye certificate ka number lagta hai. Verify karne ke liye neeche wala " +
+        "verification code chahiye — certificate ke neeche daayin taraf, QR ke " +
+        "saath likha hota hai (jaise SSZ-VER-AB12C01)."
+      : "Is code se koi certificate nahi mila. Code dobara check karein — ho sakta " +
+        "hai koi akshar galat ho. Phir bhi na mile to institute se sampark karein.");
   } catch (err) {
     console.error(err);
     showInvalid("Abhi verification service se connect nahi ho pa raha. Internet check karein ya thodi der baad try karein.");

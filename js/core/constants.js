@@ -28,7 +28,11 @@ export const COLLECTIONS = Object.freeze({
   FAQ:           "faq",
   ENQUIRIES:     "enquiries",
   SETTINGS:      "settings",
-  COUNTERS:      "counters"
+  COUNTERS:      "counters",
+  /* Razorpay se aaya paisa jo kisi record se jud nahi paaya. Isme sirf
+     Cloud Function likhta hai; panel sirf padhta hai, aur jodne ka kaam
+     attachPayment function karta hai. */
+  UNMATCHED_PAYMENTS: "unmatchedPayments"
 });
 
 /* ---------------- Storage folders ---------------- */

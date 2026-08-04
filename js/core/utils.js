@@ -416,3 +416,23 @@ export function observeCounters(scope = document) {
 
   items.forEach((n) => io.observe(n));
 }
+
+/* --------------------------------------------------------------------------
+   Google Drive ke link se file id nikaalna
+
+   Drive ka link kai roop me aata hai — rclone `/view?usp=drivesdk` deta hai,
+   haath se copy karne par kabhi `open?id=` bhi aa jaata hai. Teeno se id nikal
+   aati hai; na nikle to khaali string, jise "ye Drive ka link nahi hai" maana
+   jaata hai.
+
+   Ye yahan (utils me) isliye hai ki teen jagah chahiye: class recording ka
+   player, audiobook chadhane wala admin form, aur audiobook ka player.
+   -------------------------------------------------------------------------- */
+export function driveFileId(link) {
+  const s = String(link || "");
+  return (
+    s.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/)?.[1] ||
+    s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)?.[1] ||
+    ""
+  );
+}

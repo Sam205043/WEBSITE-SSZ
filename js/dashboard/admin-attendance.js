@@ -30,18 +30,26 @@ function paintRows() {
 
   render($("#atRows"), list.length ? list.map((s) =>
     el("tr", {},
-      el("td", { style: { fontFamily: "var(--font-mono)", fontSize: ".78rem" } }, s.rollNo || "—"),
-      el("td", {},
+      el("td", { "data-label": "Roll", style: { fontFamily: "var(--font-mono)", fontSize: ".78rem" } }, s.rollNo || "—"),
+      el("td", { "data-label": "Student" },
         el("strong", { style: { display: "block", color: "var(--text-primary)" } }, s.fullName),
         el("span", { style: { fontSize: ".72rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" } }, s.studentId)),
+      /* Button ka naam ab do roop me hai: bade screen par chhota (P/A/L/Lv),
+         phone par poora (Present/Absent/...). Pehle poora naam sirf `title`
+         me tha — aur `title` phone par kabhi dikhta hi nahi, kyunki hover
+         hota hi nahi. Yaani phone par admin ko andaza lagana padta tha ki
+         "Lv" ka matlab kya hai. */
       el("td", {}, el("span", { class: "cluster", style: { gap: ".35rem" } },
         ...OPTIONS.map((o) => el("button", {
           type: "button",
           title: o.title,
+          "aria-label": o.title,
           class: `btn-ssz btn-sm-ssz ${marks[s.studentId] === o.v ? o.cls : "btn-ghost-ssz"}`,
           style: { minHeight: "34px", minWidth: "40px", padding: ".3rem .6rem" },
           dataset: { mark: s.studentId, status: o.v }
-        }, o.l))
+        },
+          el("span", { class: "at-mark__short" }, o.l),
+          el("span", { class: "at-mark__full" }, o.title)))
       ))
     )
   ) : el("tr", {}, el("td", { colspan: "3", style: { textAlign: "center", padding: "2.5rem", color: "var(--text-muted)" } },

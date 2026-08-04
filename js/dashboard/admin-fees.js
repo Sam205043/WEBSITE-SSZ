@@ -720,14 +720,16 @@ function paintRows() {
       "Koi collection record nahi mila.")));
     return;
   }
+  /* `data-label` phone ke liye — 700px se neeche har row card banti hai aur
+     label CSS se har khaane ke aage lag jaata hai. Dekhein css/dashboard.css. */
   render($("#feeRows"), list.map((f) => el("tr", {},
-    el("td", { style: { fontFamily: "var(--font-mono)", fontSize: ".76rem" } }, f.receiptNo || "—"),
-    el("td", {},
+    el("td", { "data-label": "Receipt", style: { fontFamily: "var(--font-mono)", fontSize: ".76rem" } }, f.receiptNo || "—"),
+    el("td", { "data-label": "Student" },
       el("strong", { style: { display: "block", color: "var(--text-primary)" } }, f.studentName || "—"),
       el("span", { style: { fontSize: ".72rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" } }, f.studentId)),
-    el("td", {}, formatDate(f.paidOn)),
-    el("td", {}, MODE_LABEL[f.mode] || f.mode),
-    el("td", { class: "num", style: { fontWeight: 600, color: "var(--text-primary)" } }, money(f.amount)),
+    el("td", { "data-label": "Date" }, formatDate(f.paidOn)),
+    el("td", { "data-label": "Mode" }, MODE_LABEL[f.mode] || f.mode),
+    el("td", { "data-label": "Amount", class: "num", style: { fontWeight: 600, color: "var(--text-primary)" } }, money(f.amount)),
     el("td", {}, el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { print: f.id } }, "Receipt"))
   )));
 }

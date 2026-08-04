@@ -48,16 +48,21 @@ function paint() {
 
   render($("#stRows"), list.map((s) => {
     const [cls, label] = STATUS_BADGE[s.status] || ["", s.status];
+    /* `data-label` sirf phone ke liye hai. 700px se chhoti screen par har
+       row card ban jaati hai (css/dashboard.css) aur label CSS ke ::before
+       se har khaane ke aage aa jaata hai — warna card me sirf keematein
+       dikhtin aur pata hi na chalta kaunsi cheez kya hai. Bade screen par
+       ye attribute kuchh nahi karta. */
     return el("tr", {},
-      el("td", {},
+      el("td", { "data-label": "Student" },
         el("strong", { style: { display: "block", color: "var(--text-primary)" } }, s.fullName),
         el("span", { style: { fontFamily: "var(--font-mono)", fontSize: ".72rem", color: "var(--text-muted)" } }, s.studentId)),
-      el("td", {},
+      el("td", { "data-label": "Course" },
         el("span", { style: { display: "block" } }, s.courseName),
         el("span", { style: { fontSize: ".76rem", color: "var(--text-muted)" } }, s.batchName || s.batchId || "Batch pending")),
-      el("td", {}, formatPhone(s.mobile)),
-      el("td", { class: "num", style: (s.pendingFee || 0) > 0 ? { color: "var(--danger)", fontWeight: 600 } : {} }, money(s.pendingFee || 0)),
-      el("td", {}, el("span", { class: `badge-ssz badge-dot ${cls}` }, label)),
+      el("td", { "data-label": "Mobile" }, formatPhone(s.mobile)),
+      el("td", { "data-label": "Bakaya", class: "num", style: (s.pendingFee || 0) > 0 ? { color: "var(--danger)", fontWeight: 600 } : {} }, money(s.pendingFee || 0)),
+      el("td", { "data-label": "Status" }, el("span", { class: `badge-ssz badge-dot ${cls}` }, label)),
       el("td", { style: { whiteSpace: "nowrap" } },
         el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { view: s.id } }, "Manage"),
         el("button", {

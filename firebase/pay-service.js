@@ -40,14 +40,31 @@ async function getCallable(name) {
 /**
  * Razorpay ka ek naya payment link banwata hai.
  *
+ * EMAIL KYUN BHEJTE HAIN
+ *
+ * Function ab bina sabooti ke link nahi banata. Do raaste hain: ya to
+ * student apne login se maange, ya us record wala email bheje. Admission ke
+ * waqt login mumkin hi nahi hota (account tab bana hi nahi hota), isliye
+ * wahan email hi ekmatra sabooti hai — aur wo bhejna zaroori hai.
+ *
+ * Logged-in student ke liye email bhejna zaroori nahi; SDK khud uska token
+ * saath bhej deta hai. Phir bhi bhej dena nuksaandeh nahi — agar kabhi token
+ * na juda (session purana pad gaya), to email se kaam chal jaata hai aur
+ * student ka payment atakta nahi.
+ *
  * @param {"admission"|"student"} kind  admission ka pehla payment, ya baad ki kist
  * @param {string} id                   admission ka id, ya Student ID
  * @param {number} [amount]             kitna bhejna hai (function iski hadd lagata hai)
+ * @param {string} [email]              wahi email jo us record me likha hai
  * @returns {Promise<{url:string, amount:number}>}
  */
-export async function createPaymentLink(kind, id, amount) {
+export async function createPaymentLink(kind, id, amount, email = "") {
   const fn = await getCallable("createPaymentLink");
-  const res = await fn({ kind, id, amount: Math.max(0, Math.round(Number(amount) || 0)) });
+  const res = await fn({
+    kind, id,
+    amount: Math.max(0, Math.round(Number(amount) || 0)),
+    email: String(email || "").trim()
+  });
   const data = res?.data || {};
   if (!data.url) throw new Error("Payment link nahi ban paaya. Thodi der baad try karein.");
   return data;
@@ -77,10 +94,10 @@ export async function admissionStatus(appNo, email) {
  * popup" samajh kar rok deta hai — wahi galti pehle Google login me ho chuki
  * hai, isliye yahan pehle se sambhal liya.
  */
-export async function openPaymentLink(kind, id, amount) {
+export async function openPaymentLink(kind, id, amount, email = "") {
   const tab = window.open("", "_blank");
   try {
-    const { url, amount: finalAmount } = await createPaymentLink(kind, id, amount);
+    const { url, amount: finalAmount } = await createPaymentLink(kind, id, amount, email);
     if (tab && !tab.closed) tab.location.href = url;
     else window.location.href = url;      // tab ruk gaya — isi page par le jao
     return finalAmount;

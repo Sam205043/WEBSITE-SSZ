@@ -24,6 +24,109 @@ function statTile({ icon: ic, value, label, tone = "" }) {
   );
 }
 
+/* ==========================================================================
+   "Abhi kya karna hai" — dashboard ka pehla hissa
+   --------------------------------------------------------------------------
+   PEHLE YAHAN CHAAR TILE THE, AUR CHAARON BARABAR THE.
+
+   Attendance, Pending Fees, Assignments Due, Notifications — chaaron ek
+   jaise bade, ek hi kataar me. Uske NEECHE jaakar live class ka card aata
+   tha. Phone par iska matlab ye tha ki jis student ki class abhi chal rahi
+   hai, use join karne ka button dhoondhne ke liye scroll karna padta tha —
+   aur wahi ek pal hai jab wo jaldi me hota hai.
+
+   Ab sabse upar sirf EK cheez rehti hai: jo is waqt sabse zaroori hai. Kram
+   yahi hai, aur ye kram jaan-bujh kar tay kiya gaya hai —
+
+     1. Class abhi chal rahi hai        -> "Join karein" (sab kuchh chhod kar)
+     2. Class agle ghante me hai        -> kitni der baaki hai
+     3. Fees ki tareekh nikal chuki hai -> "Fees bharein"
+     4. Assignment 2 din me due hai     -> "Jama karein"
+     5. Kuchh nahi                      -> agli class kab hai, ya shaanti se
+                                           "sab theek hai"
+
+   Paisa teesre number par hai, class ke baad — jaan-bujh kar. Class chhoot
+   jaana wapas nahi aata; fees kal bhi bhari ja sakti hai.
+   ========================================================================== */
+function todayCard({ student, classes, assignments, submissions }) {
+  const now = Date.now();
+  const MIN = 60 * 1000;
+
+  const box = (tone, badge, title, line, action) =>
+    el("div", {
+      class: "card-ssz",
+      style: { borderLeft: `4px solid var(--${tone})`, background: "var(--bg-surface)" }
+    },
+      el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" } },
+        el("span", { style: { flex: 1, minWidth: "200px" } },
+          el("span", { class: `badge-ssz badge-${tone === "danger" ? "danger" : tone === "warning" ? "warning" : "brand"}`,
+                       style: { marginBottom: ".5rem", display: "inline-block" } }, badge),
+          el("strong", { style: { display: "block", fontSize: "1.02rem", marginBottom: ".15rem" } }, title),
+          el("span", { style: { fontSize: ".85rem", color: "var(--text-muted)" } }, line)),
+        action || null
+      ));
+
+  const live = classes.find((c) => c.status !== "cancelled"
+    && toDate(c.startsAt)?.getTime() <= now && toDate(c.endsAt)?.getTime() >= now);
+
+  if (live) {
+    return box("danger", "Live abhi", live.title || "Class chal rahi hai",
+      `${live.facultyName || "Class"} · abhi shuru hai`,
+      el("a", { class: "btn-ssz btn-primary-ssz", href: live.meetLink || "#", target: "_blank", rel: "noopener" },
+        "Join karein", el("span", { html: icon("externalLink", { size: 16 }) })));
+  }
+
+  const soon = classes
+    .filter((c) => c.status !== "cancelled" && toDate(c.startsAt)?.getTime() > now)
+    .sort((a, b) => toDate(a.startsAt) - toDate(b.startsAt))[0];
+
+  if (soon && toDate(soon.startsAt).getTime() - now <= 60 * MIN) {
+    const mins = Math.max(1, Math.round((toDate(soon.startsAt).getTime() - now) / MIN));
+    return box("warning", `${mins} minute me`, soon.title || "Agli class",
+      `${formatDateTime(soon.startsAt)}${soon.facultyName ? ` · ${soon.facultyName}` : ""}`,
+      el("a", { class: "btn-ssz btn-primary-ssz", href: soon.meetLink || "#", target: "_blank", rel: "noopener" },
+        "Link kholein", el("span", { html: icon("externalLink", { size: 16 }) })));
+  }
+
+  const due = toDate(student.nextDueDate);
+  const pending = Number(student.pendingFee) || 0;
+  if (pending > 0 && due && due.getTime() < now) {
+    const days = Math.floor((now - due.getTime()) / (24 * 60 * MIN));
+    return box("danger", "Fees ki tareekh nikal gayi", `${money(pending)} bakaya hai`,
+      days > 0 ? `Due date ${formatDate(student.nextDueDate)} thi — ${days} din ho gaye.`
+               : `Aaj hi due date thi (${formatDate(student.nextDueDate)}).`,
+      el("a", { class: "btn-ssz btn-primary-ssz", href: url("studentFees") }, "Fees bharein"));
+  }
+
+  const soonAsg = assignments
+    .filter((a) => !submissions.some((s) => s.assignmentId === a.id))
+    .map((a) => ({ a, d: toDate(a.dueDate) }))
+    .filter((x) => x.d && x.d.getTime() > now && x.d.getTime() - now <= 48 * 60 * MIN)
+    .sort((x, y) => x.d - y.d)[0];
+
+  if (soonAsg) {
+    return box("warning", "Assignment due", soonAsg.a.title || "Assignment",
+      `Jama karne ki aakhri tareekh ${formatDateTime(soonAsg.a.dueDate)}`,
+      el("a", { class: "btn-ssz btn-primary-ssz", href: url("studentAssignments") }, "Jama karein"));
+  }
+
+  if (soon) {
+    return box("brand", "Agli class", soon.title || "Class",
+      `${formatDateTime(soon.startsAt)}${soon.facultyName ? ` · ${soon.facultyName}` : ""}`,
+      el("a", { class: "btn-ssz btn-secondary-ssz", href: url("studentClasses") }, "Sab classes"));
+  }
+
+  /* Kuchh sar par nahi hai. Khaali jagah chhodne se behtar hai student ko
+     saaf bata dena ki sab theek hai — warna wo sochta rehta hai ki page
+     poora load hua ya nahi. */
+  const first = String(student.fullName || "").split(" ")[0] || "";
+  return box("brand", "Sab theek hai", first ? `Namaste ${first}` : "Namaste",
+    pending > 0
+      ? `Abhi koi class ya assignment sar par nahi. Bakaya ${money(pending)} hai — jab suvidha ho tab.`
+      : "Abhi koi class, assignment ya bakaya nahi. Notes aur practice se aage badh sakte hain.",
+    el("a", { class: "btn-ssz btn-secondary-ssz", href: url("studentNotes") }, "Notes kholein"));
+}
+
 function nextClassCard(cls) {
   const box = $("#homeNextClass");
   if (!cls) {
@@ -138,6 +241,9 @@ const attPct = attendance.length ? pct(present, attendance.length, 0) : "—";
 const pendingAsg = assignments.filter((a) => !submissions.some((s) => s.assignmentId === a.id)).length;
 const unread = notifications.filter((n) => !(n.readBy || []).includes(student.studentId)).length;
 setNotifyCount(unread);
+
+/* Sabse pehle "abhi kya karna hai" — tiles uske baad. */
+render($("#homeToday"), todayCard({ student, classes, assignments, submissions }));
 
 render($("#homeStats"),
   statTile({ icon: "userCheck", value: attPct, label: "Attendance", tone: "success" }),

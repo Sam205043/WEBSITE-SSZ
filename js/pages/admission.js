@@ -493,7 +493,7 @@ function feeCard(appNo, course, email) {
     goBtn.textContent = "Link ban raha hai…";
     try {
       const pay = await payMod;
-      await pay.openPaymentLink("admission", appNo, amount);
+      await pay.openPaymentLink("admission", appNo, amount, email);
       goBtn.textContent = "Payment ka page khul gaya";
       waitForStudentId(box, appNo, email, payMod);
     } catch (err) {

@@ -31,8 +31,14 @@ function paintSent() {
       el("p", { style: { margin: "0 0 .6rem", fontSize: ".82rem" } }, n.message),
       el("div", { class: "cluster", style: { gap: ".4rem" } },
         el("span", { class: `badge-ssz ${cls}` }, label),
+        /* "admin" wale sandesh system khud banata hai (jaise "ek payment kisi
+           student se juda nahi") — wo kisi student ko nahi jaate, sirf yahan
+           dikhte hain. Iske bina label "Student: undefined" ban jaata tha. */
         el("span", { class: "badge-ssz" },
-          n.audience === "all" ? "Sabhi students" : n.audience === "batch" ? `Batch: ${n.batchId}` : `Student: ${n.studentId}`),
+          n.audience === "admin" ? "Sirf aapke liye"
+            : n.audience === "all" ? "Sabhi students"
+            : n.audience === "batch" ? `Batch: ${n.batchId}`
+            : `Student: ${n.studentId}`),
         el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)", minHeight: "28px", padding: ".2rem .6rem" }, type: "button", dataset: { del: n.id } }, "Delete"))
     ));
   }) : el("div", { class: "card-ssz" }, el("div", { class: "card-ssz__body" },

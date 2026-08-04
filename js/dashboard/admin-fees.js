@@ -16,7 +16,7 @@ import { INSTITUTE } from "../config/site-data.js";
 import { currentDue, feeStatus, nextDueFrom, FEE_STATUS_LABEL } from "../core/fee-plan.js";
 import toast from "../core/toast.js";
 
-let mode = "preview", fees = [], students = [], term = "";
+let mode = "preview", fees = [], students = [], unmatched = [], term = "";
 
 const MODE_LABEL = Object.fromEntries(PAYMENT_MODES.map((m) => [m.value, m.label]));
 
@@ -442,6 +442,123 @@ function paintVerify() {
   }));
 }
 
+/* ==========================================================================
+   Bina jude payment — paisa aa gaya, par kiska?
+   --------------------------------------------------------------------------
+   Ye wo payments hain jinke saath hamare `notes` nahi aaye — aksar tab jab
+   link Razorpay dashboard se haath se banaya gaya ho. Pehle webhook inhe
+   chupchaap chhod deta tha: paisa bank me aa jaata aur kahin darj hi nahi
+   hota. Ab wo yahan aa jaate hain.
+
+   Code jaanbujh kar KHUD nahi jodta. Email ya mobile se apne aap milaana
+   aasan hota, par ek hi number do bhai-behen ka ho sakta hai — aur galat
+   khaate me paisa chadhana kho dene se bhi bura hai. Isliye faisla aapka,
+   aur code sirf sabse mumkin naam upar dikha deta hai.
+
+   Rakam yahan se kabhi nahi bheji jaati. Function wahi rakam maanta hai jo
+   Razorpay ne park karte waqt likhi thi.
+   ========================================================================== */
+function paintUnmatched() {
+  const open = unmatched.filter((u) => u.status !== "attached");
+  $("#unmatchedSection").hidden = !open.length;
+  if (!open.length) return;
+
+  render($("#unmatchedList"), open.map((u) => {
+    const bits = [];
+    if (u.payerContact) bits.push(u.payerContact);
+    if (u.payerEmail) bits.push(u.payerEmail);
+    if (u.description) bits.push(u.description);
+    bits.push(formatDate(u.paidOn));
+
+    const select = el("select", { class: "select-ssz", style: { minWidth: "220px" }, dataset: { pick: u.id } },
+      el("option", { value: "" }, "Student chunein…"),
+      ...guessOrder(u).map((s) =>
+        el("option", { value: s.studentId }, `${s.fullName || s.studentId} — ${s.studentId}`)));
+
+    return el("div", { class: "card-ssz", style: { borderLeft: "3px solid var(--danger)" } },
+      el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
+        el("span", { class: "stat-tile__icon", style: { background: "var(--danger-soft)", color: "var(--danger)" }, html: icon("alert", { size: 20 }) }),
+        el("span", { style: { flex: 1, minWidth: "220px" } },
+          el("strong", { style: { display: "block", fontSize: ".92rem" } },
+            `${money(u.amount)}${u.payerName ? ` — ${u.payerName}` : ""}`),
+          el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } }, bits.join(" · "))),
+        el("span", { class: "cluster", style: { gap: ".5rem", flexWrap: "wrap" } },
+          select,
+          el("button", { class: "btn-ssz btn-primary-ssz btn-sm-ssz", type: "button", dataset: { attach: u.id } }, "Jodein"))
+      ));
+  }));
+}
+
+/* Sabse mumkin naam sabse upar — mobile ya email milne par. Ye sirf list ka
+   kram hai, chunav aapka hi rehta hai. */
+function guessOrder(u) {
+  const phone = String(u.payerContact || "").replace(/\D/g, "").slice(-10);
+  const email = String(u.payerEmail || "").toLowerCase();
+  const score = (s) => {
+    let n = 0;
+    if (phone && [s.mobile, s.whatsapp].some((x) => String(x || "").replace(/\D/g, "").slice(-10) === phone)) n += 2;
+    if (email && String(s.email || "").toLowerCase() === email) n += 2;
+    if ((Number(s.pendingFee) || 0) > 0) n += 1;
+    return n;
+  };
+  return [...students].sort((a, b) => score(b) - score(a) || String(a.fullName || "").localeCompare(String(b.fullName || "")));
+}
+
+async function attachUnmatched(u, btn) {
+  const sel = $(`[data-pick="${u.id}"]`);
+  const studentId = sel?.value || "";
+  if (!studentId) return toast.warning("Pehle student chunein.");
+
+  const s = students.find((x) => x.studentId === studentId);
+  const ok = await confirmModal({
+    title: "Payment jodein?",
+    message: `${money(u.amount)} ${s?.fullName || studentId} (${studentId}) ke khaate me chadh jayega aur receipt ban jayegi. ` +
+      "Ye wapas nahi hota — galat student chuna ho to abhi rok dein.",
+    confirmText: "Haan, jod dein"
+  });
+  if (!ok) return;
+
+  if (mode === "preview") {
+    u.status = "attached";
+    paintUnmatched();
+    return toast.info("Preview mode — kuchh save nahi hua.");
+  }
+
+  try {
+    btn.disabled = true;
+    const { attachPayment } = await import("../../firebase/pay-service.js");
+    const res = await attachPayment(u.razorpayPaymentId, studentId);
+
+    u.status = "attached";
+    u.studentId = studentId;
+    if (s) {
+      s.paidFee = (Number(s.paidFee) || 0) + u.amount;
+      s.pendingFee = Math.max(0, (Number(s.pendingFee) || 0) - u.amount);
+    }
+    paintUnmatched(); tiles(); paintDue();
+
+    toast.success(res?.alreadyDone
+      ? "Ye payment pehle hi jud chuka tha."
+      : `${money(u.amount)} ${s?.fullName || studentId} ke khaate me chadh gaya.`);
+
+    /* Nayi receipt list me laane ke liye — poora page refresh karne se
+       behtar hai sirf fees dobara padh lena. */
+    if (!res?.alreadyDone) await reloadFees();
+  } catch (err) {
+    btn.disabled = false;
+    const { payError } = await import("../../firebase/pay-service.js");
+    toast.error(payError(err));
+  }
+}
+
+async function reloadFees() {
+  try {
+    const { getMany } = await import("../../firebase/db-service.js");
+    fees = await getMany(COLLECTIONS.FEES, { orderBy: ["paidOn", "desc"], limit: 300, useCache: false });
+    tiles(); paintRows();
+  } catch { /* list purani reh jayegi, par jodna ho chuka hai — koi nuksaan nahi */ }
+}
+
 /** Ek tap wala raasta — student ki batayi rakam seedhe jama kar deta hai. */
 async function quickConfirm(f, btn) {
   const claimed = Number(f.claimedAmount) || 0;
@@ -514,13 +631,16 @@ if (mode === "preview") {
   students = DEMO_STUDENTS.map((s) => ({ ...s }));
 } else {
   const { getMany } = await import("../../firebase/db-service.js");
-  [fees, students] = await Promise.all([
+  [fees, students, unmatched] = await Promise.all([
     getMany(COLLECTIONS.FEES, { orderBy: ["paidOn", "desc"], limit: 300, useCache: false }).catch(() => []),
-    getMany(COLLECTIONS.STUDENTS, { limit: 500, useCache: false }).catch(() => [])
+    getMany(COLLECTIONS.STUDENTS, { limit: 500, useCache: false }).catch(() => []),
+    /* Naya collection hai — purane project me index ya permission na hone par
+       poora page khaali na ho jaye, isliye alag se catch. */
+    getMany(COLLECTIONS.UNMATCHED_PAYMENTS, { orderBy: ["createdAt", "desc"], limit: 100, useCache: false }).catch(() => [])
   ]);
 }
 
-tiles(); paintVerify(); paintDue(); paintRows();
+tiles(); paintUnmatched(); paintVerify(); paintDue(); paintRows();
 
 $("#feeCollect").addEventListener("click", () => collectDialog());
 $("#dueNotifyAll").addEventListener("click", (e) => notifyAllDue(e.currentTarget));
@@ -539,6 +659,11 @@ $("#feeExport").addEventListener("click", () => {
     "Amount": f.amount, "Txn Ref": f.txnRef || "", "Remarks": f.remarks || ""
   })), `ssz-collections-${new Date().toISOString().slice(0, 10)}.csv`);
   toast.success("Collections ka CSV download ho gaya.");
+});
+
+on($("#unmatchedList"), "click", "[data-attach]", (e, btn) => {
+  const u = unmatched.find((x) => x.id === btn.dataset.attach);
+  if (u) attachUnmatched(u, btn);
 });
 
 on($("#verifyList"), "click", "[data-verify]", (e, btn) => {

@@ -127,6 +127,10 @@ onReady(async () => {
   await loadIncludes();       // navbar + footer into the DOM
   fixLinks(document);         // also resolve data-href links in page markup
   mountLangPicker(document.getElementById("navLangPick"));
+  /* Phone par navbar wala switch chhupa hota hai (wahan "Apply" ko jagah
+     chahiye), isliye drawer me bhi ek. Dono alag <select> hain par ek hi
+     cheez badalte hain — i18n khud sab jagah laagu kar deta hai. */
+  mountLangPicker(document.getElementById("drawerLangPick"));
   /* Course ke naam, features, students ki raay, FAQ — ye site-data.js se
      aate hain aur bhaari hain. Alag file me rakhe hain taaki student portal
      par bewajah download na hon. */

@@ -11,7 +11,7 @@ import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_STUDENT, DEMO_FEES } from "./demo-data.js";
 import { INSTITUTE } from "../config/site-data.js";
-import { COLLECTIONS } from "../core/constants.js";
+import { COLLECTIONS, TRIAL_MIN_1_RUPEE } from "../core/constants.js";
 import { open as openModal } from "../core/modal.js";
 import toast from "../core/toast.js";
 
@@ -174,8 +174,10 @@ function amountDialog(pending) {
   /* Kam se kam ₹100 — rukawat ke liye nahi, sirf ₹1,000 ki jagah ₹1 wale typo
      aur ₹5-₹10 wale payment se receipt bhar jaane se bachne ke liye. Bakaya
      isse kam bache to wahi maanga jaata hai. Asli hadd server par lagti hai;
-     yahan ki sirf student ko pehle hi bata dene ke liye hai. */
-  const minPay = Math.min(pending, 100);
+     yahan ki sirf student ko pehle hi bata dene ke liye hai.
+
+     Trial ke din ye hadd ₹1 hai — flag js/core/constants.js me hai. */
+  const minPay = Math.min(pending, TRIAL_MIN_1_RUPEE ? 1 : 100);
 
   const body = el("div", {});
   body.innerHTML = `

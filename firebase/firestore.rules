@@ -167,11 +167,29 @@ service cloud.firestore {
     // Each of these is queried as where("studentId","==",myStudentId).
     match /fees/{id} {
       allow read: if isAdmin() || ownsRow();
-      // A student may attach a payment proof and reference — nothing else.
+      /* Student sirf apni ADHOORI (pending-verification) row me proof aur
+         reference laga sakta hai — aur bas.
+
+         PEHLE YAHAN EK BADI GALTI THI. Rok sirf NAYI status par thi
+         (`!= 'paid'`), PURANI par nahi. Iska matlab tha ki student apni
+         pehle se paid receipt ko bhi chhed sakta tha:
+
+           * `status: 'failed'` kar deta -> wo payment aapki har report se
+             gayab ho jaata (aaj ka collection, mahine ka collection, CSV —
+             sab sirf 'paid' wali ginte hain)
+           * `status: 'pending-verification'` kar deta -> wo dobara aapke
+             verify wale khaane me aa jaata, aur confirm karte hi wahi paisa
+             `paidFee` me DOOSRI baar jud jaata
+
+         Ab dono taraf jaanch hai: row pehle se pending-verification honi
+         chahiye, aur pending-verification hi rehni chahiye. Paid row ko
+         student chhoo hi nahi sakta. */
       allow update: if isAdmin()
-        || (ownsRow() && request.resource.data.diff(resource.data)
-              .affectedKeys().hasOnly(['proofURL', 'txnRef', 'status', 'updatedAt'])
-            && request.resource.data.get('status', '') != 'paid');
+        || (ownsRow()
+            && resource.data.get('status', '') == 'pending-verification'
+            && request.resource.data.get('status', '') == 'pending-verification'
+            && request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['proofURL', 'txnRef', 'status', 'updatedAt']));
 
       // Proof upload karne ke liye student ko ek row chahiye jisme wo attach
       // ho — isliye wo khud ek khol sakta hai. Lekin sirf apne liye, sirf
@@ -195,8 +213,18 @@ service cloud.firestore {
 
     match /submissions/{id} {
       allow read: if isAdmin() || ownsRow();
+      /* Banate waqt student na apne marks likh sakta hai, na khud ko
+         "graded" kar sakta hai.
+
+         PEHLE YAHAN KISI FIELD PAR ROK NAHI THI. Sirf itna dekha jaata tha
+         ki studentId apni ho. Isliye ek hi likhai me
+         `{marks: 100, status: 'graded'}` bhej dena kaafi tha — aur aapke
+         panel me wo bilkul asli graded submission jaisa dikhta. */
       allow create: if isAdmin()
-        || (hasStudentId() && request.resource.data.studentId == myStudentId());
+        || (hasStudentId()
+            && request.resource.data.studentId == myStudentId()
+            && request.resource.data.get('marks', null) == null
+            && request.resource.data.get('status', '') == 'submitted');
       // A submission may be edited until it has been marked.
       //
       // MCQ ke liye ek pakki shart aur: jawab (`answers`) ek baar likhne ke
@@ -221,16 +249,24 @@ service cloud.firestore {
        jawab dekhne ka ek hi raasta hai — pehle apna paper jama karo.
        ---------------------------------------------------------------------- */
     match /assignmentKeys/{assignmentId} {
+      /* Answer key tabhi khulti hai jab student SACH ME jawab de chuka ho.
+
+         PEHLE SIRF `exists()` DEKHA JAATA THA. Uska matlab tha ki ek khaali
+         submission bana dena hi kaafi hai — teen line me answer key mil
+         jaati thi, bina ek bhi sawaal hal kiye. Ab jawab (`answers`) ka
+         khaali na hona bhi zaroori hai.
+
+         `get()` maujood na hone par khud hi mana kar deta hai, isliye alag
+         se `exists()` ki zaroorat nahi. */
       allow get: if isAdmin()
         || (hasStudentId()
-            && exists(/databases/$(database)/documents/submissions/$(assignmentId + '__' + myStudentId())));
+            && get(/databases/$(database)/documents/submissions/$(assignmentId + '__' + myStudentId()))
+                 .data.get('answers', []).size() > 0);
       allow list: if isAdmin();
       allow write: if isAdmin();
     }
 
     /* ----------------------------------------------------------- certificates */
-    // Verification is public but NOT browsable: you must already know the
-    // certificate number or the verify code (see certificateCodes below).
     /* Certificate ka record ab PUBLIC NAHI hai.
 
        Pehle yahan `allow get: if true` tha, is soch ke saath ki "number pata

@@ -6,7 +6,7 @@
 
 import { $, el, on, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
-import { formatDate, formatDateTime, dateTimeLocal } from "../core/utils.js";
+import { formatDate, formatDateTime, dateTimeLocal, driveFileId } from "../core/utils.js";
 import { formatBytes, validateFile } from "../core/files.js";
 import { open as openModal, confirm as confirmModal } from "../core/modal.js";
 import { createValidator, rules } from "../core/validators.js";
@@ -408,16 +408,27 @@ async function showSubmissions(a) {
    Notes
    ========================================================================== */
 function noteRow(n) {
+  const isAudio = n.kind === "audio";
+  const course = COURSES.find((c) => c.id === n.courseId)?.shortTitle || n.courseId;
+  const meta = isAudio
+    ? `${course} · ${n.module || "Poori book"} · ${n.durationMin ? `${n.durationMin} min` : "audiobook"} · Google Drive`
+    : `${course} · ${n.module || "Poori book"} · ${formatBytes(n.fileSize || 0)} · ${n.downloads || 0} downloads`;
+
   return el("div", { class: "card-ssz" },
     el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
-      el("span", { class: "stat-tile__icon", html: icon("fileText", { size: 20 }) }),
+      el("span", { class: "stat-tile__icon", html: icon(isAudio ? "headphones" : "fileText", { size: 20 }) }),
       el("span", { style: { flex: 1, minWidth: "220px" } },
-        el("strong", { style: { display: "block", fontSize: ".93rem" } }, n.title),
-        el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
-          `${COURSES.find((c) => c.id === n.courseId)?.shortTitle || n.courseId} · ${n.module || "Poori book"} · ${formatBytes(n.fileSize || 0)} · ${n.downloads || 0} downloads`)),
-      (n.filePath || (n.fileURL && n.fileURL !== "#"))
-        ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { openNote: n.id } }, "File")
-        : null,
+        el("strong", { style: { display: "block", fontSize: ".93rem" } },
+          n.title,
+          isAudio
+            ? el("span", { class: "badge-ssz badge-accent", style: { marginLeft: ".5rem", fontSize: ".62rem" } }, "Audiobook")
+            : null),
+        el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } }, meta)),
+      isAudio
+        ? el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: n.audioURL || "#", target: "_blank", rel: "noopener" }, "Drive")
+        : (n.filePath || (n.fileURL && n.fileURL !== "#"))
+          ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { openNote: n.id } }, "File")
+          : null,
       el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { delNote: n.id } }, "Delete")
     ));
 }
@@ -455,10 +466,43 @@ function noteForm() {
         book jaisi cheez ho to "Poori book" hi rehne dein.
       </p>
     </div>
+    <!-- Audiobook aur PDF ek hi list me rehte hain (dono padhai ka saamaan
+         hain), bas rakhne ki jagah alag hai: PDF Firebase Storage me, audio
+         Google Drive par. Wajah seedhi hai — ek ghante ka MP3 ~30 MB ka hota
+         hai; Firebase ka free 5 GB usme jaldi bhar jaata, jabki Drive par
+         15 GB pehle se hai. Wahi raasta class recording ke liye bhi hai. -->
     <div class="field">
+      <label class="field__label">Kis tarah ka? <span class="req">*</span></label>
+      <select class="select-ssz" name="kind">
+        <option value="file">File — PDF / DOC (Firebase par)</option>
+        <option value="audio">Audiobook — MP3 (Google Drive par)</option>
+      </select>
+    </div>
+
+    <div class="field" id="noteFileField">
       <label class="field__label">File <span class="req">*</span></label>
       <input class="input-ssz" name="file" type="file" style="padding:.6rem">
       <p class="field__hint">PDF best rahega — max 25 MB.</p>
+    </div>
+
+    <div class="field" id="noteAudioField" hidden>
+      <label class="field__label">Google Drive ka link <span class="req">*</span></label>
+      <input class="input-ssz" name="audioURL" type="url"
+             placeholder="https://drive.google.com/file/d/.../view">
+      <div class="field__error"></div>
+      <p class="field__hint">
+        MP3 pehle Drive par chadha dein, phir uska link yahan paste karein.
+        Drive me us file ka access <strong>"Anyone with the link"</strong> rakhein,
+        aur Share ke settings me <strong>"Viewers can download"</strong> ko
+        <strong>band</strong> kar dein — warna Drive apna Download button dikha dega.
+      </p>
+    </div>
+
+    <div class="field" id="noteMinField" hidden>
+      <label class="field__label">Kitne minute ka hai?</label>
+      <input class="input-ssz" name="durationMin" type="number" min="1" max="600"
+             inputmode="numeric" placeholder="Jaise: 42">
+      <p class="field__hint">Sirf dikhane ke liye — student ko pata rahe kitna samay lagega.</p>
     </div>`;
 
   const cSel = form.querySelector('[name="courseId"]');
@@ -470,6 +514,18 @@ function noteForm() {
   const mSel = form.querySelector('[name="module"]');
   mSel.appendChild(el("option", { value: "" }, "Poori book (kisi ek module ka nahi)"));
   BANK_MODULES.forEach((m) => mSel.appendChild(el("option", { value: m }, m)));
+
+  /* Type badalte hi sirf kaam ke khaane dikhte hain — donon ek saath dikhana
+     confusion paida karta hai ("file bhi doon aur link bhi?"). */
+  const kSel = form.querySelector('[name="kind"]');
+  const swap = () => {
+    const audio = kSel.value === "audio";
+    form.querySelector("#noteFileField").hidden = audio;
+    form.querySelector("#noteAudioField").hidden = !audio;
+    form.querySelector("#noteMinField").hidden = !audio;
+  };
+  kSel.addEventListener("change", swap);
+  swap();
 
   const validator = createValidator(form, {
     title:    [rules.required(), rules.minLen(4)],
@@ -483,18 +539,60 @@ function noteForm() {
 
   saveBtn.addEventListener("click", async () => {
     if (!validator.validate()) return;
+
+    const isAudio = kSel.value === "audio";
+    const base = {
+      title: form.elements.title.value.trim(),
+      description: form.elements.description.value.trim(),
+      courseId: cSel.value,
+      module: mSel.value,
+      kind: isAudio ? "audio" : "file",
+      downloads: 0, isPublic: false
+    };
+
+    /* ---------------------------------------------------------------- audio */
+    if (isAudio) {
+      const link = form.elements.audioURL.value.trim();
+      /* Drive ka link kai roop me aata hai; file id nikal kar hi maante hain.
+         Iske do faayde: galat link (ya poora folder) yahin ruk jaata hai, aur
+         student ki taraf player ko seedha id mil jaati hai. */
+      const fileId = driveFileId(link);
+      if (!fileId) {
+        return toast.error("Ye Google Drive ki file ka link nahi lag raha. File kholkar Share → Copy link se liya hua link paste karein.");
+      }
+      const mins = Math.max(0, Math.round(Number(form.elements.durationMin.value) || 0));
+      const data = { ...base, audioURL: link, audioFileId: fileId, durationMin: mins };
+
+      if (mode === "preview") {
+        notes.unshift({ id: `tmp-${Date.now()}`, ...data });
+        m.close(); paintTabs(); paintNotes();
+        toast.info("Preview mode: Firebase ke baad asli save hoga.");
+        return;
+      }
+      try {
+        saveBtn.disabled = true;
+        const { create } = await import("../../firebase/db-service.js");
+        const id = await create(COLLECTIONS.NOTES, data);
+        notes.unshift({ id, ...data });
+        m.close(); paintTabs(); paintNotes();
+        toast.success("Audiobook jud gaya — students ko dikhne laga.");
+      } catch (err) {
+        saveBtn.disabled = false;
+        toast.error(err.message || "Save fail ho gaya.");
+      }
+      return;
+    }
+
+    /* ----------------------------------------------------------------- file */
     const file = form.elements.file.files[0];
     if (!file) return toast.warning("File chunein.");
     const check = validateFile(file, "material");
     if (!check.ok) return toast.error(check.error);
 
     const data = {
-      title: form.elements.title.value.trim(),
-      description: form.elements.description.value.trim(),
-      courseId: cSel.value,
-      module: mSel.value,
+      ...base,
       fileName: file.name, fileType: file.type, fileSize: file.size,
-      filePath: "", fileURL: "", downloads: 0, isPublic: false
+      filePath: "", fileURL: ""
     };
 
     if (mode === "preview") {

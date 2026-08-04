@@ -16,9 +16,10 @@
 
 import { $, el, on, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
-import { formatDate, debounce } from "../core/utils.js";
+import { formatDate, debounce, driveFileId } from "../core/utils.js";
 import { formatBytes } from "../core/files.js";
 import { url } from "../core/routes.js";
+import { open as openModal } from "../core/modal.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_NOTES } from "./demo-data.js";
@@ -29,30 +30,85 @@ import toast from "../core/toast.js";
 let notes = [], mode = "preview", term = "", student = null;
 
 function card(n, { big = false } = {}) {
+  const isAudio = n.kind === "audio";
+
+  /* Audiobook aur PDF ek hi list me rehte hain — dono padhai ka saamaan hain
+     — par pehli nazar me alag dikhne chahiye: headphone ka icon, apna badge,
+     aur "Download" ki jagah "Sunein". */
+  const badges = isAudio
+    ? [
+        el("span", { class: "badge-ssz badge-accent" }, "Audiobook"),
+        n.durationMin ? el("span", { class: "badge-ssz" }, `${n.durationMin} min`) : null,
+        el("span", { class: "badge-ssz" }, formatDate(n.createdAt))
+      ]
+    : [
+        el("span", { class: "badge-ssz" }, formatBytes(n.fileSize || 0)),
+        el("span", { class: "badge-ssz" }, formatDate(n.createdAt)),
+        el("span", { class: "badge-ssz badge-brand" }, `${n.downloads || 0} downloads`)
+      ];
+
   return el("div", { class: "card-ssz is-hoverable", style: big ? { borderColor: "var(--brand)" } : null },
     el("div", { class: "card-ssz__body" },
       el("div", { style: { display: "flex", gap: "1rem", alignItems: "flex-start" } },
         el("span", {
           class: "stat-tile__icon",
           style: big ? { flexShrink: 0, background: "var(--brand)", color: "#fff" } : { flexShrink: 0 },
-          html: icon(big ? "book" : "fileText", { size: 22 })
+          html: icon(isAudio ? "headphones" : big ? "book" : "fileText", { size: 22 })
         }),
         el("span", { style: { minWidth: 0 } },
           el("strong", { style: { display: "block", fontSize: ".95rem", marginBottom: ".2rem" } }, n.title),
           el("span", { style: { fontSize: ".8rem", color: "var(--text-muted)", display: "block", marginBottom: ".6rem" } },
             n.description || ""),
-          el("span", { class: "cluster", style: { gap: ".4rem" } },
-            el("span", { class: "badge-ssz" }, formatBytes(n.fileSize || 0)),
-            el("span", { class: "badge-ssz" }, formatDate(n.createdAt)),
-            el("span", { class: "badge-ssz badge-brand" }, `${n.downloads || 0} downloads`)
-          )
+          el("span", { class: "cluster", style: { gap: ".4rem" } }, ...badges.filter(Boolean))
         )
       ),
       el("button", {
         class: `btn-ssz ${big ? "btn-primary-ssz" : "btn-secondary-ssz btn-sm-ssz"} btn-block-ssz`,
-        type: "button", style: { marginTop: "1rem" }, dataset: { dl: n.id }
-      }, el("span", { html: icon("download", { size: 16 }) }), " Download")
+        type: "button", style: { marginTop: "1rem" },
+        dataset: isAudio ? { listen: n.id } : { dl: n.id }
+      },
+        el("span", { html: icon(isAudio ? "play" : "download", { size: 16 }) }),
+        isAudio ? " Sunein" : " Download")
     ));
+}
+
+/* --------------------------------------------------------------------------
+   Audiobook ka player
+
+   Wahi tareeka jo class recording me lagaya tha: Drive ka `/preview` roop
+   iframe me chalta hai. Usme Drive ka Download button hota hi nahi, aur link
+   student ko dikhta bhi nahi.
+
+   EK BAAT SAAF RAKHNI CHAHIYE — aur ye video se zyada sach hai:
+
+   Ye download "mushkil" karta hai, "namumkin" nahi. Video par hum watermark
+   laga sakte the — student ka apna naam upar ghoomta rehta tha, jisse leak
+   karne wale ki apni pehchaan us video par likhi rehti thi. Awaaz par aisa
+   koi nishaan nahi lagaya ja sakta. Isliye audiobook ki hifaazat recording se
+   kamzor hai, aur ye jaan kar hi ise rakhna chahiye.
+   -------------------------------------------------------------------------- */
+function listen(n) {
+  const id = n.audioFileId || driveFileId(n.audioURL);
+  if (!id) return toast.error("Is audiobook ka link theek nahi hai — institute ko bata dein.");
+
+  const body = el("div", {});
+  body.appendChild(el("p", { style: { fontSize: ".84rem", color: "var(--text-muted)", margin: "0 0 .9rem" } },
+    n.description || `${n.module || "Poori book"}${n.durationMin ? ` · ${n.durationMin} min` : ""}`));
+
+  /* Drive ka audio preview chhoti height me aata hai; 180px me player aur
+     file ka naam dono aa jaate hain. */
+  body.appendChild(el("iframe", {
+    src: `https://drive.google.com/file/d/${id}/preview`,
+    style: { width: "100%", height: "180px", border: "0", borderRadius: "12px", background: "#000" },
+    allow: "autoplay",
+    referrerpolicy: "no-referrer",
+    title: n.title || "Audiobook"
+  }));
+
+  body.appendChild(el("p", { style: { fontSize: ".76rem", color: "var(--text-muted)", margin: ".9rem 0 0" } },
+    "Ye audiobook sirf yahin sunne ke liye hai — kisi aur ko bhejna ya kahin aur chadhana mana hai."));
+
+  openModal({ title: n.title || "Audiobook", size: "md", body });
 }
 
 function empty(q) {
@@ -133,6 +189,11 @@ if (mode === "preview") {
 paint();
 
 $("#noteSearch").addEventListener("input", debounce((e) => { term = e.target.value.trim(); paint(); }, 200));
+
+on($("#noteList"), "click", "[data-listen]", (e, btn) => {
+  const n = notes.find((x) => x.id === btn.dataset.listen);
+  if (n) listen(n);
+});
 
 on($("#noteList"), "click", "[data-dl]", async (e, btn) => {
   const n = notes.find((x) => x.id === btn.dataset.dl);

@@ -78,6 +78,18 @@
   background: rgba(255,255,255,.12);
 }
 .course-hero > * { position: relative; z-index: 1; }
+/* Course ka rang site-data se aata hai, aur do course (Video Editing,
+   I.Com) amber par khatm hote hain. Amber par safed matn ka contrast
+   2.15:1 hai — dhoop me sasti LCD par ye padha hi nahi jaata. Rang badalne
+   ke bajaye halka gehra parda daal dete hain: har course par kaam karta
+   hai, aur rang bhi wahi dikhta hai. */
+.course-hero { position: relative; }
+.course-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(2,6,23,.12), rgba(2,6,23,.5));
+  pointer-events: none;
+}
+.course-hero > * { position: relative; z-index: 1; }
 .course-hero h1 { color: #fff; margin-bottom: var(--sp-3); }
 .course-hero p { color: rgba(255,255,255,.9); max-width: 60ch; }
 .course-hero .badge-ssz { background: rgba(255,255,255,.2); color: #fff; }
@@ -87,7 +99,12 @@
 .course-layout { display: grid; gap: var(--sp-8); grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 992px) { .course-layout { grid-template-columns: 1fr 340px; } }
 
-.enroll-card { position: sticky; top: calc(var(--navbar-h) + var(--sp-5)); }
+/* Sticky sirf tab kaam ka hai jab card bagal me ho. Phone par ye neeche
+   ka hissa hai — wahan sticky se kuch nahi milta, bas ek compositing parat
+   banti hai jo sasti phone par bhaari padti hai. */
+@media (min-width: 992px) {
+  .enroll-card { position: sticky; top: calc(var(--navbar-h) + var(--sp-5)); }
+}
 .enroll-card__price {
   font-family: var(--font-display);
   font-size: var(--fs-2xl);
@@ -128,6 +145,11 @@
 .module__title { flex: 1; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-primary); }
 .module__chev { color: var(--text-muted); transition: transform var(--dur-base) var(--ease-out); }
 .module.is-open .module__chev { transform: rotate(180deg); }
+/* 66px ka indent us gol number ke liye tha jo bade screen par bayein
+   baithta hai. 360px par isse padhne ki jagah sirf ~240px bachti thi. */
+@media (max-width: 576px) {
+  .module__body { padding-left: var(--sp-5) !important; }
+}
 .module__body { display: none; padding: 0 var(--sp-5) var(--sp-5) calc(var(--sp-5) + 30px + var(--sp-4)); }
 .module.is-open .module__body { display: block; animation: ssz-fade-in var(--dur-base) var(--ease-out); }
 .module__topics { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-2); }
@@ -194,9 +216,13 @@
 @media (min-width: 768px) { .review-summary { grid-template-columns: auto 1fr; gap: var(--sp-10); } }
 .review-summary__score {
   text-align: center;
-  padding-right: var(--sp-6);
 }
-@media (min-width: 768px) { .review-summary__score { border-right: 1px solid var(--border-subtle); } }
+/* padding-right us border ke saath jaata hai jo sirf 768px+ par lagta hai.
+   Pehle wo har width par tha, isliye phone par score ek taraf khiska hua
+   dikhta tha. */
+@media (min-width: 768px) {
+  .review-summary__score { border-right: 1px solid var(--border-subtle); padding-right: var(--sp-6); }
+}
 .review-summary__num {
   font-family: var(--font-display);
   font-size: 3rem;
@@ -239,6 +265,13 @@
   transform: translateY(8px);
   transition: var(--t-base);
 }
+/* Phone par :hover kabhi chalta hi nahi — matlab gallery ke saare caption
+   mobile par hamesha gayab the. Touch wale device par unhe seedhe dikha
+   dete hain. */
+@media (hover: none) {
+  .gallery-item__cap { opacity: 1; transform: none; }
+}
+.gallery-item:focus-within .gallery-item__cap { opacity: 1; transform: none; }
 .gallery-item:hover .gallery-item__cap { opacity: 1; transform: translateY(0); }
 
 .lightbox {

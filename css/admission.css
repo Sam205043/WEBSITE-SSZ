@@ -145,10 +145,43 @@
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-surface-2);
 }
-@media (max-width: 576px) { .adm-foot { padding: var(--sp-4); } }
+/* --------------------------------------------------------------------------
+   Chhote phone par wizard ka footer
 
-/* Sidebar helper card */
-.adm-side { position: sticky; top: calc(var(--navbar-h) + var(--sp-5)); display: grid; gap: var(--sp-4); }
+   YAHAN EK ASLI DIKKAT THI, AUR THEEK ADMISSION KE AAKHRI KADAM PAR.
+
+   .adm-foot `space-between` wala flex tha, aur har button par
+   `white-space: nowrap` lagta hai. 360px ke phone par andar ~296px bachte
+   the, jabki "Peechhe" + "Application Submit Karein" milkar ~338px maangte
+   hain. Flex item nowrap ke saath sikud nahi sakte, isliye ~42px bahar
+   nikal jaate the — aur `body { overflow-x: hidden }` use dikhata bhi nahi,
+   kaat deta hai. Matlab: student ko Submit button ka daaya kinara dikhta hi
+   nahi tha, aur tap wahan lagta hi nahi tha.
+
+   Ab chhote phone par dono button poori chaudai lete hain, aur asli kaam
+   (Submit / Aage badhein) upar aa jaata hai — angootha wahin pahunchta hai.
+   -------------------------------------------------------------------------- */
+@media (max-width: 576px) {
+  .adm-foot {
+    padding: var(--sp-4);
+    flex-wrap: wrap;
+  }
+  .adm-foot .btn-ssz {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+  .adm-foot #btnNext,
+  .adm-foot #btnSubmit { order: -1; }
+}
+
+/* Sidebar helper card — sticky sirf tab kaam ka hai jab wo bagal me ho.
+   992px se neeche ye poori chaudai ka doosra hissa ban jaata hai, wahan
+   sticky se kuch milta nahi aur browser ko ek extra parat banani padti
+   hai — sasti phone par yahi cheezein bhaari padti hain. */
+.adm-side { display: grid; gap: var(--sp-4); }
+@media (min-width: 992px) {
+  .adm-side { position: sticky; top: calc(var(--navbar-h) + var(--sp-5)); }
+}
 .adm-side__list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-3); }
 .adm-side__list li { display: flex; gap: var(--sp-3); font-size: var(--fs-sm); color: var(--text-secondary); }
 .adm-side__list svg { width: 17px; height: 17px; color: var(--brand); flex-shrink: 0; margin-top: 3px; }

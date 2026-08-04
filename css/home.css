@@ -64,6 +64,11 @@
 }
 .hero__cta { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-8); }
 
+@media (max-width: 400px) {
+  /* "Recognised Certificate" jaisa naam 156px ke column me teen line me
+     toot jaata tha — hero ki pehli hi jhalak bikhri dikhti thi. */
+  .hero__badges { grid-template-columns: 1fr !important; }
+}
 .hero__badges {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -182,7 +187,7 @@
    ========================================================================== */
 .stats-band {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
   background: var(--border-subtle);
   border: 1px solid var(--border-subtle);
@@ -190,7 +195,7 @@
   overflow: hidden;
   box-shadow: var(--shadow-md);
 }
-@media (min-width: 768px) { .stats-band { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) { .stats-band { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .stats-band__cell {
   background: var(--bg-surface);
   padding: clamp(1.25rem, 4vw, 2rem);
@@ -255,6 +260,16 @@
   transition: transform var(--dur-slow) var(--ease-out);
 }
 .course-card:hover .course-card__top::after { transform: scale(1.35); }
+/* Wahi contrast wali baat jo course-hero me hai: amber par khatm hone wale
+   course ka header safed matn ko 2.15:1 par le aata tha. Halka parda daal
+   dete hain — rang wahi rehta hai, matn padha jaane lagta hai. */
+.course-card__top::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(2,6,23,.10), rgba(2,6,23,.42));
+  pointer-events: none; z-index: 0;
+}
+.course-card__top > * { position: relative; z-index: 1; }
+.course-card__code { opacity: 1; }
 .course-card__icon {
   position: absolute; top: var(--sp-4); left: var(--sp-5);
   width: 40px; height: 40px;
@@ -314,11 +329,17 @@
 .filter-row {
   display: flex; gap: var(--sp-2);
   overflow-x: auto;
+  /* Chip ko sikudne se rokna zaroori hai. Flex me item apne aap sikudte
+     hain, isliye 6 category 360px me thoos di jaati thi: har pill ke andar
+     naam do-teen line me toot jaata tha aur row kabhi scroll hi nahi hoti
+     thi. Stepper me ye pehle se sahi tha (.stepper__item), yahan chhoot
+     gaya tha. */
   padding-bottom: var(--sp-2);
   margin-bottom: var(--sp-8);
   scrollbar-width: none;
 }
 .filter-row::-webkit-scrollbar { display: none; }
+.filter-row > .chip { flex-shrink: 0; white-space: nowrap; }
 @media (min-width: 992px) { .filter-row { justify-content: center; flex-wrap: wrap; overflow: visible; } }
 
 /* ==========================================================================
@@ -351,7 +372,7 @@
    JOURNEY / HOW IT WORKS
    ========================================================================== */
 .journey { display: grid; gap: var(--sp-6); grid-template-columns: 1fr; }
-@media (min-width: 640px) { .journey { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 640px) { .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 992px) { .journey { grid-template-columns: repeat(4, 1fr); } }
 
 .journey__item { position: relative; }

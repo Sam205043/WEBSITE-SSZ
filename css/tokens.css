@@ -169,8 +169,11 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Fluid type scale — mobile-first, scales with viewport, no media queries needed */
-  --fs-xs:   clamp(0.72rem, 0.70rem + 0.10vw, 0.78rem);
-  --fs-sm:   clamp(0.82rem, 0.79rem + 0.15vw, 0.90rem);
+  /* Farsh 12.5px aur 14px — inse neeche padhne wali cheez nahi jaani chahiye.
+     Pehle --fs-sm har phone par 13.1px hi rehta tha (14px sirf 900px+ par),
+     aur usi par button, table, FAQ aur course ka poora matn chalta hai. */
+  --fs-xs:   clamp(0.78rem, 0.76rem + 0.10vw, 0.82rem);
+  --fs-sm:   clamp(0.875rem, 0.84rem + 0.15vw, 0.94rem);
   --fs-base: clamp(0.94rem, 0.90rem + 0.20vw, 1.02rem);
   --fs-md:   clamp(1.05rem, 1.00rem + 0.25vw, 1.16rem);
   --fs-lg:   clamp(1.20rem, 1.12rem + 0.40vw, 1.42rem);

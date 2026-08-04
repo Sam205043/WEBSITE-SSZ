@@ -275,11 +275,33 @@ body.is-locked { overflow: hidden; }
 }
 .social-btn:hover { background: var(--grad-brand); color: #fff; transform: translateY(-3px); box-shadow: var(--shadow-brand); }
 
-/* ---------- Floating WhatsApp / back-to-top ---------- */
+/* ---------- Floating WhatsApp / back-to-top ----------
+
+   Do dikkatein theek ki gayi hain:
+
+   1) Ye teen gol button (chatbot, WhatsApp, upar jao) 52px chaude aur kul
+      ~180px oonche hote hain, aur poore page par neeche-dayein chipke rehte
+      hain. Kisi page ne inke liye jagah nahi chhodi thi — isliye admission
+      form ke "Submit" button ke daayen kinare par chat ka button baith jaata
+      tha. Ab body ke neeche utni jagah chhod di gayi hai.
+
+   2) index.html me `viewport-fit=cover` likha hai, yaani page phone ke
+      gesture bar ke neeche tak khinchta hai — par poore project me kahin
+      `env(safe-area-inset-*)` tha hi nahi. Iska matlab: WhatsApp wala button
+      Android ke gesture bar ke andar aadha ghusa rehta tha aur swipe use
+      phone kha jaata tha. Ab wo bhi jud gaya.
+   ---------------------------------------------------------------------- */
+:root { --fab-reserve: 76px; }
+
+/* Jagah footer par chhodi gayi hai, body par nahi — kyunki .fab-stack khud
+   footer.html ke andar hai. Dashboard me footer hota hi nahi, isliye wahan
+   na FAB aata hai na ye jagah lagti hai. Ek hi niyam, dono jagah sahi. */
+.ssz-footer { padding-bottom: calc(var(--fab-reserve) + env(safe-area-inset-bottom, 0px)); }
+
 .fab-stack {
   position: fixed;
   right: clamp(0.85rem, 3vw, 1.5rem);
-  bottom: clamp(0.85rem, 3vw, 1.5rem);
+  bottom: calc(clamp(0.85rem, 3vw, 1.5rem) + env(safe-area-inset-bottom, 0px));
   z-index: var(--z-sticky);
   display: flex; flex-direction: column; gap: var(--sp-3);
 }

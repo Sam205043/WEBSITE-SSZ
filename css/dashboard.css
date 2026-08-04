@@ -322,7 +322,7 @@
   font-weight: var(--fw-semibold);
   color: var(--text-secondary);
   background: var(--bg-surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   padding: .42rem 1.75rem .42rem .8rem;
   cursor: pointer;

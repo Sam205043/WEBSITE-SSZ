@@ -80,6 +80,18 @@ hr { border: 0; border-top: 1px solid var(--border-subtle); opacity: 1; margin: 
 
 /* ---------- Focus (accessible, not ugly) ---------- */
 :focus { outline: none; }
+/* Neeche wala niyam brand ke rang wale hisson par bekaar tha: indigo ka
+   outline indigo background par 1.1:1 — yaani keyboard se chalne wale ko
+   sabse bade button par kuch dikhta hi nahi tha. */
+.cta-band :focus-visible,
+.course-hero :focus-visible,
+.course-card__top :focus-visible,
+.live-card :focus-visible,
+.chat-head :focus-visible {
+  outline-color: #fff !important;
+  box-shadow: 0 0 0 4px rgba(2, 6, 23, .45);
+}
+
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 3px;

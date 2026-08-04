@@ -59,7 +59,12 @@
 
 /* Mobile: bottom sheet — chhoti screen par kone ka card padhne layak nahi. */
 @media (max-width: 575.98px) {
+  /* Mobile par chat neeche se aati poori sheet hai aur `bottom: 0` par
+     baithti hai. index.html me `viewport-fit=cover` hai, isliye "0" ka
+     matlab gesture bar ke NEECHE hai — chat ka input aur send button
+     us patti me chhup jaate the. */
   .chat-panel {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     right: 0; left: 0; bottom: 0;
     width: 100%;
     max-height: 88vh; height: 88dvh;
@@ -92,6 +97,8 @@
    4.5:1). `inherit` se wo dabaav hat jaata hai. */
 .chat-head__meta strong { display: block; font-size: .92rem; font-weight: var(--fw-bold); color: inherit; }
 .chat-head__meta span { display: block; font-size: .74rem; opacity: .88; }
+/* Mobile par chat poori screen ghere hue sheet ban jaati hai aur ise band
+   karne ka SIRF yahi button hai — 32px bahut chhota tha. */
 .chat-head__close {
   background: rgb(255 255 255 / .15); border: none; color: #fff;
   width: 32px; height: 32px; border-radius: 50%;

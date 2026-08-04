@@ -291,6 +291,9 @@
 }
 .field.has-error .field__error { display: flex; }
 
+/* font-size 16px se chhota ho to iOS har field tap par page zoom kar deta
+   hai aur layout bagal khisak jaata hai. Chat input me ye pehle theek kiya
+   gaya tha, par asli form (admission, login, contact) chhoot gaye the. */
 .input-ssz, .select-ssz, .textarea-ssz {
   width: 100%;
   padding: 0.78rem 1rem;
@@ -299,7 +302,7 @@
   border: 1.5px solid var(--border-default);
   border-radius: var(--r-md);
   color: var(--text-primary);
-  font-size: var(--fs-base);
+  font-size: max(16px, var(--fs-base));
   transition: border-color var(--dur-fast) var(--ease-out),
               box-shadow var(--dur-fast) var(--ease-out),
               background var(--dur-fast) var(--ease-out);
@@ -682,7 +685,7 @@
   gap: 1.15rem;
   flex-wrap: wrap;
   background: var(--card-bg, var(--bg-surface));
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-lg, 18px);
   padding: 1.5rem 1.6rem;
   box-shadow: var(--card-lift, 0 1px 2px rgba(15, 23, 42, .04));
@@ -764,7 +767,7 @@
   font: inherit; font-size: .82rem; font-weight: var(--fw-semibold);
   color: var(--text-secondary);
   background: var(--bg-surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   padding: .42rem 1.75rem .42rem .8rem;
   cursor: pointer; line-height: 1.2;
@@ -801,13 +804,16 @@ html.lang-hi { line-height: 1.75; }
   font: inherit; font-size: .84rem; font-weight: var(--fw-semibold);
   padding: .55rem .95rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .28);
-  background: rgba(255, 255, 255, .1);
-  color: inherit;
+  /* Pehle yahan sab rang safed ki halki parat the — jo sirf gehre footer
+     par dikhte. Par footer safed hai (--bg-surface), isliye light theme me
+     ye button bilkul dikhta hi nahi tha: bina kinare ka saada text. */
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background-color .18s ease, border-color .18s ease;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease;
 }
-.install-fbtn:hover { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .45); }
+.install-fbtn:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
 .install-fbtn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .install-fbtn__icon { display: grid; place-items: center; }
 
@@ -835,9 +841,26 @@ html.lang-hi { line-height: 1.75; }
    parda). Yahan paanch cheezein ek patti me nahi samaatin, isliye icon aur
    unke beech ki jagah thodi ghata dete hain. Kisi ko chhupaate nahi —
    chhupane se hi ye gadbad shuru hui thi. */
+/* Ungli ka nishaan ~44px hota hai. Neeche wale gol button dikhne me chhote
+   rehte hain (design waisa hi), par unke aas-paas ki 44px jagah bhi tap
+   maan leti hai. `::after` sirf ek anjaan parat hai — kuchh dikhta nahi,
+   layout bhi nahi hilta. */
+.icon-btn, .pagination-ssz button, .social-btn, .input-group-ssz__btn { position: relative; }
+.icon-btn::after, .pagination-ssz button::after,
+.social-btn::after, .input-group-ssz__btn::after {
+  content: ""; position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+}
+
+/* Review step ka "badlein" button 18px oonchа tha — chhoona hi mushkil. */
+.adm-review__edit { padding: .45rem .6rem; margin: -.45rem -.6rem; }
+
 @media (max-width: 360px) {
   .ssz-nav__actions { gap: .25rem; }
-  .ssz-nav__actions .icon-btn { width: 36px; height: 36px; }
+  /* Yahan pehle icon-btn 36px kar diya jaata tha. Sabse chhote phone par
+     hi menu ka button sabse chhota ho jaata tha — jabki wahi mobile par
+     ghoomne ka ekmatra raasta hai. Upar wali gap kam karne se jagah waise
+     hi mil jaati hai, isliye button 40px hi rehne diya. */
   .lang-pick { font-size: .66rem; padding: .26rem 1.1rem .26rem .42rem; }
   .lang-pick { background-position: calc(100% - 9px) 52%, calc(100% - 6px) 52%; }
 }

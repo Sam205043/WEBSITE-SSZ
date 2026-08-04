@@ -41,6 +41,22 @@ document.documentElement.style.colorScheme=t;})();
     <main class="dash-body" id="dashBody">
 
       <div id="feeTiles" class="auto-grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));margin-bottom:2rem"></div>
+
+      <!-- Razorpay se paisa aa gaya par kis student ka hai, ye system nahi
+           jaan paaya (aksar tab jab link Razorpay dashboard se haath se
+           banaya gaya ho). Sabse upar isliye hai ki ye asli paisa hai jo
+           abhi kisi ke khaate me chadha hi nahi. -->
+      <section class="dash-section" id="unmatchedSection" hidden>
+        <div class="dash-section__head">
+          <h2>Bina jude payment</h2>
+        </div>
+        <p class="dash-section__note" style="font-size:.82rem;color:var(--text-muted);margin:-.25rem 0 .9rem">
+          Ye paise Razorpay me aa chuke hain, par kisi student ke khaate me nahi chadhe.
+          Sahi student chunkar jodein — tabhi receipt banegi aur bakaya kam hoga.
+        </p>
+        <div id="unmatchedList" class="stack" style="gap:.75rem"></div>
+      </section>
+
       <section class="dash-section" id="verifySection" hidden>
         <div class="dash-section__head"><h2>Verify karne wale payments</h2></div>
         <div id="verifyList" class="stack" style="gap:.75rem"></div>

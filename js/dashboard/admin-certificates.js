@@ -3,7 +3,7 @@
    Numbered + verify-coded certificates with a printable certificate view.
    ========================================================================== */
 
-import { $, el, on, render } from "../core/dom.js";
+import { $, el, on, render, escapeHtml } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { formatDate, copyToClipboard, debounce } from "../core/utils.js";
 import { open as openModal, confirm as confirmModal } from "../core/modal.js";
@@ -38,26 +38,37 @@ function qrTag(code) {
   }
 }
 
+/* Yahan ka khatra sabse bada tha, isliye alag se likh raha hoon.
+   c.studentName ka safar: public admission form ka `fullName` -> admissions
+   -> students -> certificates. Beech me kahin bhi HTML saaf nahi hota tha.
+   Matlab ek anjaan visitor naam ki jagah `<img src=x onerror="...">` bhar
+   deta, aur jis din aap uska certificate kholte, wo script AAPKE browser me
+   AAPKE admin rights ke saath chalti. Firestore rules yahan kuchh nahi kar
+   sakte — request sach me admin hi bhej raha hota hai.
+   Ab har bahar se aayi value escapeHtml() se guzarti hai. qrTag() hamara
+   apna banaya <img> tag hai, isliye wo waise ka waisa rehta hai. */
 function certPrintHTML(c) {
+  const grade = c.grade ? ` — Grade <strong>${escapeHtml(c.grade)}</strong>` : "";
+  const pct = c.percentage ? ` (${escapeHtml(c.percentage)}%)` : "";
   return `
   <div style="border:6px double #4f46e5;padding:34px 40px;text-align:center;background:#fff;color:#0f172a;font-family:Georgia,'Times New Roman',serif">
     <p style="margin:0;font-size:.7rem;letter-spacing:.25em;color:#4f46e5">SOFT SKILL ZONE INSTITUTE</p>
-    <p style="margin:2px 0 18px;font-size:.62rem;color:#666">${INSTITUTE.address} · Learn Today. Lead Tomorrow.</p>
+    <p style="margin:2px 0 18px;font-size:.62rem;color:#666">${escapeHtml(INSTITUTE.address)} · Learn Today. Lead Tomorrow.</p>
     <h1 style="margin:0 0 6px;font-size:1.7rem;letter-spacing:.06em">Certificate of Completion</h1>
     <p style="margin:0 0 18px;font-size:.8rem;color:#555">Yeh pramaanit kiya jaata hai ki</p>
-    <p style="margin:0;font-size:1.5rem;font-weight:700;border-bottom:1.5px solid #cbd5e1;display:inline-block;padding:0 24px 4px">${c.studentName}</p>
-    <p style="margin:14px auto 4px;font-size:.9rem;max-width:56ch">(${c.studentId}) ne
-      <strong>${c.courseName}</strong> safaltapoorvak poora kiya hai${c.grade ? ` — Grade <strong>${c.grade}</strong>` : ""}${c.percentage ? ` (${c.percentage}%)` : ""}.</p>
+    <p style="margin:0;font-size:1.5rem;font-weight:700;border-bottom:1.5px solid #cbd5e1;display:inline-block;padding:0 24px 4px">${escapeHtml(c.studentName)}</p>
+    <p style="margin:14px auto 4px;font-size:.9rem;max-width:56ch">(${escapeHtml(c.studentId)}) ne
+      <strong>${escapeHtml(c.courseName)}</strong> safaltapoorvak poora kiya hai${grade}${pct}.</p>
     <div style="display:flex;justify-content:space-between;margin-top:34px;font-size:.72rem;color:#555">
-      <span>Issue date: <strong>${formatDate(c.issueDate)}</strong></span>
-      <span>Certificate No: <strong>${c.certificateNo}</strong></span>
+      <span>Issue date: <strong>${escapeHtml(formatDate(c.issueDate))}</strong></span>
+      <span>Certificate No: <strong>${escapeHtml(c.certificateNo)}</strong></span>
     </div>
     <div style="margin-top:26px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
       <span style="border-top:1.5px solid #0f172a;padding:4px 18px 0;font-size:.72rem">Director</span>
       <span style="text-align:center;font-size:.58rem;color:#666;line-height:1.5">
         ${qrTag(c.verifyCode)}
         <span style="display:block">Scan karke verify karein</span>
-        <strong style="display:block;letter-spacing:.04em">${c.verifyCode}</strong>
+        <strong style="display:block;letter-spacing:.04em">${escapeHtml(c.verifyCode)}</strong>
       </span>
     </div>
   </div>`;
@@ -71,7 +82,7 @@ function certView(c) {
   closeBtn.addEventListener("click", () => m.close());
   printBtn.addEventListener("click", () => {
     const w = window.open("", "_blank", "width=900,height=700");
-    w.document.write(`<html><head><title>${c.certificateNo}</title></head><body style="margin:24px">${certPrintHTML(c)}</body></html>`);
+    w.document.write(`<html><head><title>${escapeHtml(c.certificateNo)}</title></head><body style="margin:24px">${certPrintHTML(c)}</body></html>`);
     w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
   });
 }

@@ -4,7 +4,7 @@
    student-uploaded payment proofs; history + search + CSV export; print.
    ========================================================================== */
 
-import { $, el, on, render } from "../core/dom.js";
+import { $, el, on, render, escapeHtml } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { money, amountInWords, formatDate, formatPhone, exportCSV, debounce, sum } from "../core/utils.js";
 import { open as openModal, confirm as confirmModal } from "../core/modal.js";
@@ -269,20 +269,35 @@ function verifyDialog(f) {
 /* ==========================================================================
    Receipt print
    ========================================================================== */
+/* Receipt ki har line bahar se aayi hai — studentName seedha public admission
+   form se aata hai, remarks admin ya webhook se, courseName record se. Inhe
+   bina escape kiye HTML me daalna admin ke apne browser me script chalane ka
+   raasta khol deta tha: naam ki jagah `<img src=x onerror="...">` bhar do,
+   admin receipt kholte hi wo chal jaata. Isliye har value escapeHtml() se
+   guzarti hai. Key (bayan taraf ka label) hamare apne likhe hue hain, phir
+   bhi ek hi niyam rakhna aasan aur surakshit hai. */
 function receiptView(f) {
+  const rows = [
+    ["Receipt No.", f.receiptNo],
+    ["Date", formatDate(f.paidOn)],
+    ["Student", `${f.studentName || ""} (${f.studentId || ""})`],
+    ["Course", f.courseName || "—"],
+    ["Mode", MODE_LABEL[f.mode] || f.mode],
+    ["Amount", `${money(f.amount)} — ${amountInWords(f.amount)}`],
+    ["Remarks", f.remarks || "—"]
+  ];
+
   const body = el("div", { class: "receipt-sheet" });
   body.innerHTML = `
     <div style="text-align:center;border-bottom:2px solid #4f46e5;padding-bottom:12px;margin-bottom:16px">
       <h2 style="margin:0;font-size:1.3rem;color:#312e81">Soft Skill Zone Institute</h2>
-      <p style="margin:2px 0 0;font-size:.8rem">${INSTITUTE.address} · ${formatPhone(INSTITUTE.phone)}</p>
+      <p style="margin:2px 0 0;font-size:.8rem">${escapeHtml(INSTITUTE.address)} · ${escapeHtml(formatPhone(INSTITUTE.phone))}</p>
       <p style="margin:6px 0 0;font-weight:700;letter-spacing:.08em;font-size:.8rem">FEE RECEIPT</p>
     </div>
     <table style="width:100%;font-size:.88rem;border-collapse:collapse">
-      ${[["Receipt No.", f.receiptNo], ["Date", formatDate(f.paidOn)],
-         ["Student", `${f.studentName || ""} (${f.studentId})`], ["Course", f.courseName || "—"],
-         ["Mode", MODE_LABEL[f.mode] || f.mode], ["Amount", `${money(f.amount)} — ${amountInWords(f.amount)}`],
-         ["Remarks", f.remarks || "—"]]
-        .map(([k, v]) => `<tr><td style="padding:6px 0;color:#555;width:32%">${k}</td><td style="padding:6px 0;font-weight:600">${v}</td></tr>`).join("")}
+      ${rows.map(([k, v]) =>
+        `<tr><td style="padding:6px 0;color:#555;width:32%">${escapeHtml(k)}</td><td style="padding:6px 0;font-weight:600">${escapeHtml(v)}</td></tr>`
+      ).join("")}
     </table>
     <p style="margin-top:20px;font-size:.72rem;color:#666;text-align:center">Computer-generated receipt.</p>`;
 
@@ -291,8 +306,10 @@ function receiptView(f) {
   const m = openModal({ title: f.receiptNo || "Receipt", size: "lg", body, footer: [closeBtn, printBtn] });
   closeBtn.addEventListener("click", () => m.close());
   printBtn.addEventListener("click", () => {
+    /* body.innerHTML ab escape ho chuka hai, par <title> me receiptNo alag se
+       jaata hai — use bhi escape karna zaroori hai. */
     const w = window.open("", "_blank", "width=800,height=900");
-    w.document.write(`<html><head><title>${f.receiptNo}</title></head><body style="font-family:Arial,sans-serif">${body.innerHTML}</body></html>`);
+    w.document.write(`<html><head><title>${escapeHtml(f.receiptNo || "Receipt")}</title></head><body style="font-family:Arial,sans-serif">${body.innerHTML}</body></html>`);
     w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
   });
 }

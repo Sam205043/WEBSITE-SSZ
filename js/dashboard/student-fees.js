@@ -3,7 +3,7 @@
    Totals, due date, Razorpay se pay-now, proof upload, receipts + print.
    ========================================================================== */
 
-import { $, el, on, render } from "../core/dom.js";
+import { $, el, on, render, escapeHtml } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { money, amountInWords, formatDate, formatPhone } from "../core/utils.js";
 import { validateFile } from "../core/files.js";
@@ -335,24 +335,32 @@ function proofDialog(prefillAmount = 0, payMode = "razorpay", fromPayButton = fa
   });
 }
 
+/* Har value bahar se aayi hai — fullName public admission form se, remarks
+   fees record se — isliye HTML me daalne se pehle escapeHtml(). Bina iske
+   naam ki jagah likha `<img src=x onerror="...">` receipt kholte hi student
+   ke apne dashboard me chal jaata tha. Wahi fix admin-fees.js me bhi hai. */
 function receiptView(f) {
+  const rows = [
+    ["Receipt No.", f.receiptNo || "—"],
+    ["Date", formatDate(f.paidOn)],
+    ["Student", `${student.fullName || ""} (${student.studentId || ""})`],
+    ["Course", student.courseName || "—"],
+    ["Payment mode", MODE_LABEL[f.mode] || f.mode],
+    ["Amount", `${money(f.amount)} — ${amountInWords(f.amount)}`],
+    ["Remarks", f.remarks || "—"]
+  ];
+
   const body = el("div", { class: "receipt-sheet" });
   body.innerHTML = `
     <div style="text-align:center;border-bottom:2px solid #4f46e5;padding-bottom:12px;margin-bottom:16px">
       <h2 style="margin:0;font-size:1.3rem;color:#312e81">Soft Skill Zone Institute</h2>
-      <p style="margin:2px 0 0;font-size:.8rem">${INSTITUTE.address} · ${formatPhone(INSTITUTE.phone)}</p>
+      <p style="margin:2px 0 0;font-size:.8rem">${escapeHtml(INSTITUTE.address)} · ${escapeHtml(formatPhone(INSTITUTE.phone))}</p>
       <p style="margin:6px 0 0;font-weight:700;letter-spacing:.08em;font-size:.8rem">FEE RECEIPT</p>
     </div>
     <table style="width:100%;font-size:.88rem;border-collapse:collapse">
-      ${[
-        ["Receipt No.", f.receiptNo || "—"],
-        ["Date", formatDate(f.paidOn)],
-        ["Student", `${student.fullName} (${student.studentId})`],
-        ["Course", student.courseName || "—"],
-        ["Payment mode", MODE_LABEL[f.mode] || f.mode],
-        ["Amount", `${money(f.amount)} — ${amountInWords(f.amount)}`],
-        ["Remarks", f.remarks || "—"]
-      ].map(([k, v]) => `<tr><td style="padding:6px 0;color:#555;width:34%">${k}</td><td style="padding:6px 0;font-weight:600">${v}</td></tr>`).join("")}
+      ${rows.map(([k, v]) =>
+        `<tr><td style="padding:6px 0;color:#555;width:34%">${escapeHtml(k)}</td><td style="padding:6px 0;font-weight:600">${escapeHtml(v)}</td></tr>`
+      ).join("")}
     </table>
     <p style="margin-top:20px;font-size:.72rem;color:#666;text-align:center">
       Yeh computer-generated receipt hai. Kisi bhi sawaal ke liye institute se sampark karein.
@@ -364,7 +372,8 @@ function receiptView(f) {
   closeBtn.addEventListener("click", () => m.close());
   printBtn.addEventListener("click", () => {
     const w = window.open("", "_blank", "width=800,height=900");
-    w.document.write(`<html><head><title>${f.receiptNo || "Receipt"}</title></head><body style="font-family:Arial,sans-serif">${body.innerHTML}</body></html>`);
+    /* body.innerHTML ab escape ho chuka hai; <title> alag se jaata hai. */
+    w.document.write(`<html><head><title>${escapeHtml(f.receiptNo || "Receipt")}</title></head><body style="font-family:Arial,sans-serif">${body.innerHTML}</body></html>`);
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 300);

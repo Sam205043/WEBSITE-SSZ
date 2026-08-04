@@ -17,7 +17,7 @@ import { icon } from "../core/icons.js";
 import { createValidator, rules, validateFields, clearError } from "../core/validators.js";
 import { store, debounce, dateKey, whatsappLink, money, amountInWords } from "../core/utils.js";
 import { param, url } from "../core/routes.js";
-import { LS_KEYS } from "../core/constants.js";
+import { LS_KEYS, TRIAL_MIN_1_RUPEE } from "../core/constants.js";
 import { COURSES, INSTITUTE, activeCourses } from "../config/site-data.js";
 import { durationLabel } from "../components/course-card.js";
 import toast from "../core/toast.js";
@@ -418,6 +418,9 @@ function uploadWatchdog() {
 const MIN_SHARE = 0.10;
 
 function minFirstPayment(total) {
+  /* Trial ke din: hadd ₹1. Ye flag js/core/constants.js me hai aur wahin se
+     wapas lena hai — server (functions/index.js) me uska apna flag hai, jo
+     asli taala hai. Dono ek saath hi badalne chahiye. */
   return Math.min(total, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100));
 }
 
@@ -425,7 +428,18 @@ function feeCard(appNo, course, email) {
   const total = (course?.fee || 0) + (course?.admissionFee || 0);
   if (!total) return null;
 
-  const min = minFirstPayment(total);
+  /* Do alag ginti, jaanbujh kar.
+
+     `suggested` wo rakam hai jo khaane me pehle se bhari milti hai — ye
+     TRIAL ke dinon me bhi 10% hi rehti hai. Wajah: in dinon koi asli student
+     bhi form bhar sakta hai, aur uske saamne ₹1 bhara hua dikhna bilkul
+     galat hoga.
+
+     `min` wo hadd hai jisse neeche nahi ja sakte. Trial me yahi ₹1 hoti hai,
+     taaki test payment ho sake — par uske liye rakam khud badalni padegi.
+     Asli rok server par hai (functions/index.js). */
+  const suggested = minFirstPayment(total);
+  const min = TRIAL_MIN_1_RUPEE ? 1 : suggested;
 
   const box = el("div", {
     class: "card-ssz",
@@ -442,15 +456,18 @@ function feeCard(appNo, course, email) {
       <div class="field" style="margin-bottom:.5rem">
         <label class="field__label" for="admPayAmt">Kitna abhi bhar rahe hain? (Rs.)</label>
         <input class="input-ssz" id="admPayAmt" type="number" inputmode="numeric"
-               min="${min}" max="${total}" step="1" value="${min}">
+               min="${min}" max="${total}" step="1" value="${suggested}">
         <p class="field__hint" id="admPayWords"
            style="font-size:.76rem;color:var(--text-muted);margin:.4rem 0 0"></p>
       </div>
 
       <div class="cluster" style="gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
         <button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
-          data-amt="${min}">Kam se kam ${money(min)}</button>
-        ${min < total ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+          data-amt="${suggested}">Kam se kam ${money(suggested)}</button>
+        ${TRIAL_MIN_1_RUPEE ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+          style="border-color:var(--warning);color:var(--warning)"
+          data-amt="1">Trial ₹1</button>` : ""}
+        ${suggested < total ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
           data-amt="${total}">Poori fees ${money(total)}</button>` : ""}
       </div>
 

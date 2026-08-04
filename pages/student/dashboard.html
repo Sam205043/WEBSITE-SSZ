@@ -39,6 +39,16 @@ document.documentElement.style.colorScheme=t;})();
     <header class="dash-top" id="dashTop"></header>
     <main class="dash-body" id="dashBody">
 
+      <!-- Sabse pehla hissa: "abhi kya karna hai". Pehle yahan seedhe chaar
+           tile the (Attendance, Fees, Assignments, Notifications) — chaaron
+           barabar bade, chaaron ek jaise. Phone par asli kaam — jaise abhi
+           chal rahi live class ka link — un tiles ke neeche chala jaata tha
+           aur student ko scroll karna padta tha.
+
+           Ab sabse upar sirf EK cheez hai: jo is waqt sabse zaroori hai.
+           Kram js/dashboard/student-home.js ke todayCard() me likha hai. -->
+      <div id="homeToday" style="margin-bottom:1.5rem"></div>
+
       <div id="homeStats" class="auto-grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));margin-bottom:2rem"></div>
       <div class="split" style="align-items:start;grid-template-columns:1fr">
         <div class="stack" style="gap:2rem">

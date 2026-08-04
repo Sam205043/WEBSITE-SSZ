@@ -96,6 +96,31 @@ const COURSES = {
 const MIN_SHARE = 0.10;
 
 /* ==========================================================================
+   >>>>>>>>>>  ASTHAYI — TRIAL KE DIN. YE WAPAS LENA HAI.  <<<<<<<<<<
+   --------------------------------------------------------------------------
+   `true` hone par kam se kam payment ₹1 ho jaata hai — admission par bhi aur
+   kist par bhi. Sirf isliye ki trial payment ₹1 me ho sake.
+
+   YAHI ASLI TAALA HAI. Website par jo hadd dikhti hai wo sirf dikhawa hai —
+   browser badal kar koi bhi use haata sakta hai. Rakam par sach me rok yahan
+   lagti hai, isliye 10% wapas lana ho to SABSE ZAROORI YAHI line hai.
+
+   WAPAS LENE KA TAREEKA (do line, do jagah):
+     1. Yahan `false` karein  ->  firebase deploy --only functions
+     2. js/core/constants.js me bhi `TRIAL_MIN_1_RUPEE` false karein
+        ->  wo file GitHub par chadha dein (aur sw.js ka version badhayein)
+
+   >>> KHATRA: Razorpay ko LIVE karne se PEHLE ise `false` karna zaroori hai.
+   >>> Warna koi bhi ₹1 me admission le sakta hai — Student ID, batch aur
+   >>> kist plan sab ban jaayenge. Test Mode me koi khatra nahi.
+
+   Kist ka plan (buildFeePlan) is flag se NAHI badalta — wo wahi 10% wala
+   rehta hai. Ye sirf "ek baar me kam se kam kitna bhar sakte hain" ki rok
+   hai, "kitna dena hai" ki nahi.
+   ========================================================================== */
+const TRIAL_MIN_1_RUPEE = true;
+
+/* ==========================================================================
    Chhoti madad
    ========================================================================== */
 
@@ -339,10 +364,16 @@ exports.createPaymentLink = onCall(
        wale payment se receipt ki ginti bhar jaana.
 
        Dono halat me `due` se zyada kabhi nahi — aakhri kist chhoti bachi ho
-       to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai. */
-    const min = feeKind === "admission"
-      ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))
-      : Math.min(due, 100);
+       to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai.
+
+       TRIAL KE DIN dono hadd ₹1 ho jaati hain — upar wala TRIAL_MIN_1_RUPEE
+       dekhein. `due` wali hadd tab bhi lagti hai, isliye koi bakaye se zyada
+       phir bhi nahi bhar sakta. */
+    const min = TRIAL_MIN_1_RUPEE
+      ? Math.min(due, 1)
+      : feeKind === "admission"
+        ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))
+        : Math.min(due, 100);
 
     const amount = Math.min(due, Math.max(min, asked || min));
 

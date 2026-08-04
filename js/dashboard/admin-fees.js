@@ -454,44 +454,83 @@ function paintVerify() {
    isliye is button se koi khatra nahi banta — koi visitor ise chhoo hi nahi
    sakta, aur uske apne dashboard se ₹1 ka link banta hi nahi.
    ========================================================================== */
-function testLinkDialog() {
+async function testLinkDialog() {
   if (mode === "preview") return toast.info("Preview mode — asli link Firebase ke baad banega.");
 
+  /* Do tarah ke test hote hain, aur zyada zaroori DOOSRA wala hai:
+
+     - KIST ka test: bane hue student par ₹1. Isse webhook aur receipt
+       jaanche jaate hain.
+     - ADMISSION ka test: jis form ka payment abhi hua hi nahi. Isse poora
+       raasta jaanchta hai — paisa -> webhook -> Student ID banna -> batch
+       lagna -> kist plan banna -> receipt. Isi raaste par sabse zyada cheezein
+       ek saath hoti hain, isliye asli bharosa yahi test deta hai.
+
+     Admissions yahan ki list me nahi hote (ye fees ka page hai), isliye
+     dialog khulte waqt hi mangaate hain. */
+  const openBtnLabel = "₹1 ka link banayein";
+  let pendingAdms = [];
+  try {
+    const { getMany } = await import("../../firebase/db-service.js");
+    const rows = await getMany(COLLECTIONS.ADMISSIONS, { limit: 100, useCache: false });
+    /* Jinki Student ID ban chuki hai wo ab "admission" nahi rahe — unka
+       payment student wale raaste se hota hai. */
+    pendingAdms = rows.filter((a) => !a.studentId);
+  } catch { /* na mile to sirf students wali list dikhegi */ }
+
   const withDue = students.filter((s) => (Number(s.pendingFee) || 0) > 0);
-  if (!withDue.length) return toast.warning("Kisi student ka bakaya nahi hai — test link banane ke liye bakaya chahiye.");
+
+  if (!withDue.length && !pendingAdms.length) {
+    return toast.warning("Na koi bakaya wala student hai, na koi bina payment wala admission — test link ke liye in dono me se ek chahiye.");
+  }
 
   const body = el("div", {});
-  const sel = el("select", { class: "select-ssz" },
-    ...withDue.map((s) => el("option", { value: s.studentId }, `${s.fullName || s.studentId} — ${s.studentId} (bakaya ${money(s.pendingFee)})`)));
+  const sel = el("select", { class: "select-ssz" });
+
+  if (pendingAdms.length) {
+    const g = el("optgroup", { label: "Admission (poora raasta jaanchega)" });
+    pendingAdms.forEach((a) => {
+      const total = (Number(a.courseFee) || 0) + (Number(a.admissionFee) || 0);
+      g.appendChild(el("option", { value: `admission:${a.applicationNo || a.id}` },
+        `${a.fullName || a.applicationNo || a.id} — ${a.applicationNo || a.id}${total ? ` (kul ${money(total)})` : ""}`));
+    });
+    sel.appendChild(g);
+  }
+  if (withDue.length) {
+    const g = el("optgroup", { label: "Kist (bane hue student)" });
+    withDue.forEach((s) => g.appendChild(el("option", { value: `student:${s.studentId}` },
+      `${s.fullName || s.studentId} — ${s.studentId} (bakaya ${money(s.pendingFee)})`)));
+    sel.appendChild(g);
+  }
 
   body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: ".9rem" } },
-    "₹1 ka asli payment link banega. Isse poora raasta jaanch sakte hain — paisa jaayega, " +
-    "webhook aayega, fees chadhegi aur receipt banegi. Ye chhoot sirf aapke login par hai."));
+    "₹1 ka asli payment link banega. Ye chhoot sirf aapke admin login par hai — " +
+    "student ya visitor ke liye hadd wahi 10% / ₹100 rehti hai."));
   body.appendChild(el("div", { class: "field" },
-    el("label", { class: "field__label" }, "Kis student ke naam par?"), sel));
+    el("label", { class: "field__label" }, "Kiske naam par?"), sel));
   body.appendChild(el("p", { style: { fontSize: ".78rem", color: "var(--text-muted)", margin: ".7rem 0 0" } },
-    "Test Mode me asli paisa nahi katta. Live hone ke baad ye ₹1 sach me kategaa aur us student " +
-    "ke khaate me ₹1 chadh jayega — baad me Collections se theek kar lijiyega."));
+    "Admission wala chunenge to payment poora hote hi Student ID, batch aur kist plan apne aap ban jayenge — " +
+    "wahi jaanchne layak asli cheez hai. Test Mode me paisa nahi katta; Live hone ke baad ye ₹1 sach me kategaa."));
 
-  const goBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, "₹1 ka link banayein");
+  const goBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, openBtnLabel);
   const m = openModal({ title: "₹1 Test Link", body, footer: [goBtn] });
 
   goBtn.addEventListener("click", async () => {
-    const sid = sel.value;
-    if (!sid) return;
+    const [kind, id] = String(sel.value || "").split(":");
+    if (!kind || !id) return;
     goBtn.disabled = true;
     goBtn.textContent = "Link ban raha hai…";
     try {
       const pay = await import("../../firebase/pay-service.js");
-      const { url, amount } = await pay.createPaymentLink("student", sid, 1);
+      const { url, amount } = await pay.createPaymentLink(kind, id, 1);
       m.close();
       /* Link naye tab me nahi kholte — click ke andar await ho chuka hai,
          browser use "bina tap ke popup" samajh kar rok dega. Isliye link
          dikha dete hain aur copy karne ka button de dete hain. */
-      showLink(url, amount, sid);
+      showLink(url, amount, id);
     } catch (err) {
       goBtn.disabled = false;
-      goBtn.textContent = "₹1 ka link banayein";
+      goBtn.textContent = openBtnLabel;
       const { payError } = await import("../../firebase/pay-service.js");
       toast.error(payError(err));
     }

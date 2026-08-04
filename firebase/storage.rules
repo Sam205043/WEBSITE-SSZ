@@ -68,14 +68,52 @@ service firebase.storage {
         || request.resource.contentType == 'application/msword';
     }
 
+    /* Application number ka shakl — SSZ-APP-2026-0001. Iske bina koi bhi
+       admissions/ ke neeche apni marzi ka folder bana sakta tha.
+       matches() poori string par lagta hai. */
+    function looksLikeAppNo(appNo) {
+      return appNo.matches('^SSZ-APP-20[0-9][0-9]-[0-9]{4}$');
+    }
+
+    /* Bina account wale visitor ke liye: sirf nayi file ban sakti hai.
+       resource == null ka matlab — us path par abhi kuchh rakha nahi hai.
+       Yahi wo taala hai jo kisi doosre applicant ki photo ya marksheet ke
+       upar file chadhane (ya use mitane) se rokta hai. safeFileName() har
+       naam me timestamp + random jodta hai, isliye asli form kabhi ek hi
+       path par do baar nahi likhta — ye rok sahi submission ko nahi todegi. */
+    function newAnonUpload(appNo) {
+      return request.resource != null
+        && resource == null
+        && looksLikeAppNo(appNo)
+        && sizeOk();
+    }
+
     /* ---------------------------------------------------- public admission form */
-    // A visitor with no account must be able to upload their photo and
-    // documents. They can write but never list or read the folder back.
-    match /admissions/{appNo}/{allPaths=**} {
-      allow read: if isAdmin();
-      // isAdmin() first: on a delete there is no request.resource, so calling
-      // isDocument() would throw and deny even the admin.
-      allow write: if isAdmin() || (isDocument() && sizeOk());
+    /* Admin ki taraf pehle: poore admissions/ par padhna, list dekhna,
+       badalna aur mitana — sab. (Reject hone par folder saaf karna isi se
+       chalta hai.) */
+    match /admissions/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    /* Ab bina account wale visitor ki taraf. Use apni photo aur documents
+       upload karne dene hi padenge — par sirf itna hi:
+         - sirf do jagah: admissions/{appNo}/photo.jpg aur .../docs/{file}
+         - sirf nayi file (kisi purani file ke upar likhna aur mitana band)
+         - appNo asli shakl ka ho
+       Padhne aur list dekhne ki ijazat yahan bilkul nahi hai — wo upar wale
+       admin rule se hi milti hai.
+
+       Purana rule ek hi tha — `{allPaths=**}` — aur usme resource ki jaanch
+       nahi thi: koi bhi anjaan aadmi kisi bhi applicant ki photo ya marksheet
+       ke upar apni file chadha sakta tha, aur admissions/ ke neeche kahin bhi
+       jitni chahe folder-parat bana sakta tha. */
+    match /admissions/{appNo}/{file} {
+      allow write: if file == 'photo.jpg' && newAnonUpload(appNo) && isImage();
+    }
+
+    match /admissions/{appNo}/docs/{file} {
+      allow write: if newAnonUpload(appNo) && isDocument();
     }
 
     /* ------------------------------------------------------- student documents */

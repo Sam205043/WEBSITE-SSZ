@@ -206,6 +206,21 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    /* Wo paise jo Razorpay se aaye par kisi record se jud nahi paaye — aksar
+       tab jab link Razorpay dashboard se haath se banaya gaya ho. Webhook
+       inhe yahan park karta hai, aur admin panel se aap sahi student se jodte
+       hain.
+
+       Likhna yahan kisi ke liye khula nahi hai — admin ke liye bhi nahi.
+       Sirf Cloud Function likhta hai (Admin SDK rules ke upar se chalta hai),
+       aur jodne ka kaam `attachPayment` karta hai jo khud admin ki jaanch
+       karta hai. Panel ko sirf padhna hai. Rakam browser se kabhi nahi aati,
+       isliye use badalne ka koi raasta hi nahi bachta. */
+    match /unmatchedPayments/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /attendance/{id} {
       allow read: if isAdmin() || ownsRow();
       allow write: if isAdmin();

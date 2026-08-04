@@ -87,6 +87,22 @@ export async function admissionStatus(appNo, email) {
 }
 
 /**
+ * Ek "bina juda" payment ko sahi student ke khaate me chadhata hai.
+ *
+ * Rakam yahan se NAHI jaati. Function wahi rakam maanta hai jo Razorpay ne
+ * park karte waqt likhi thi — browser se aayi rakam par bharosa karna wahi
+ * galti hoti jo createPaymentLink me theek ki ja chuki hai.
+ *
+ * @param {string} paymentId  Razorpay ka payment id (pay_xxx)
+ * @param {string} studentId  jis student ke khaate me chadhana hai
+ */
+export async function attachPayment(paymentId, studentId) {
+  const fn = await getCallable("attachPayment");
+  const res = await fn({ paymentId, studentId });
+  return res?.data || {};
+}
+
+/**
  * Link banwa kar naye tab me khol deta hai.
  *
  * Tab pehle se khol lete hain aur baad me uska pata bharte hain. Agar link

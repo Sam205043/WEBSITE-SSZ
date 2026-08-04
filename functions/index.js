@@ -97,8 +97,38 @@ const MIN_SHARE = 0.10;
    ========================================================================== */
 
 const rupees = (n) => Math.max(0, Math.round(Number(n) || 0));
-const dateStr = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/* --------------------------------------------------------------------------
+   Tareekh — hamesha Ara ke hisaab se, kabhi server ke hisaab se nahi
+
+   Cloud Functions UTC par chalte hain. Institute IST par chalta hai. Roz ke
+   saade paanch ghante is farq ka koi asar nahi dikhta, par do jagah dikhta
+   hai — aur wahi do jagah galat thi:
+
+   1) Student ID aur Receipt number me saal (`new Date().getFullYear()`).
+      1 January ki raat 12:00 se 5:30 IST ke beech UTC par abhi 31 December
+      hi hota hai. Us khidki me bana student SSZ2025... ban jaata, aur uski
+      receipt SSZ/RCPT/2025/... — dono PICHHLE saal ke. Aur kyunki counter
+      ka naam bhi saal se banta hai (`students-2025-DCA`), wo purane saal ka
+      counter aage badha deta — matlab agle din ki ginti bhi bigadti.
+
+   2) Kist plan ki due dates. Raat 12:00 se 5:30 IST ke beech bana plan har
+      kist ko ek din pehle ki tareekh de deta tha.
+
+   Ilaaj seedha hai: samay ko 5:30 aage khiska kar UTC wale hisse padho.
+   `istDayRange()` neeche pehle se yahi karta hai — ab poori file ek hi
+   niyam par chalti hai.
+   -------------------------------------------------------------------------- */
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+/** Kisi bhi pal ki IST tareekh, YYYY-MM-DD me. */
+const dateStr = (d) => {
+  const t = new Date(d.getTime() + IST_OFFSET_MS);
+  return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, "0")}-${String(t.getUTCDate()).padStart(2, "0")}`;
+};
+
+/** Abhi Ara me kaun sa saal chal raha hai. IDs isi se bante hain. */
+const istYear = () => new Date(Date.now() + IST_OFFSET_MS).getUTCFullYear();
 
 /** Counter ek transaction me badhta hai, taaki do admission ek hi ID na le lein. */
 async function nextSequence(name, start = 1) {
@@ -457,7 +487,7 @@ async function claimStudentId(admissionId) {
      kar diya) to nayi ID banane ki zaroorat hi nahi. */
   if (a.studentId) return a.studentId;
 
-  const year = new Date().getFullYear();
+  const year = istYear();
   const course = COURSES[a.courseId] || {};
   const code = course.code || String(a.courseId || "GEN").slice(0, 3).toUpperCase();
 
@@ -600,7 +630,7 @@ async function onStudentPaid(studentId, amount, paymentId) {
     }
     /* Receipt number transaction ke BAAHAR — counter ka apna transaction hai
        aur do transaction ek doosre ke andar nahi chal sakte. */
-    const year = new Date().getFullYear();
+    const year = istYear();
     const seq = await nextSequence(`receipts-${year}`);
     receiptNo = `SSZ/RCPT/${year}/${String(seq).padStart(4, "0")}`;
     await feeRef.set({ receiptNo }, { merge: true });

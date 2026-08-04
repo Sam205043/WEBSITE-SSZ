@@ -11,7 +11,7 @@ import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_STUDENT, DEMO_FEES } from "./demo-data.js";
 import { INSTITUTE } from "../config/site-data.js";
-import { COLLECTIONS, TRIAL_MIN_1_RUPEE } from "../core/constants.js";
+import { COLLECTIONS } from "../core/constants.js";
 import { open as openModal } from "../core/modal.js";
 import toast from "../core/toast.js";
 
@@ -176,8 +176,9 @@ function amountDialog(pending) {
      isse kam bache to wahi maanga jaata hai. Asli hadd server par lagti hai;
      yahan ki sirf student ko pehle hi bata dene ke liye hai.
 
-     Trial ke din ye hadd ₹1 hai — flag js/core/constants.js me hai. */
-  const minPay = Math.min(pending, TRIAL_MIN_1_RUPEE ? 1 : 100);
+     Admin ke login se ₹1 tak ka link ban sakta hai (asli payment test karne
+     ke liye) — wo chhoot server me hai, yahan nahi. */
+  const minPay = Math.min(pending, 100);
 
   const body = el("div", {});
   body.innerHTML = `

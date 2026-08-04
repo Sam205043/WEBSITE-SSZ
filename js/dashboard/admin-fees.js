@@ -443,6 +443,79 @@ function paintVerify() {
 }
 
 /* ==========================================================================
+   ₹1 ka test link — sirf admin ke liye
+   --------------------------------------------------------------------------
+   Payment ka poora raasta — paisa jaana, Razorpay ka webhook aana, fees
+   chadhna, receipt banna — asli paise se ek baar jaanche bina bharosa nahi
+   kiya ja sakta. Wo test ₹1 me ho jaana chahiye.
+
+   Chhoot server par hai (functions/index.js): jab link maangne wala admin ho
+   to kam se kam rakam ₹1. Student ke liye hadd wahi 10% / ₹100 rehti hai,
+   isliye is button se koi khatra nahi banta — koi visitor ise chhoo hi nahi
+   sakta, aur uske apne dashboard se ₹1 ka link banta hi nahi.
+   ========================================================================== */
+function testLinkDialog() {
+  if (mode === "preview") return toast.info("Preview mode — asli link Firebase ke baad banega.");
+
+  const withDue = students.filter((s) => (Number(s.pendingFee) || 0) > 0);
+  if (!withDue.length) return toast.warning("Kisi student ka bakaya nahi hai — test link banane ke liye bakaya chahiye.");
+
+  const body = el("div", {});
+  const sel = el("select", { class: "select-ssz" },
+    ...withDue.map((s) => el("option", { value: s.studentId }, `${s.fullName || s.studentId} — ${s.studentId} (bakaya ${money(s.pendingFee)})`)));
+
+  body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: ".9rem" } },
+    "₹1 ka asli payment link banega. Isse poora raasta jaanch sakte hain — paisa jaayega, " +
+    "webhook aayega, fees chadhegi aur receipt banegi. Ye chhoot sirf aapke login par hai."));
+  body.appendChild(el("div", { class: "field" },
+    el("label", { class: "field__label" }, "Kis student ke naam par?"), sel));
+  body.appendChild(el("p", { style: { fontSize: ".78rem", color: "var(--text-muted)", margin: ".7rem 0 0" } },
+    "Test Mode me asli paisa nahi katta. Live hone ke baad ye ₹1 sach me kategaa aur us student " +
+    "ke khaate me ₹1 chadh jayega — baad me Collections se theek kar lijiyega."));
+
+  const goBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, "₹1 ka link banayein");
+  const m = openModal({ title: "₹1 Test Link", body, footer: [goBtn] });
+
+  goBtn.addEventListener("click", async () => {
+    const sid = sel.value;
+    if (!sid) return;
+    goBtn.disabled = true;
+    goBtn.textContent = "Link ban raha hai…";
+    try {
+      const pay = await import("../../firebase/pay-service.js");
+      const { url, amount } = await pay.createPaymentLink("student", sid, 1);
+      m.close();
+      /* Link naye tab me nahi kholte — click ke andar await ho chuka hai,
+         browser use "bina tap ke popup" samajh kar rok dega. Isliye link
+         dikha dete hain aur copy karne ka button de dete hain. */
+      showLink(url, amount, sid);
+    } catch (err) {
+      goBtn.disabled = false;
+      goBtn.textContent = "₹1 ka link banayein";
+      const { payError } = await import("../../firebase/pay-service.js");
+      toast.error(payError(err));
+    }
+  });
+}
+
+function showLink(url, amount, sid) {
+  const body = el("div", {});
+  body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: ".8rem" } },
+    `${money(amount)} ka link ban gaya — ${sid} ke naam par.`));
+  const input = el("input", { class: "input-ssz", type: "text", value: url, readonly: true });
+  body.appendChild(input);
+
+  const copyBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Copy karein");
+  const openBtn = el("a", { class: "btn-ssz btn-primary-ssz", href: url, target: "_blank", rel: "noopener" }, "Kholein");
+  openModal({ title: "Test link taiyar", body, footer: [copyBtn, openBtn] });
+
+  copyBtn.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(url); toast.success("Link copy ho gaya."); }
+    catch { input.select(); toast.info("Link chun liya — Ctrl+C dabayein."); }
+  });
+}
+
+/* ==========================================================================
    Bina jude payment — paisa aa gaya, par kiska?
    --------------------------------------------------------------------------
    Ye wo payments hain jinke saath hamare `notes` nahi aaye — aksar tab jab
@@ -643,6 +716,7 @@ if (mode === "preview") {
 tiles(); paintUnmatched(); paintVerify(); paintDue(); paintRows();
 
 $("#feeCollect").addEventListener("click", () => collectDialog());
+$("#feeTestLink").addEventListener("click", () => testLinkDialog());
 $("#dueNotifyAll").addEventListener("click", (e) => notifyAllDue(e.currentTarget));
 
 on($("#dueList"), "click", "[data-collect-for]", (e, btn) => {

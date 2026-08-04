@@ -7,6 +7,33 @@ export const $  = (sel, scope = document) => scope.querySelector(sel);
 export const $$ = (sel, scope = document) => Array.from(scope.querySelectorAll(sel));
 
 /**
+ * Kisi bhi bahar se aayi cheez ko HTML me daalne se pehle ise se guzaarein.
+ *
+ * Zaroorat kyun: admission form poori tarah public hai. Naam ki jagah koi
+ * `<img src=x onerror="...">` likh de, aur wo naam admin panel me kisi
+ * template literal ke andar `${...}` se HTML me pahunch jaaye — to script
+ * admin ke browser me chalti hai, admin ke apne rights ke saath. Firestore
+ * rules yahan kuchh nahi kar sakte: request to sach me admin hi bhej raha
+ * hota hai.
+ *
+ * `el()` aur textContent apne aap safe hain — ye helper sirf un jagahon ke
+ * liye hai jahan hum sach me HTML string bana rahe hain.
+ *
+ * Paanchon character zaroori hain: & sabse pehle (warna baaki ke jode hue
+ * & dobara badal jaate hain), phir < > " ' — quotes isliye ki value kabhi
+ * kabhi attribute ke andar baithti hai (title="${...}").
+ */
+export function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Create an element.
  *   el("button", { class: "btn-ssz", onclick: fn, dataset: {id: 3} }, "Save")
  */

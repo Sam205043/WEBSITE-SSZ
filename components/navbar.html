@@ -66,9 +66,19 @@
       <a class="btn-ssz btn-secondary-ssz btn-sm-ssz ssz-hide-mobile"
          data-href="pages/student/login.html" data-auth-guest>Login</a>
 
-      <a class="btn-ssz btn-primary-ssz btn-sm-ssz ssz-hide-xs"
+      <!-- Ye button pehle `ssz-hide-xs` tha, yaani 576px se chhoti har
+           screen par CHHUPA hua — matlab har phone par. Poori website ka
+           sabse zaroori kaam (admission) phone par sirf hamburger menu ke
+           andar milta tha, teen tap door.
+
+           Ab ye phone par bhi dikhta hai. Jagah banane ke liye bhasha ka
+           switch aur search chhoti screen par drawer me chale gaye hain —
+           dono wahan pehle se maujood hain. Chhoti screen par likha sirf
+           "Apply" rehta hai (CSS se), taaki 360px par bhi na toote. -->
+      <a class="btn-ssz btn-primary-ssz btn-sm-ssz ssz-cta-apply"
          data-href="pages/admission.html">
-        Apply Now
+        <span class="ssz-cta-apply__long">Apply Now</span>
+        <span class="ssz-cta-apply__short">Apply</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M5 12h14M12 5l7 7-7 7"></path>
@@ -108,6 +118,17 @@
   </div>
 
   <div class="ssz-drawer__body">
+    <!-- Search phone par navbar se hata kar yahan laaya gaya hai (navbar me
+         "Apply" ke liye jagah chahiye thi). Drawer khulte hi sabse upar. -->
+    <button class="ssz-drawer__link ssz-drawer__search" type="button" data-search-open
+            style="width:100%;text-align:left;background:none;border:none;font:inherit;cursor:pointer;display:flex;align-items:center;gap:.6rem">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+      </svg>
+      Search karein
+    </button>
+
     <p class="ssz-drawer__section">Menu</p>
     <a class="ssz-drawer__link" data-href="index.html">Home</a>
     <a class="ssz-drawer__link" data-href="pages/about.html">About</a>
@@ -133,6 +154,12 @@
 
     <a class="btn-ssz btn-primary-ssz btn-block-ssz" style="margin-top:1.25rem"
        data-href="pages/admission.html">Online Admission</a>
+
+    <!-- Bhasha ka switch. Bada screen par ye navbar me hota hai; phone par
+         navbar me "Apply" ke liye jagah chahiye thi, isliye yahan bhi ek
+         hai. Dono ek hi cheez badalte hain. -->
+    <p class="ssz-drawer__section" style="margin-top:1.25rem">Bhasha / Language</p>
+    <span class="lang-pick__wrap" id="drawerLangPick"></span>
 
     <!-- App install — drawer me, taaki phone par har page se mile:
          homepage se bhi aur student ke login page se bhi. -->

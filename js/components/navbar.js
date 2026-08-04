@@ -87,6 +87,37 @@ function initScrollTop() {
   btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
+/* --------------------------------------------------------------------------
+   Form bharte waqt floating button hat jaate hain
+
+   Ye teen gol button (chatbot, WhatsApp, upar jao) neeche-daayein chipke
+   rehte hain. Phone par input poori chaudai ka hota hai, isliye ye seedhe
+   khaane ke upar aa baithte the — admission form par "Full Name" ke upar
+   chat ka button. Student ko lagta hai kuchh toota hua hai, aur galti se
+   tap ho jaye to chat khul jaati hai jabki wo naam likh raha tha.
+
+   Ilaaj: jab tak kisi khaane me kuchh likha ja raha hai, ye halke ho kar
+   hat jaate hain. Likhna khatam, wapas aa jaate hain. Padhne wale ko farak
+   nahi padta — sirf likhne wale ko rasta mil jaata hai.
+   -------------------------------------------------------------------------- */
+function initFabDodge() {
+  const stack = document.querySelector(".fab-stack");
+  if (!stack) return;
+
+  const isField = (n) => n && /^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName);
+
+  document.addEventListener("focusin", (e) => {
+    if (isField(e.target)) stack.classList.add("is-dodging");
+  });
+  document.addEventListener("focusout", () => {
+    /* Ek pal ruk kar dekhte hain — ek khaane se doosre par jaate waqt
+       beech me focus body par chala jaata hai, aur button jhilmila jaate. */
+    setTimeout(() => {
+      if (!isField(document.activeElement)) stack.classList.remove("is-dodging");
+    }, 120);
+  });
+}
+
 /* ==========================================================================
    Auth-aware button
    Guest  -> "Login"
@@ -140,6 +171,7 @@ export function initNavbar() {
   initDrawer();
   initSearch();
   initScrollTop();
+  initFabDodge();
 }
 
 export { openDrawer, closeDrawer };

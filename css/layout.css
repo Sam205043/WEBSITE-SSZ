@@ -319,6 +319,17 @@ body.is-locked { overflow: hidden; }
 .fab--top { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border-subtle); opacity: 0; visibility: hidden; }
 .fab--top.is-visible { opacity: 1; visibility: visible; }
 
+/* Form bharte waqt ye hat jaate hain — dekhein js/components/navbar.js ka
+   initFabDodge(). Bilkul gayab nahi karte (display:none se wapas aate waqt
+   jhatka lagta hai); halke aur neeche khisak jaate hain, aur tap lena band
+   kar dete hain taaki khaane par ungli seedhe khaane par hi lage. */
+.fab-stack.is-dodging {
+  opacity: .12;
+  transform: translateY(14px);
+  pointer-events: none;
+}
+.fab-stack { transition: opacity .18s ease, transform .18s ease; }
+
 /* ---------- Page header (inner pages) ---------- */
 .page-hero {
   padding-top: calc(var(--navbar-h) + var(--sp-12));
@@ -338,6 +349,33 @@ body.is-locked { overflow: hidden; }
 .breadcrumb-ssz span { color: var(--text-muted); }
 .breadcrumb-ssz > span[aria-hidden="true"] { opacity: .55; }
 
+
+/* --------------------------------------------------------------------------
+   Phone par navbar me kya rahega
+
+   Pehle chhoti screen par navbar me ye the: logo, search, install, bhasha,
+   theme, menu — chhe cheezein — aur "Apply Now" chhupa hua tha. Yaani jagah
+   un cheezon ne le rakhi thi jo mahine me ek baar chhui jaati hain, aur jo
+   roz chahiye wahi gayab tha.
+
+   Ab ulta hai: phone par sirf logo, theme, Apply aur menu. Search aur
+   bhasha drawer me chale gaye — dono wahan pehle se hain.
+   -------------------------------------------------------------------------- */
+.ssz-cta-apply { display: inline-flex !important; }
+.ssz-cta-apply__short { display: none; }
+
+@media (max-width: 420px) {
+  /* 420px se neeche sirf "Apply" — "Apply Now" wahan toot jaata hai. */
+  .ssz-cta-apply__long { display: none; }
+  .ssz-cta-apply__short { display: inline; }
+  .ssz-cta-apply { padding-inline: .9rem; }
+  .ssz-cta-apply svg { display: none; }
+}
+
+@media (max-width: 575.98px) {
+  .ssz-nav__actions [data-search-open],
+  .ssz-nav__actions .lang-pick__wrap { display: none !important; }
+}
 
 .ssz-hide-xs     { display: none !important; }
 .ssz-hide-mobile { display: none !important; }

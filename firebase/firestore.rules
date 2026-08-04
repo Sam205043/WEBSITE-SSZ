@@ -231,8 +231,19 @@ service cloud.firestore {
     /* ----------------------------------------------------------- certificates */
     // Verification is public but NOT browsable: you must already know the
     // certificate number or the verify code (see certificateCodes below).
+    /* Certificate ka record ab PUBLIC NAHI hai.
+
+       Pehle yahan `allow get: if true` tha, is soch ke saath ki "number pata
+       hona chahiye". Wo soch galat thi: certificate number ginti me chalta
+       hai (SSZ/CERT/2026/0001, 0002 …), to koi bhi 1 se 500 tak ghumakar har
+       certificate ka naam, course, grade aur percentage utha sakta tha.
+
+       Ab public verification `certificateCodes/{verifyCode}` se hoti hai —
+       wo code randomly banta hai, ginti me nahi. Dikhane laayak sab kuchh
+       usi chhote document me rakha jaata hai, isliye visitor ko yahan aane
+       ki zaroorat hi nahi padti. */
     match /certificates/{id} {
-      allow get: if true;
+      allow get: if isAdmin() || ownsRow();
       allow list: if isAdmin() || ownsRow();
       allow write: if isAdmin();
     }

@@ -62,7 +62,25 @@
   max-width: 52ch;
   margin-bottom: var(--sp-8);
 }
-.hero__cta { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-8); }
+.hero__cta { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+
+/* Doosre darje ke raaste — dikhte hain, par asli button se lade nahi. */
+.hero__minor {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin: 0 0 var(--sp-8);
+  display: flex; flex-wrap: wrap; gap: .45rem .6rem; align-items: center;
+}
+.hero__minor a { color: var(--brand); font-weight: var(--fw-semibold); }
+.hero__minor a:hover { text-decoration: underline; }
+.hero__minor span { opacity: .5; }
+
+@media (max-width: 575.98px) {
+  /* Phone par button poori chaudai lete hain — do alag-alag chaudai ke
+     button ek doosre ke neeche bikhre lagte hain. */
+  .hero__cta { flex-direction: column; align-items: stretch; }
+  .hero__cta .btn-ssz { width: 100%; }
+}
 
 @media (max-width: 400px) {
   /* "Recognised Certificate" jaisa naam 156px ke column me teen line me
@@ -147,6 +165,15 @@
   background: rgba(255,255,255,.13);
 }
 .hero-live * { position: relative; z-index: 1; }
+.hero-live__link {
+  display: inline-flex; align-items: center; gap: .4rem;
+  margin-top: var(--sp-5);
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+  color: #fff; padding: .5rem .9rem;
+  border: 1px solid rgba(255,255,255,.45); border-radius: var(--r-pill);
+  transition: background-color .18s ease;
+}
+.hero-live__link:hover { background: rgba(255,255,255,.16); }
 
 .hero-progress { display: grid; gap: var(--sp-4); }
 .hero-progress__row { display: flex; justify-content: space-between; font-size: var(--fs-xs); font-weight: var(--fw-semibold); margin-bottom: .4rem; }

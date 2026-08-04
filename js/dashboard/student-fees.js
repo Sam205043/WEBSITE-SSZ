@@ -227,7 +227,7 @@ function amountDialog(pending) {
       /* Tab isi click ke andar khulta hai — pehle await karke kholenge to
          phone ka browser use "bina tap ke popup" samajh kar rok dega. */
       const pay = await loadPay();
-      await pay.openPaymentLink("student", student.studentId, amount);
+      await pay.openPaymentLink("student", student.studentId, amount, student.email);
       m.close();
       toast.info("Payment ka page khul gaya. Poora hote hi fees apne aap chadh jayegi.");
     } catch (err) {

@@ -171,6 +171,12 @@ function amountDialog(pending) {
 
   const kist = nextInstalment(pending);
 
+  /* Kam se kam ₹100 — rukawat ke liye nahi, sirf ₹1,000 ki jagah ₹1 wale typo
+     aur ₹5-₹10 wale payment se receipt bhar jaane se bachne ke liye. Bakaya
+     isse kam bache to wahi maanga jaata hai. Asli hadd server par lagti hai;
+     yahan ki sirf student ko pehle hi bata dene ke liye hai. */
+  const minPay = Math.min(pending, 100);
+
   const body = el("div", {});
   body.innerHTML = `
     <p style="font-size:.88rem;margin-bottom:1rem">
@@ -178,7 +184,7 @@ function amountDialog(pending) {
       jitna abhi de sakte hain utna bhar dein.</p>
     <div class="field">
       <label class="field__label" for="payAmt">Kitna pay karna hai? (Rs.) <span class="req">*</span></label>
-      <input class="input-ssz" id="payAmt" type="number" min="1" step="1" inputmode="numeric"
+      <input class="input-ssz" id="payAmt" type="number" min="${minPay}" step="1" inputmode="numeric"
              max="${pending}" placeholder="Jaise: 1000" value="${kist > 0 ? kist : ""}">
       <p class="field__hint" id="payWords"
          style="font-size:.76rem;color:var(--text-muted);margin:.4rem 0 0"></p>
@@ -211,7 +217,8 @@ function amountDialog(pending) {
 
   goBtn.addEventListener("click", async () => {
     const amount = Math.round(Number(input.value) || 0);
-    if (amount < 1) return toast.error("Kitna pay karna hai wo amount daalein.");
+    if (!amount) return toast.error("Kitna pay karna hai wo amount daalein.");
+    if (amount < minPay) return toast.error(`Kam se kam ${money(minPay)} bharna hoga. Isse kam dena ho to institute aakar cash de sakte hain.`);
     if (amount > pending) return toast.error(`Bakaya sirf ${money(pending)} hai — usse zyada nahi bhar sakte.`);
 
     goBtn.disabled = true;

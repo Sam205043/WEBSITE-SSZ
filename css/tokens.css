@@ -159,13 +159,17 @@
                       0 22px 44px -22px rgba(15,23,42,0.38);
 
   /* ---------- Typography ---------- */
-  --font-sans: "Manrope", "Inter", -apple-system, BlinkMacSystemFont,
+  /* "Manrope Fallback" / "Poppins Fallback" neeche @font-face me bane hain —
+     ye asli font nahi hain, sirf Roboto ko itna bada karke dikhate hain ki
+     wo Manrope/Poppins jitni hi jagah ghere. Isse font aane par text hilta
+     nahi. Wajah aur naap neeche likhe hain. */
+  --font-sans: "Manrope", "Manrope Fallback", "Inter", -apple-system, BlinkMacSystemFont,
                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   /* Heading me Poppins, padhne wale text me Manrope.
      Poppins ke akshar gol aur chaude hain — heading me ye achha lagta hai,
      par lambe paragraph aur admin ke table me jagah zyada khaata hai aur
      naam toot-ne lagte hain. Isliye sirf display me. */
-  --font-display: "Poppins", "Manrope", -apple-system, sans-serif;
+  --font-display: "Poppins", "Poppins Fallback", "Manrope", -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Fluid type scale — mobile-first, scales with viewport, no media queries needed */
@@ -340,4 +344,48 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
   }
+}
+
+/* ==========================================================================
+   Font aate hi text ka hil jaana — iska ilaaj
+   --------------------------------------------------------------------------
+   Font Google se aata hai aur `display=swap` par lagta hai. Matlab: pehle
+   page phone ke apne font (Android par Roboto) me dikhta hai, phir do-teen
+   second baad Manrope aakar use badal deta hai. Roboto Manrope se KAAFI
+   chhota hai, isliye us pal poora page hil jaata hai — heading do line se
+   ek line ho jaati hai, paragraph chhota ho jaata hai, aur jis button par
+   ungli ja rahi thi wo khisak jaata hai. Patli 3G par ye jhatka saaf dikhta
+   hai.
+
+   Ilaaj: pehle se ek "nakli" font naam bana dete hain jo Roboto ko utna hi
+   bada karke dikhata hai jitni jagah Manrope leta hai. Phir badalne par
+   naap wahi rehta hai — sirf akshar ka roop badalta hai, jagah nahi.
+
+   NAAP ANDAZE SE NAHI LIYA GAYA. Ye asli site par browser me maapa gaya
+   (canvas measureText, 100px par ek hi vaakya):
+
+       Roboto ki chaudai   1041.55
+       Manrope ki chaudai  1161.42   ->  1.115  yaani 111.5%
+       Poppins ki chaudai  1265.70   ->  1.215  yaani 121.5%
+
+   `src: local("Roboto")` isliye ki hamara zyadatar student Android par hai
+   aur wahan Roboto hamesha hota hai. Jis machine par Roboto na ho, wahan ye
+   @font-face fail ho jaata hai aur browser chupchaap agle font par chala
+   jaata hai — kuchh bigadta nahi, bas ye faayda nahi milta.
+
+   Line ki oonchai hamare CSS me pehle se tay hai (--lh-*), isliye ascent/
+   descent ka jhamela yahan nahi karna padta — hilne ki asli wajah chaudai
+   hai, aur wahi theek ki gayi hai.
+   ========================================================================== */
+@font-face {
+  font-family: "Manrope Fallback";
+  src: local("Roboto"), local("Helvetica Neue"), local("Arial");
+  size-adjust: 111.5%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins Fallback";
+  src: local("Roboto"), local("Helvetica Neue"), local("Arial");
+  size-adjust: 121.5%;
+  font-display: swap;
 }

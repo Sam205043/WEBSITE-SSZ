@@ -864,3 +864,44 @@ html.lang-hi { line-height: 1.75; }
   .lang-pick { font-size: .66rem; padding: .26rem 1.1rem .26rem .42rem; }
   .lang-pick { background-position: calc(100% - 9px) 52%, calc(100% - 6px) 52%; }
 }
+
+/* --------------------------------------------------------------------------
+   Modal phone par neeche se aati sheet ban jaati hai
+
+   Do cheezein theek ki gayi hain:
+
+   1) 360px par backdrop ka padding aur modal ka gol kinara milkar 32px kha
+      jaate the — jo dikhta kisi ko nahi, par form ko 280px me thoos deta
+      tha. Ab modal neeche se chipki poori-chaudai ki sheet hai (wahi shakl
+      jo phone ke apne dialog ki hoti hai).
+
+   2) Button ka kram ULTA tha. Footer `justify-content: flex-end` +
+      `flex-wrap: wrap` hai, aur DOM me pehle "Galat hai" (laal) aata hai,
+      phir "Verify + Receipt". Chhoti screen par jab ye do line me tootte
+      the, to LAAL wala UPAR aa jaata tha aur asli kaam neeche. Ab
+      `column-reverse` se asli kaam hamesha upar rehta hai, aur dono poori
+      chaudai lete hain — jaldi me galat button dabne ka darr khatam.
+   -------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  .ssz-modal-backdrop {
+    padding: 0;
+    place-items: end stretch;
+  }
+  .ssz-modal,
+  .ssz-modal--sm,
+  .ssz-modal--lg {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-bottom: 0;
+  }
+  .ssz-modal__head { padding: var(--sp-4) var(--sp-5); }
+  .ssz-modal__body { padding: var(--sp-5) var(--sp-4); }
+  .ssz-modal__foot {
+    padding: var(--sp-4);
+    padding-bottom: max(var(--sp-4), env(safe-area-inset-bottom));
+    flex-direction: column-reverse;
+    flex-wrap: nowrap;
+  }
+  .ssz-modal__foot .btn-ssz { width: 100%; }
+}

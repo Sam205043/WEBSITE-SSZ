@@ -73,7 +73,10 @@
 }
 .hero__minor a { color: var(--brand); font-weight: var(--fw-semibold); }
 .hero__minor a:hover { text-decoration: underline; }
-.hero__minor span { opacity: .5; }
+/* Bindi apne link se chipki rehti hai — line tootne par akeli nahi latakti. */
+.hero__minor__pair { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+.hero__minor__dot { opacity: .45; }
+.hero__minor__lead { color: var(--text-muted); }
 
 @media (max-width: 575.98px) {
   /* Phone par button poori chaudai lete hain — do alag-alag chaudai ke

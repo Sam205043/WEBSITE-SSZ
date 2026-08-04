@@ -370,3 +370,173 @@ html.lang-hi { line-height: 1.75; }
   .dash-top { gap: var(--sp-2); }
   .user-chip__meta { display: none; }
 }
+
+/* ==========================================================================
+   PHONE PAR ADMIN PANEL
+
+   Ye poora hissa ek hi baat par tika hai: Pankaj admin panel aksar PHONE
+   se chalate hain, laptop se nahi. Panel bana laptop ke hisaab se tha, aur
+   do-teen jagah wo phone par sach me tootta tha — theek ek dam wahi jagah
+   jahan roz ka kaam hota hai.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1) Table ki har row ab ek card ban jaati hai
+
+   PEHLE KYA HOTA THA: students aur fees ki table 6 column ki hai. 360px ke
+   phone par jagah milti hai 328px, jabki table ko kam se kam ~680px chahiye.
+   Matlab: naam aur aadha course dikhta tha, aur "Manage"/"Delete" wale
+   button ~500px par yaani screen ke BAAHAR the. Unhe daayein scroll karke
+   laana padta tha — aur jaise hi daayein aate, student ka naam bayein
+   nikal jaata tha. Yaani button dabate waqt ye pata hi nahi hota tha ki
+   kis student par daba rahe hain.
+
+   AB: 700px se chhoti screen par har row apna card ban jaati hai, aur har
+   khaane ke aage uska label likha rehta hai (data-label se). Kuchh scroll
+   nahi karna padta, aur naam hamesha saamne rehta hai.
+   -------------------------------------------------------------------------- */
+@media (max-width: 700px) {
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    background: none;
+    max-height: none;
+  }
+
+  /* Header ki zaroorat nahi rahi — label ab har khaane ke saath hai.
+     Screen reader ke liye DOM me rehne dete hain, sirf aankh se chhupa. */
+  .table-ssz thead {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .table-ssz, .table-ssz tbody, .table-ssz tr, .table-ssz td { display: block; width: 100%; }
+
+  .table-ssz tbody tr {
+    margin-bottom: var(--sp-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  .table-ssz tbody tr:last-child { margin-bottom: 0; }
+
+  .table-ssz tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4);
+    text-align: right;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .table-ssz tbody td:last-child { border-bottom: 0; }
+
+  /* Label bayein, keemat daayein — padhne me wahi kram jo table me tha. */
+  .table-ssz tbody td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+  }
+
+  /* .num wale khaane (rakam) table me daayein hote hain — card me bhi. */
+  .table-ssz tbody td.num { justify-content: space-between; }
+
+  /* Aakhri khaana button ka hota hai: poori chaudai, barabar baant kar. */
+  .table-ssz tbody td:not([data-label]) {
+    justify-content: stretch;
+    gap: var(--sp-2);
+    background: var(--bg-surface-2);
+  }
+  .table-ssz tbody td:not([data-label]) .btn-ssz {
+    flex: 1;
+    margin-left: 0 !important;
+    min-height: 44px;
+  }
+
+  /* Table ke andar ka khali sandesh ("kuchh nahi mila") — usme label nahi
+     hota, par wo button bhi nahi hai. Use saada rehne dete hain. */
+  .table-ssz tbody td[colspan] {
+    display: block;
+    text-align: center;
+    background: var(--bg-surface);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2) Haazri ke P / A / L / Lv button
+
+   PEHLE: chaar button 34px oonche aur 40px chaude the, aapas me 5px ki
+   doori par, aur chauthe ("Lv") ka aadha hissa screen se bahar. Har student
+   par Leave lagane ke liye daayein scroll karna padta tha — 30 students
+   yaani 30 baar. Aur P/A/L/Lv ka matlab sirf `title` me likha tha, jo
+   phone par kabhi dikhta hi nahi (hover hota hi nahi).
+
+   AB: chaaron barabar, poori chaudai me, 44px oonche. Naam bhi poora likha
+   hai — neeche wale niyam se, bina JS badle.
+   -------------------------------------------------------------------------- */
+@media (max-width: 700px) {
+  #atRows td .cluster {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-2);
+    width: 100%;
+  }
+  #atRows td .cluster .btn-ssz {
+    min-height: 44px !important;
+    min-width: 0 !important;
+    width: 100%;
+    padding: .3rem .2rem !important;
+    font-size: var(--fs-xs);
+  }
+  /* Phone par poora naam — "Lv" ka matlab andaza lagana na pade. */
+  #atRows .at-mark__short { display: none; }
+  #atRows .at-mark__full { display: inline; }
+}
+
+/* Bade screen par ulta: chhota nishaan, taaki row patli rahe. */
+.at-mark__full { display: none; }
+.at-mark__short { display: inline; }
+
+/* --------------------------------------------------------------------------
+   3) Toolbar (search + filter + button)
+
+   PEHLE: students page par ye chaar alag-alag line le leta tha — search ki
+   apni line, do select ki apni, export button ki apni. 640px ki screen par
+   pehla student dikhne se pehle hi ~230px chala jaata tha.
+
+   Aur ek chupi hui dikkat: `.toolbar .select-ssz { width: auto }` select ko
+   uske sabse LAMBE option jitna chauda kar deta hai. Batch ka naam aap khud
+   likhte hain, to "AI Powered DCA — Morning 10 to 12 (Jan 2026)" jaisa naam
+   select ko 390px ka bana deta tha — aur `body { overflow-x: hidden }` uska
+   daaya kinara kaat deta tha, scroll bhi nahi hota tha.
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+  .toolbar > * { min-width: 0; max-width: 100%; }
+  .toolbar .toolbar__search { grid-column: 1 / -1; }
+  .toolbar .select-ssz { width: 100%; min-width: 0; }
+  .toolbar .btn-ssz { width: 100%; }
+  /* Ye khaali <span style="flex:1"> bade screen par cheezein daayein
+     dhakelne ke liye hai. Phone par ye sirf ek line kha jaata hai. */
+  .toolbar > span[style*="flex"] { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   4) Receipt phone par 216px me thusi ja rahi thi
+   -------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  .receipt-sheet { padding: var(--sp-4); }
+}

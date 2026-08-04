@@ -2,7 +2,7 @@
 <html lang="en" translate="no" class="no-js" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Page nahi mila | Soft Skill Zone Institute</title>
 <meta name="robots" content="noindex">
 <script>
@@ -12,7 +12,24 @@ document.documentElement.setAttribute("data-theme",t);})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<!-- Font ab render rokte nahi.
+
+     Pehle ye ek saada stylesheet link tha, aur wo bhi kisi doosre server
+     (Google) ka — yaani pehla akshar dikhne se PEHLE browser ko Google se
+     jawab ka intezaar karna padta tha. Ara ki patli 3G par yahi ek line
+     poore page ko do-teen second rok deti thi.
+
+     `media="print"` browser ko batata hai "abhi iski zaroorat nahi", isliye
+     wo download to karta hai par rukta nahi; utarte hi `onload` use `all`
+     kar deta hai aur font lag jaata hai. `preload` pehle se line me laga
+     deta hai taaki der bhi na ho. JavaScript band ho to <noscript> wala
+     purana tareeka chal jaata hai.
+
+     Weight bhi 8 se 6 kar diye: Manrope 800 aur Poppins 600 poore project
+     me kahin istemaal hi nahi ho rahe the (jaanch kar hataye hain). -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap"></noscript>
 <link rel="stylesheet" href="/css/tokens.css">
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/layout.css">

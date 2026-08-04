@@ -95,30 +95,6 @@ const COURSES = {
 /* Admission ke waqt kam se kam itna hissa — baaki kisten ban jaati hain. */
 const MIN_SHARE = 0.10;
 
-/* ==========================================================================
-   >>>>>>>>>>  ASTHAYI — TRIAL KE DIN. YE WAPAS LENA HAI.  <<<<<<<<<<
-   --------------------------------------------------------------------------
-   `true` hone par kam se kam payment ₹1 ho jaata hai — admission par bhi aur
-   kist par bhi. Sirf isliye ki trial payment ₹1 me ho sake.
-
-   YAHI ASLI TAALA HAI. Website par jo hadd dikhti hai wo sirf dikhawa hai —
-   browser badal kar koi bhi use haata sakta hai. Rakam par sach me rok yahan
-   lagti hai, isliye 10% wapas lana ho to SABSE ZAROORI YAHI line hai.
-
-   WAPAS LENE KA TAREEKA (do line, do jagah):
-     1. Yahan `false` karein  ->  firebase deploy --only functions
-     2. js/core/constants.js me bhi `TRIAL_MIN_1_RUPEE` false karein
-        ->  wo file GitHub par chadha dein (aur sw.js ka version badhayein)
-
-   >>> KHATRA: Razorpay ko LIVE karne se PEHLE ise `false` karna zaroori hai.
-   >>> Warna koi bhi ₹1 me admission le sakta hai — Student ID, batch aur
-   >>> kist plan sab ban jaayenge. Test Mode me koi khatra nahi.
-
-   Kist ka plan (buildFeePlan) is flag se NAHI badalta — wo wahi 10% wala
-   rehta hai. Ye sirf "ek baar me kam se kam kitna bhar sakte hain" ki rok
-   hai, "kitna dena hai" ki nahi.
-   ========================================================================== */
-const TRIAL_MIN_1_RUPEE = true;
 
 /* ==========================================================================
    Chhoti madad
@@ -261,22 +237,30 @@ async function pickBatch(courseId, pref) {
    taaki ye bhi pata na chale ki record maujood hai ya nahi.
    -------------------------------------------------------------------------- */
 async function assertMayPay(req, kind, id, rec) {
-  const askedEmail = String(req.data?.email || "").trim().toLowerCase();
-  const recEmail = String(rec.email || "").trim().toLowerCase();
-
-  /* Raasta 2 — email mel khaata hai. Dono taraf khaali na ho, warna jinke
-     record me email hi nahi likha unke liye darwaza khul jaata. */
-  if (askedEmail && recEmail && askedEmail === recEmail) return;
-
-  /* Raasta 1 — login. */
+  /* Login sabse pehle dekhte hain — sirf "haan/na" ke liye nahi, balki ye
+     jaanne ke liye bhi ki maangne wala ADMIN hai ya nahi. Wo jaankari
+     laut kar jaati hai, kyunki rakam ki sabse chhoti hadd admin ke liye
+     alag hai (₹1 — asli payment test karne ke liye). */
   const uid = req.auth?.uid;
+  let isAdmin = false;
+  let isOwnStudent = false;
+
   if (uid) {
     const u = (await db.collection("users").doc(uid).get()).data() || {};
-    if (u.role === "admin") return;                       // admin kisi ke liye bhi
-    if (kind === "student" && u.studentId === id) return; // student sirf apne liye
-    /* Admission ke waqt user ke paas abhi studentId hoti hi nahi, isliye
-       login se admission ka koi raasta nahi — wahan email hi sabooti hai. */
+    isAdmin = u.role === "admin";
+    isOwnStudent = kind === "student" && u.studentId === id;
   }
+
+  if (isAdmin || isOwnStudent) return { isAdmin };
+
+  /* Raasta 2 — email mel khaata hai. Dono taraf khaali na ho, warna jinke
+     record me email hi nahi likha unke liye darwaza khul jaata.
+
+     Admission ke waqt yahi ekmatra sabooti hai: tab account bana hi nahi
+     hota, isliye login se admission ka koi raasta nahi. */
+  const askedEmail = String(req.data?.email || "").trim().toLowerCase();
+  const recEmail = String(rec.email || "").trim().toLowerCase();
+  if (askedEmail && recEmail && askedEmail === recEmail) return { isAdmin: false };
 
   logger.warn("payment link — bina sabooti ke maanga gaya", { kind, id, hadAuth: !!uid });
   throw new HttpsError("not-found", "Record nahi mila.");
@@ -308,7 +292,7 @@ exports.createPaymentLink = onCall(
 
     /* Rakam ki koi baat isse pehle nahi — pehle ye tay ho ki poochhne ka
        haq hai bhi ya nahi. */
-    await assertMayPay(req, kind, id, rec);
+    const { isAdmin } = await assertMayPay(req, kind, id, rec);
 
     /* --------------------------------------------------------------------
        Admission approve ho chuka ho to hisaab student ke record se lo.
@@ -366,10 +350,24 @@ exports.createPaymentLink = onCall(
        Dono halat me `due` se zyada kabhi nahi — aakhri kist chhoti bachi ho
        to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai.
 
-       TRIAL KE DIN dono hadd ₹1 ho jaati hain — upar wala TRIAL_MIN_1_RUPEE
-       dekhein. `due` wali hadd tab bhi lagti hai, isliye koi bakaye se zyada
-       phir bhi nahi bhar sakta. */
-    const min = TRIAL_MIN_1_RUPEE
+       TEESRI HAALAT — ADMIN. Jab link aap khud (admin ke login se) maangte
+       hain, hadd ₹1 ho jaati hai.
+
+       Kyun: payment ka poora raasta — paisa jaana, Razorpay ka webhook aana,
+       Student ID banna, receipt banna — asli paise se ek baar jaanche bina
+       bharosa nahi kiya ja sakta. Wo test ₹1 me ho jaana chahiye, ₹700 me
+       nahi. Pehle iske liye poore system ki hadd ₹1 kar di gayi thi, par
+       usme khatra tha: un dinon koi bhi anjaan visitor ₹1 me admission le
+       leta, aur Student ID, batch, kist plan sab ban jaate.
+
+       Ab wo chhoot sirf admin ke login ke saath milti hai. Isliye:
+         - aap Live hone ke baad bhi jab chahein ₹1 ka asli test kar sakte hain
+         - kisi visitor ke liye hadd kabhi kam nahi hoti
+         - aur Live jaane se pehle kuchh badalna, kuchh yaad rakhna nahi hai
+
+       `due` wali hadd yahan bhi lagti hai — admin bhi bakaye se zyada nahi
+       bhej sakta. */
+    const min = isAdmin
       ? Math.min(due, 1)
       : feeKind === "admission"
         ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))

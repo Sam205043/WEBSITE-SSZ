@@ -23,6 +23,9 @@
      admissionStatus     payment ke baad admission page poochhta rehta hai
                          "meri Student ID bani kya?" — taaki student khaali
                          page par baitha na rah jaye.
+     attachPayment       jo paisa kisi record se juda hi nahi (jaise Razorpay
+                         dashboard se haath se banaya gaya link), use admin
+                         panel se sahi student ke khaate me chadhata hai.
 
    TEEN NIYAM JO YAHAN NIBHAAYE GAYE HAIN
 
@@ -420,18 +423,50 @@ exports.razorpayWebhook = onRequest(
       const link = req.body?.payload?.payment_link?.entity || {};
       const notes = link.notes || payment.notes || {};
 
-      const kind = notes.kind;
-      const recordId = notes.recordId;
       const amount = rupees((payment.amount || link.amount_paid || 0) / 100);
       const paymentId = payment.id || link.id;
 
-      if (!kind || !recordId || !amount || !paymentId) {
-        logger.error("webhook me zaroori jaankari nahi", { kind, recordId, amount, paymentId });
-        return res.status(200).send("missing notes");
+      if (!amount || !paymentId) {
+        /* Ye sach me toota hua payload hai — isme kuchh bhi karne layak
+           nahi bacha. Log me chhod kar 200 dete hain. */
+        logger.error("webhook me rakam ya payment id hi nahi", { amount, paymentId });
+        return res.status(200).send("unusable payload");
       }
 
-      if (kind === "admission") await onAdmissionPaid(recordId, amount, paymentId);
-      else await onStudentPaid(recordId, amount, paymentId);
+      /* `kind` ko seedhe barabari se nahi milate. Razorpay dashboard se
+         haath se banaye gaye link me koi "Admission" (bada A) ya " student "
+         (aage-peechhe space) likh de, to purana code use student ID samajh
+         leta, fail hota, 500 deta — aur Razorpay ghanton tak dobara bhejta
+         rehta. */
+      const kind = String(notes.kind || "").trim().toLowerCase();
+      const recordId = String(notes.recordId || "").trim();
+
+      const target = resolveTarget(kind, recordId, link.reference_id);
+
+      if (!target) {
+        /* --------------------------------------------------------------
+           Paisa aa gaya hai par ye kiska hai — hum nahi jaante.
+
+           Ye tab hota hai jab link Razorpay dashboard se haath se banaya
+           gaya ho (phone par fees maangte waqt), ya notes kisi wajah se
+           gum ho gaye hon. PURANA CODE ISE 200 KEH KAR CHUPCHAAP CHHOD
+           DETA THA — paisa bank me aa jaata aur kahin darj hi nahi hota.
+           Na fee record, na receipt, na bakaya kam. Aur kyunki jawab 200
+           tha, kisi ko pata bhi nahi chalta.
+
+           Ab aisa har payment `unmatchedPayments` me park hota hai —
+           poori jaankari ke saath — aur admin ko notification jaata hai.
+           Code khud andaza NAHI lagata ki paisa kiska hai: ek hi mobile
+           number do bhai-behen ka ho sakta hai, aur galat khaate me paisa
+           chadhana kho dene se bhi bura hai. Aap panel me dekh kar ek click
+           me jodenge, tab receipt banegi.
+           -------------------------------------------------------------- */
+        await parkUnmatched({ paymentId, amount, payment, link, notes });
+        return res.status(200).send("parked");
+      }
+
+      if (target.kind === "admission") await onAdmissionPaid(target.id, amount, paymentId);
+      else await onStudentPaid(target.id, amount, paymentId);
 
       return res.status(200).send("ok");
     } catch (err) {
@@ -442,6 +477,111 @@ exports.razorpayWebhook = onRequest(
     }
   }
 );
+
+/* --------------------------------------------------------------------------
+   "Ye paisa kiska hai?"
+
+   Do sawaal ka jawab chahiye: admission ka hai ya kisi bane hue student ka,
+   aur kiska. Pehla zariya `notes` hai — hamare apne banaye link me hum khud
+   likhte hain. Wo na mile to `reference_id` se kaam chala lete hain, kyunki
+   usme bhi hamari ID sabse aage hoti hai (`SSZ-APP-2026-0001-m3k9x` jaisi).
+
+   ID ki shakl se hi pata chal jaata hai ki kaunsi cheez hai:
+     SSZ-APP-2026-0001   -> admission
+     SSZ2026DCA0001      -> student
+   Isliye kind galat likha ho, ya ho hi na, tab bhi paisa sahi jagah pahunch
+   jaata hai. Shak ho to `null` — aur `null` ka matlab hai "aap tay karenge",
+   andaza nahi.
+   -------------------------------------------------------------------------- */
+const APP_NO_RE = /^SSZ-APP-20\d{2}-\d{4}$/;
+const STUDENT_ID_RE = /^SSZ20\d{2}[A-Z]{3}\d{4}$/;
+
+function kindOfId(id) {
+  if (APP_NO_RE.test(id)) return "admission";
+  if (STUDENT_ID_RE.test(id)) return "student";
+  return "";
+}
+
+function resolveTarget(kind, recordId, referenceId) {
+  /* 1. Seedha raasta — notes me ID hai aur uski shakl pehchani hui hai. */
+  if (recordId) {
+    const byShape = kindOfId(recordId);
+    if (byShape) return { kind: byShape, id: recordId };
+    /* Shakl nahi pehchani, par kind saaf likha hai to usi par bharosa. */
+    if (kind === "admission" || kind === "student") return { kind, id: recordId };
+  }
+
+  /* 2. Notes gum hain — reference_id se ID nikaalne ki koshish. Wo
+        `<id>-<base36 time>` hota hai, isliye aakhri hissa hata kar bhi
+        dekhte hain. */
+  const ref = String(referenceId || "").trim();
+  if (ref) {
+    for (const cand of [ref, ref.replace(/-[a-z0-9]+$/i, "")]) {
+      const byShape = kindOfId(cand);
+      if (byShape) return { kind: byShape, id: cand };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Jis paise ka maalik nahi mila use surakshit jagah rakh dete hain.
+ * Document ka naam payment id se banta hai, isliye webhook dobara aaye to
+ * doosri entry nahi banegi — aur agar aap tab tak use jod chuke hain, to
+ * create() chupchaap nikal jayega, aapka kiya hua nahi mitega.
+ */
+async function parkUnmatched({ paymentId, amount, payment, link, notes }) {
+  const row = {
+    razorpayPaymentId: paymentId,
+    razorpayLinkId: link?.id || "",
+    referenceId: link?.reference_id || "",
+    amount,
+    status: "unmatched",
+    payerName: payment?.customer_details?.name || link?.customer?.name || "",
+    payerEmail: String(payment?.email || link?.customer?.email || "").toLowerCase(),
+    payerContact: String(payment?.contact || link?.customer?.contact || "").replace(/\D/g, "").slice(-10),
+    description: link?.description || "",
+    method: payment?.method || "",
+    rawNotes: notes || {},
+    paidOn: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    await db.collection("unmatchedPayments").doc(`rzp_${paymentId}`).create(row);
+  } catch (err) {
+    if (err?.code === 6 /* ALREADY_EXISTS */) {
+      logger.info("ye payment pehle se park hai", { paymentId });
+      return;
+    }
+    throw err;
+  }
+
+  try {
+    await db.collection("notifications").doc(`unmatched_${paymentId}`).create({
+      audience: "admin",
+      studentId: "",
+      batchId: "",
+      type: "fee",
+      priority: "high",
+      readBy: [],
+      createdBy: "razorpay-webhook",
+      title: "Ek payment kisi student se juda nahi",
+      message: `₹${amount.toLocaleString("en-IN")} aaya hai${row.payerName ? ` — ${row.payerName}` : ""}` +
+        `${row.payerContact ? ` (${row.payerContact})` : ""}. Fees page par "Bina jude payment" me jaakar ` +
+        "sahi student se jod dein, tabhi receipt banegi.",
+      isRead: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    if (err?.code !== 6) throw err;
+  }
+
+  logger.warn("payment kisi record se juda nahi — park kar diya", {
+    paymentId, amount, notes, referenceId: row.referenceId
+  });
+}
 
 /* --------------------------------------------------------------------------
    Admission ka pehla payment — yahin student "ban" jaata hai
@@ -842,4 +982,64 @@ exports.admissionStatus = onCall({ cors: true }, async (req) => {
        hai. Saaf "YYYY-MM-DD" bhejna dono taraf ek jaisa padha jaata hai. */
     nextDueDate: s.nextDueDate?.toDate ? dateStr(s.nextDueDate.toDate()) : ""
   };
+});
+
+/* ==========================================================================
+   5) attachPayment — bina jude payment ko sahi student se jodna
+   --------------------------------------------------------------------------
+   Jab webhook ko pata na chale ki paisa kiska hai, wo use
+   `unmatchedPayments` me park kar deta hai. Admin panel se aap wahan se
+   student chunte hain aur ye function baaki sab kar deta hai — wahi raasta
+   jo asli webhook chalta hai (`onStudentPaid`), isliye receipt, bakaya aur
+   student ko sandesh, sab ek jaise bante hain.
+
+   Yahan browser se rakam nahi li jaati. Rakam wahi maani jaati hai jo park
+   kiye gaye record me likhi hai — yaani jo Razorpay ne bheji thi. Admin
+   panel se aane wale number par bharosa karna wahi galti hoti jo hamne
+   createPaymentLink me theek ki thi.
+   ========================================================================== */
+exports.attachPayment = onCall({ cors: true }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "Pehle login karein.");
+
+  const u = (await db.collection("users").doc(uid).get()).data() || {};
+  if (u.role !== "admin") {
+    logger.warn("attachPayment — admin ke bina koshish", { uid });
+    throw new HttpsError("permission-denied", "Sirf admin.");
+  }
+
+  const paymentId = String(req.data?.paymentId || "").trim();
+  const studentId = String(req.data?.studentId || "").trim();
+  if (!paymentId || !studentId) {
+    throw new HttpsError("invalid-argument", "paymentId aur studentId dono chahiye.");
+  }
+
+  const parkRef = db.collection("unmatchedPayments").doc(`rzp_${paymentId}`);
+  const parkSnap = await parkRef.get();
+  if (!parkSnap.exists) throw new HttpsError("not-found", "Ye payment list me nahi mila.");
+
+  const p = parkSnap.data();
+  if (p.status === "attached") {
+    /* Do baar click ho gaya ho to ghabrane ki baat nahi — onStudentPaid
+       waise bhi dobara paisa nahi ginta. Bas seedha jawab de dete hain. */
+    return { ok: true, alreadyDone: true, studentId: p.studentId || studentId };
+  }
+
+  const stuSnap = await db.collection("students").doc(studentId).get();
+  if (!stuSnap.exists) throw new HttpsError("not-found", "Student nahi mila.");
+
+  const amount = rupees(p.amount);
+  if (!amount) throw new HttpsError("failed-precondition", "Is payment ki rakam saaf nahi hai.");
+
+  await onStudentPaid(studentId, amount, paymentId);
+
+  await parkRef.set({
+    status: "attached",
+    studentId,
+    attachedBy: uid,
+    attachedAt: admin.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  logger.info("bina juda payment jod diya gaya", { paymentId, studentId, amount, by: uid });
+  return { ok: true, studentId, amount };
 });

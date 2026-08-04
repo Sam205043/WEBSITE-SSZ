@@ -3,6 +3,29 @@
    Every magic string in the project lives here. Import, never retype.
    ========================================================================== */
 
+/* ==========================================================================
+   >>>>>>>>>>  ASTHAYI — TRIAL KE DIN. YE WAPAS LENA HAI.  <<<<<<<<<<
+   --------------------------------------------------------------------------
+   Ye `true` hone par kam se kam payment ki hadd ₹1 ho jaati hai — admission
+   par bhi, aur kist par bhi. Sirf isliye ki trial payment ₹1 me ho sake.
+
+   WAPAS LENE KA TAREEKA (do line, do deploy):
+     1. Yahan `false` kar dein
+     2. functions/index.js me bhi `TRIAL_MIN_1_RUPEE` ko `false` karein
+     3. firebase deploy --only "functions"      (server ki hadd asli taala hai)
+        aur website ki files GitHub par chadha dein
+   Uske baad hadd wapas: admission par 10% (kam se kam ₹500), kist par ₹100.
+
+   >>> KHATRA: Razorpay LIVE hone se PEHLE ise `false` karna zaroori hai.
+   >>> Warna koi bhi ₹1 me admission le sakta hai — Student ID, batch aur
+   >>> kist plan sab ban jaayenge. Test Mode me koi khatra nahi.
+
+   Kist ka plan is flag se NAHI badalta. Plan wahi 10% + baraabar kiston
+   wala rehta hai; ye sirf "ek baar me kam se kam kitna bhar sakte hain"
+   wali rok hai.
+   ========================================================================== */
+export const TRIAL_MIN_1_RUPEE = true;
+
 /* ---------------- Firestore collections ---------------- */
 export const COLLECTIONS = Object.freeze({
   USERS:         "users",

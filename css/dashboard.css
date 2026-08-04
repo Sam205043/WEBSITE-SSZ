@@ -435,16 +435,33 @@ html.lang-hi { line-height: 1.75; }
   }
   .table-ssz tbody td:last-child { border-bottom: 0; }
 
-  /* Label bayein, keemat daayein — padhne me wahi kram jo table me tha. */
+  /* Label bayein, keemat daayein — padhne me wahi kram jo table me tha.
+
+     Grid isliye (flex nahi): kai khaanon me do cheezein hoti hain — naam
+     aur uske neeche Student ID, ya course aur uske neeche batch. Flex me
+     wo dono bagal-bagal chale jaate the aur doosri cheez bahut daayein
+     latak jaati thi. Grid me label ek column me rehta hai aur baaki sab
+     doosre column me, ek ke neeche ek — bilkul waise jaise table me tha. */
+  .table-ssz tbody td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(0, auto) 1fr;
+    align-items: center;
+    column-gap: var(--sp-4);
+  }
   .table-ssz tbody td[data-label]::before {
     content: attr(data-label);
-    flex: 0 0 auto;
+    grid-column: 1;
     font-size: var(--fs-xs);
     font-weight: var(--fw-bold);
     letter-spacing: var(--ls-caps);
     text-transform: uppercase;
     color: var(--text-muted);
     text-align: left;
+  }
+  .table-ssz tbody td[data-label] > * {
+    grid-column: 2;
+    text-align: right;
+    min-width: 0;
   }
 
   /* .num wale khaane (rakam) table me daayein hote hain — card me bhi. */

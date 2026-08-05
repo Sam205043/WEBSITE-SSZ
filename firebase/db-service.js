@@ -305,6 +305,13 @@ export async function nextSequence(name, start = 1) {
 export function transaction(fn) { return runTransaction(db, fn); }
 
 /**
+ * Kisi document ka pata (reference) — transaction ke andar `tx.get()` /
+ * `tx.set()` ke liye. Firestore ke import sirf isi file me rehte hain,
+ * isliye baaki code seedha `doc(db, ...)` nahi bulaata.
+ */
+export function refFor(path, id) { return doc(db, path, id); }
+
+/**
  * Ek document ko transaction ke andar padho, phir uske TAAZA roop se patch
  * banao aur likh do.
  *

@@ -255,7 +255,58 @@ async function approve(a, modal) {
   }
 
   try {
-    const { nextSequence, createWithId, update } = await import("../../firebase/db-service.js");
+    const { nextSequence, createWithId, update, getOne } = await import("../../firebase/db-service.js");
+
+    /* ----------------------------------------------------------------------
+       PEHLE YAHAN KUCH BHI NAHI THA, AUR WO EK MEHNGI GALTI THI.
+
+       Student ab do raaston se ban sakta hai:
+         1. Yahan se — jab aap "Approve" dabate hain
+         2. Apne aap — jab student admission ka payment kar deta hai
+            (razorpayWebhook -> claimStudentId)
+
+       Doosra raasta bahut sambhal kar banaya gaya hai: wo transaction ke
+       andar dobara padhta hai aur `studentId` pehle se ho to wahi lauta deta
+       hai. Ye button wo jaanch karta hi nahi tha.
+
+       Iska matlab ye tha:
+
+         10:00:00  student ₹1,000 ka payment karta hai. Webhook
+                   SSZ2026ADC0001 bana deta hai, ₹1,000 chadhata hai,
+                   receipt banti hai.
+         10:00:20  aapke saamne is application ka modal pehle se khula hai —
+                   jab khola tha tab wo "pending" thi, isliye "Approve" ka
+                   button abhi bhi dikh raha hai. Aap dabate hain.
+                   -> naya sequence, SSZ2026ADC0002 ban jaata hai,
+                      paidFee 0 aur poora ₹10,000 bakaya ke saath,
+                      aur admission par studentId badal jaata hai.
+
+       Natija: ₹1,000 aur receipt SSZ2026ADC0001 par pade rehte the, par ab wo
+       record kahin se pahunchta hi nahi tha. Student ko 0002 dikhta, jisme
+       poora paisa bakaya — yaani usse wahi ₹1,000 DOBARA maanga jaata. Aur
+       0001 hamesha ke liye "Kul bakaya" me ₹9,000 jodta rehta.
+
+       Ilaaj: banane se theek pehle admission ko Firestore se DOBARA padho.
+       `a` wo object hai jo page khulte waqt aaya tha — wo purana ho sakta
+       hai. Taaza record me studentId mile to kuchh nahi banana, bas bata
+       dena. Sequence bhi tabhi uthate hain jab sach me zaroorat ho.
+       ---------------------------------------------------------------------- */
+    const fresh = await getOne(COLLECTIONS.ADMISSIONS, a.id, { useCache: false }).catch(() => null);
+
+    if (fresh?.studentId) {
+      /* Local list ko bhi sach bata dete hain, warna wahi button dobara
+         dikhta rahega aur agla click phir yahin aakar rukega. */
+      Object.assign(a, fresh);
+      modal.close();
+      paint();
+      toast.info(
+        `Iska Student ID pehle hi ban chuka hai — ${fresh.studentId}. ` +
+        "Payment aane par ye apne aap ban jaata hai, isliye dobara banane ki zaroorat nahi.",
+        { duration: 8000 }
+      );
+      return;
+    }
+
     const year = new Date().getFullYear();
     const code = getCourseCode(a.courseId);
     const seq = await nextSequence(`students-${year}-${code}`);

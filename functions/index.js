@@ -743,7 +743,10 @@ async function onStudentPaid(studentId, amount, paymentId) {
         duplicate: true,
         receiptNo: f.receiptNo || "",
         amount: rupees(f.amount),
-        pendingFee: rupees(s.pendingFee)
+        pendingFee: rupees(s.pendingFee),
+        overpaidFee: rupees(s.overpaidFee),
+        totalFee: rupees(s.totalFee),
+        name: s.fullName || ""
       };
     }
     if (!stuSnap.exists) throw new Error(`student ${studentId} nahi mila`);
@@ -752,6 +755,11 @@ async function onStudentPaid(studentId, amount, paymentId) {
     const paidFee = rupees(s.paidFee) + amount;
     const totalFee = rupees(s.totalFee);
     const plan = Array.isArray(s.feePlan) ? s.feePlan : [];
+    /* `pendingFee` hamesha 0 par rok diya jaata hai, isliye kul fees se
+       zyada aaya paisa uske neeche dab jaata tha — kahin darj hi nahi hota
+       tha. Ab wo alag se likha jaata hai, aur neeche admin ko khabar bhi
+       chali jaati hai. Rakam kaati nahi jaati: paisa sach me aaya hai. */
+    const overpaidFee = totalFee ? Math.max(0, paidFee - totalFee) : 0;
 
     tx.set(feeRef, {
       studentId,
@@ -769,10 +777,15 @@ async function onStudentPaid(studentId, amount, paymentId) {
     tx.set(stuRef, {
       paidFee,
       pendingFee: Math.max(0, totalFee - paidFee),
+      overpaidFee,
       nextDueDate: nextDueDate(plan, paidFee)
     }, { merge: true });
 
-    return { duplicate: false, paidFee, pendingFee: Math.max(0, totalFee - paidFee), name: s.fullName || "" };
+    return {
+      duplicate: false, paidFee, overpaidFee, totalFee,
+      pendingFee: Math.max(0, totalFee - paidFee),
+      name: s.fullName || ""
+    };
   });
 
   /* Yahan se aage ka har kadam "jitni baar chalao, natija wahi" wala hai.
@@ -817,6 +830,42 @@ async function onStudentPaid(studentId, amount, paymentId) {
     });
   } catch (err) {
     if (err?.code !== 6 /* ALREADY_EXISTS */) throw err;
+  }
+
+  /* --------------------------------------------------------------------
+     Kul fees se zyada aa gaya to ADMIN ko khabar
+
+     Yahan koi baitha nahi hota. Admin panel se fee lete waqt to screen par
+     chetavni dikh jaati hai, par Razorpay se seedha aaya paisa kisi ko
+     kuchh nahi batata tha: `pendingFee` 0 par ruk jaata, student ko "poori
+     fees jama ho gayi" chala jaata, aur zyada rakam ka kahin zikr hi nahi
+     hota.
+
+     Ye ho kaise sakta hai: student ne ek link se paisa bheja aur webhook
+     pahunchne se pehle doosra link bhi khol liya (dono poore bakaye ke
+     bane the), ya cash bhi diya aur online bhi.
+
+     Sandesh ka naam payment id se banta hai, isliye webhook dobara aaye to
+     doosri khabar nahi banegi. `audience: "admin"` wale sandesh kisi
+     student ko nahi jaate — wo sirf Notifications page par dikhte hain. */
+  const extra = rupees(result.overpaidFee);
+  if (extra > 0) {
+    try {
+      await db.collection("notifications").doc(`overpaid_${paymentId}`).create({
+        audience: "admin",
+        studentId,
+        title: "Fees se zyada paisa aaya",
+        message: `${result.name || studentId} ke khaate me kul fees ` +
+          `₹${rupees(result.totalFee).toLocaleString("en-IN")} se ` +
+          `₹${extra.toLocaleString("en-IN")} zyada jama ho gaya hai. ` +
+          "Ye rakam wapas karni hai ya agle course/kist me jodni hai — faisla aapka.",
+        isRead: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      if (err?.code !== 6 /* ALREADY_EXISTS */) throw err;
+    }
+    logger.warn("fees se zyada paisa", { studentId, paymentId, extra, totalFee: rupees(result.totalFee) });
   }
 
   if (result.duplicate) {

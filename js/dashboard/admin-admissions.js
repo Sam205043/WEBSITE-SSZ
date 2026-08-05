@@ -233,11 +233,13 @@ function autoPlan(totalFee, durationMonths, fromDate = new Date()) {
   if (rest <= 0) return plan;
 
   const months = Math.max(1, Math.min(9, (Number(durationMonths) || 12) - 1));
-  const next = new Date(start);
-  next.setMonth(next.getMonth() + 1);
 
+  /* Anchor admission ki asli tareekh hi rehti hai; buildPlan ko sirf batate
+     hain ki ginti ek mahina aage se shuru karo. Pehle yahan tareekh khud
+     aage badhaakar bheji jaati thi, jisse 31 Jan pehle 3 March ban jaata
+     tha aur uske baad poora plan 3 tareekh par atak jaata tha. */
   return plan.concat(
-    buildPlan(rest, months, planDateStr(next)).map((k) => ({ ...k, no: k.no + 1 }))
+    buildPlan(rest, months, planDateStr(start), 1, 1).map((k) => ({ ...k, no: k.no + 1 }))
   );
 }
 

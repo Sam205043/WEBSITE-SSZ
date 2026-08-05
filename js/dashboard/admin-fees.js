@@ -137,11 +137,12 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     toast.info("Preview mode: Firebase ke baad asli receipt banegi.");
     return null;
   }
-  const { nextSequence, createWithId, update, updateInTransaction } = await import("../../firebase/db-service.js");
+  const { nextSequence, transaction, refFor, serverTimestamp } = await import("../../firebase/db-service.js");
 
   const year = new Date().getFullYear();
   const seq = await nextSequence(`receipts-${year}`);
   const receiptNo = ID_FORMATS.receipt(year, seq);
+  const feeId = existingFeeId || receiptNo.replace(/\//g, "-");
   const doc = {
     receiptNo,
     studentId: student.studentId,
@@ -157,64 +158,85 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     remarks: remarks || ""
   };
 
-  if (existingFeeId) {
-    await update(COLLECTIONS.FEES, existingFeeId, doc);
-  } else {
-    await createWithId(COLLECTIONS.FEES, receiptNo.replace(/\//g, "-"), doc);
-  }
-
   /* ------------------------------------------------------------------------
-     Student ke totals — ab transaction ke andar, taaza record par
+     Receipt AUR student ke totals — ek hi transaction me
 
-     PEHLE YAHAN TEEN ALAG GALTIYAAN EK SAATH BAITHI THI:
-
-       patch = { paidFee: increment(amount), pendingFee: increment(-amount),
-                 nextDueDate: nextDueFrom(pageLoadWaalaStudent) }
+     PEHLE YAHAN TEEN ALAG GALTIYAAN BAITHI THI, AUR TEENON KI JAD EK HI THI:
+     kaam do-teen tukdon me hota tha, aur beech me kuchh bhi ghus sakta tha.
 
      1) BAKAYA NEGATIVE HO JAATA THA. `increment(-amount)` ko nahi pata ki
         bakaya kitna bacha hai. Kisi se ₹6,000 le liya jiska ₹3,000 bakaya
-        tha -> uska pendingFee -₹3,000. Aur "Kul bakaya" wala tile in sabko
-        jod deta hai, isliye teen students ka asli ₹9,000 bakaya screen par
-        ₹3,000 dikhta tha. Jis ek number se aap dhandha chalate hain wahi
-        chup-chaap galat tha.
+        tha -> pendingFee -₹3,000, aur tile me wo doosron ka bakaya kaat
+        deta tha.
 
-     2) DUE DATE PURANE DATA SE BANTI THI. `student` wo object hai jo page
-        khulte waqt aaya tha. Beech me student ne Razorpay se paisa de diya
-        to wo isme nahi hota. Natija: aap cash confirm karte, aur uski due
-        date PEECHHE chali jaati — us kist par jo wo pehle hi de chuka hai.
-        Phir usi ke liye use reminder chala jaata.
+     2) DUE DATE PURANE DATA SE BANTI THI — page khulte waqt wale record se.
+        Beech me student ne online paisa de diya ho to due date PEECHHE
+        chali jaati thi, us kist par jo wo de chuka hai.
 
-     3) Do jagah se ek saath hone par (aap + webhook) dono purana padh kar
-        likhte the.
+     3) RECEIPT PEHLE, STUDENT BAAD ME — aur beech me kuchh fail ho jaye to
+        koi rollback nahi. Aap dobara try karte, aur DOOSRI receipt ban
+        jaati. Ek ₹2,000 ke payment ke do "paid" record — "Aaj ka collection"
+        ₹4,000 dikhata jabki student ke khaate me ₹2,000 hi chadha.
 
-     Ab teeno ek hi ilaaj se theek hote hain: hisaab TRANSACTION ke andar,
-     us record par jo usi pal padha gaya hai. Paisa jodte waqt bhi taaza
-     `paidFee` par jodte hain, aur bakaya `totalFee - paidFee` se nikaalte
-     hain (jo apne aap 0 par ruk jaata hai) — ghata kar nahi.
+     Aur ek chauthi baat, jo isi se judi hai: do admin (ya do tab) ek hi
+     proof "confirm" kar dein to dono ka increment lag jaata tha — ek fee
+     row, do baar paisa. Ab transaction ke andar pehle fee row ka status
+     dekha jaata hai; agar wo pehle se "paid" hai to kuchh nahi hota.
+
+     Ab sab kuchh EK transaction me hai: fee row aur student ke totals ya to
+     dono likhe jaate hain, ya koi nahi. Aur hisaab hamesha us record par
+     hota hai jo usi pal padha gaya — page khulte waqt wale par nahi.
      ------------------------------------------------------------------------ */
-  const { before, patch } = await updateInTransaction(
-    COLLECTIONS.STUDENTS, student.studentId,
-    (cur) => {
-      const total = Number(cur.totalFee) || 0;
-      const paidNow = Math.max(0, Number(cur.paidFee) || 0) + amount;
-      const p = {
-        paidFee: paidNow,
-        /* Bakaya hamesha total me se nikala jaata hai, ghata kar nahi —
-           isliye ye kabhi negative nahi ho sakta. */
-        pendingFee: Math.max(0, total - paidNow)
-      };
-      /* nextDueDate par do alag haalat hain, aur inhe alag rakhna zaroori hai:
-           plan HAI  -> jo nikla wahi likho, chaahe null ho. Null ka saaf
-                        matlab: ab koi kist baaki nahi.
-           plan NAHI -> kuchh mat likho. Yahan null ka matlab "hume pata
-                        nahi" hota hai, aur us "pata nahi" se student ki
-                        sahi tareekh mitana galat hai. */
-      const plan = Array.isArray(cur.feePlan) ? cur.feePlan : [];
-      if (plan.length) p.nextDueDate = nextDueFrom({ ...cur, feePlan: plan, paidFee: paidNow });
-      return p;
-    }
-  );
+  const feeRef = refFor(COLLECTIONS.FEES, feeId);
+  const stuRef = refFor(COLLECTIONS.STUDENTS, student.studentId);
 
+  const result = await transaction(async (tx) => {
+    /* Firestore me transaction ke andar saare read pehle karne padte hain,
+       likhne se pehle. */
+    const [feeSnap, stuSnap] = await Promise.all([tx.get(feeRef), tx.get(stuRef)]);
+
+    if (!stuSnap.exists()) {
+      const e = new Error("Student ka record nahi mila.");
+      e.code = "not-found";
+      throw e;
+    }
+
+    /* Pehle se confirm ho chuka? Tab kuchh nahi karna — na paisa, na
+       receipt. Yahi wo taala hai jo do admin wali galti rokta hai. */
+    if (feeSnap.exists() && feeSnap.data().status === FEE_STATUS.PAID) {
+      return { already: true, existing: { id: feeId, ...feeSnap.data() } };
+    }
+
+    const cur = stuSnap.data();
+    const total = Number(cur.totalFee) || 0;
+    const paidNow = Math.max(0, Number(cur.paidFee) || 0) + amount;
+
+    const patch = {
+      paidFee: paidNow,
+      /* Bakaya hamesha total me se nikala jaata hai, ghata kar nahi —
+         isliye ye kabhi negative nahi ho sakta. */
+      pendingFee: Math.max(0, total - paidNow)
+    };
+    /* nextDueDate par do alag haalat hain:
+         plan HAI  -> jo nikla wahi likho, null bhi (matlab: koi kist baaki nahi)
+         plan NAHI -> kuchh mat likho (yahan null ka matlab "pata nahi" hai) */
+    const plan = Array.isArray(cur.feePlan) ? cur.feePlan : [];
+    if (plan.length) patch.nextDueDate = nextDueFrom({ ...cur, feePlan: plan, paidFee: paidNow });
+
+    tx.set(feeRef, { ...doc, updatedAt: serverTimestamp() }, { merge: true });
+    tx.update(stuRef, { ...patch, updatedAt: serverTimestamp() });
+
+    return { already: false, before: cur, patch };
+  });
+
+  if (result.already) {
+    toast.warning(
+      "Ye payment pehle hi confirm ho chuka hai — dobara paisa nahi chadhaya gaya. " +
+      `Receipt: ${result.existing.receiptNo || "—"}`, { duration: 9000 });
+    return result.existing;
+  }
+
+  const { before, patch } = result;
   /* Zyada paisa aa gaya (do link ek saath ban gaye the, ya cash + online) to
      chup nahi rehte — aap tay karenge ki wapas karna hai ya agle course me
      jodna hai. Chup-chaap "bakaya 0" dikha dena galat hai. */
@@ -231,16 +253,19 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
      bakaya wale student ko bhi "poori fees jama ho chuki hai" chala jaata
      tha. Ab pata na ho to us line ko chhod dete hain — jhooth likhne se
      kuchh na likhna behtar hai. */
-  const knownPending = Number.isFinite(Number(student.pendingFee)) ? Number(student.pendingFee) : null;
-  const left = knownPending === null ? null : Math.max(0, knownPending - amount);
+  /* Ab bakaya andaze se nahi batate — transaction ne jo asli keemat likhi
+     hai wahi bhejte hain. Pehle ye page-load wale purane number se banta
+     tha, isliye kabhi-kabhi bakaya wale ko bhi "poori fees jama" chala
+     jaata tha. */
+  const left = Number(patch.pendingFee);
   await notifyStudent(student.studentId,
     `${money(amount)} jama ho gaya`,
     `Aapka ${money(amount)} ka payment confirm ho gaya hai. Receipt No. ${receiptNo}. ` +
-    (left === null ? ""
+    (!Number.isFinite(left) ? ""
       : left > 0 ? `Ab bakaya ${money(left)} hai.`
       : "Aapki poori fees jama ho chuki hai — dhanyavaad!"));
 
-  return { ...doc, id: existingFeeId || receiptNo.replace(/\//g, "-") };
+  return { ...doc, id: feeId };
 }
 
 function collectDialog(preStudent = null) {
@@ -683,14 +708,19 @@ async function attachUnmatched(u, btn) {
 
     u.status = "attached";
     u.studentId = studentId;
-    if (s) {
+
+    /* Screen par ginti sirf tab badalte hain jab server ne SACH ME paisa
+       chadhaya ho. Pehle ye `alreadyDone` par bhi ghata deta tha — yaani
+       jab kuchh chadha hi nahi tha, tab bhi screen par bakaya kam dikhne
+       lagta tha, aur wo jhooth agle refresh tak bana rehta tha. */
+    if (s && !res?.alreadyDone) {
       s.paidFee = (Number(s.paidFee) || 0) + u.amount;
       s.pendingFee = Math.max(0, (Number(s.pendingFee) || 0) - u.amount);
     }
     paintUnmatched(); tiles(); paintDue();
 
     toast.success(res?.alreadyDone
-      ? "Ye payment pehle hi jud chuka tha."
+      ? "Ye payment pehle hi jud chuka tha — dobara paisa nahi chadhaya gaya."
       : `${money(u.amount)} ${s?.fullName || studentId} ke khaate me chadh gaya.`);
 
     /* Nayi receipt list me laane ke liye — poora page refresh karne se

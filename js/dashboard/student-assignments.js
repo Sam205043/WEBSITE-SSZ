@@ -247,7 +247,7 @@ on($("#asgList"), "click", "[data-regrade]", async (e, btn) => {
   if (!a || !s) return;
   btn.disabled = true;
   try {
-    const res = await data.gradeMcq(student, a, s.answers || []);
+    const res = await data.gradeMcq(student, a);
     submissions = await data.getSubmissions(student);
     paint();
     resultDialog(a, res);

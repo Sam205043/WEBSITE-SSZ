@@ -204,13 +204,12 @@ export async function submitAssignment(student, assignment, file, existing, onPr
  *   1. Pehle jawab likhte hain — document ka id `<assignmentId>__<studentId>`
  *      hai, isliye ek student ek hi baar likh sakta hai (rules dobara likhna
  *      mana karte hain).
- *   2. Uske BAAD assignmentKeys se sahi jawab maangte hain. Rules ye tabhi
- *      dete hain jab upar wala submission ban chuka ho.
+ *   2. Uske BAAD server se result maangte hain (`gradeMcq` Cloud Function).
  *
- * Isi wajah se student pehle se jawab nahi dekh sakta, aur dekh lene ke baad
- * apne jawab badal bhi nahi sakta. Marks browser me ginte hain (isliye result
- * turant milta hai), par `answers` pathar ki lakeer hain — admin kabhi bhi
- * milaakar dekh sakta hai.
+ * Marks ab BROWSER ME NAHI GINTE. Pehle ginte the, aur wahi sabse badi galti
+ * thi: student console se apne hi paper me `marks: 100, status: "graded"`
+ * likh sakta tha. Ab wo likhai rules mana karte hain aur ginti server par
+ * hoti hai.
  */
 export async function submitMcq(student, assignment, answers) {
   const { createWithId, serverTimestamp } = await db();
@@ -228,7 +227,7 @@ export async function submitMcq(student, assignment, answers) {
     submittedAt: serverTimestamp()
   });
 
-  return gradeMcq(student, assignment, answers);
+  return gradeMcq(student, assignment);
 }
 
 /**
@@ -236,22 +235,9 @@ export async function submitMcq(student, assignment, answers) {
  * rakha hai ki agar submit ke theek baad net kat jaye (jawab chale gaye, marks
  * nahi lage) to student "Result nikalein" dabakar yahi dobara chala sake.
  */
-export async function gradeMcq(student, assignment, answers) {
-  const { getOne, update, serverTimestamp } = await db();
-  const subId = `${assignment.id}__${student.studentId}`;
-
-  const key = await getOne(COLLECTIONS.ASSIGNMENT_KEYS, assignment.id, { useCache: false });
-  const correct = key?.correct || [];
-  const marks = answers.reduce((t, ans, i) => t + (ans === correct[i] ? 1 : 0), 0);
-
-  await update(COLLECTIONS.SUBMISSIONS, subId, {
-    marks,
-    status: "graded",
-    gradedAt: serverTimestamp(),
-    autoGraded: true
-  });
-
-  return { marks, correct };
+export async function gradeMcq(student, assignment) {
+  const { gradeMcq: callGrade } = await import("../../firebase/pay-service.js");
+  return callGrade(assignment.id);
 }
 
 /** Student uploads a payment screenshot against a pending fee record. */

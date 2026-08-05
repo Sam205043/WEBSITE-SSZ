@@ -21,6 +21,28 @@ export function planDate(str) {
   return new Date(y, m - 1, d, 12, 0, 0, 0);
 }
 
+/**
+ * Tareekh me mahine jodo — bina mahina laanghe.
+ *
+ * JavaScript ka apna `setMonth` 31 January me 1 mahina jode to 31 February
+ * banata hai, jo hota hi nahi, isliye wo 3 March par chhalak jaata hai.
+ * Nateeja: February wali kist banti hi nahi thi, aur agli saari tareekhein
+ * 31 se khisak kar 3 ho jaati thin. Kabhi-kabhi to do kisten ek hi mahine
+ * me aa girti thin.
+ *
+ * Yahan din ko us mahine ke aakhri din tak seemit kar dete hain:
+ * 31 Jan + 1 = 28 Feb, 31 Mar + 1 = 30 Apr. Mahina kabhi nahi chhootta.
+ */
+export function addMonths(date, months) {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);                                   // pehle safe din par le jao
+  d.setMonth(d.getMonth() + Math.round(Number(months) || 0));
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
+  return d;
+}
+
 /** Date -> "YYYY-MM-DD" */
 export function planDateStr(date) {
   const d = new Date(date);
@@ -39,8 +61,15 @@ export function planDateStr(date) {
  * @param {number} count      kitni kisten
  * @param {string} firstDue   "YYYY-MM-DD"
  * @param {number} gapMonths  do kiston ke beech kitne mahine (default 1)
+ * @param {number} offsetMonths  pehli kist `firstDue` se kitne mahine baad
+ *   ho. Admission wala plan isse istemaal karta hai: anchor (mahine ka din)
+ *   admission ki asli tareekh rehti hai, sirf shuruaat ek mahina aage se
+ *   hoti hai — warna 31 se 28 par khisak kar wahin atak jaata tha.
+ *
+ * Har tareekh hamesha `start` se nikalti hai, pichhli kist se nahi — isliye
+ * chhote mahine ka asar aage tak nahi khinchta.
  */
-export function buildPlan(totalFee, count, firstDue, gapMonths = 1) {
+export function buildPlan(totalFee, count, firstDue, gapMonths = 1, offsetMonths = 0) {
   const total = Math.max(0, Math.round(Number(totalFee) || 0));
   const n = Math.max(1, Math.min(24, Math.round(Number(count) || 1)));
   const start = planDate(firstDue);
@@ -48,10 +77,10 @@ export function buildPlan(totalFee, count, firstDue, gapMonths = 1) {
 
   const base = Math.floor(total / n);
   const extra = total - base * n;
+  const off = Math.max(0, Math.round(Number(offsetMonths) || 0));
 
   return Array.from({ length: n }, (_, i) => {
-    const d = new Date(start);
-    d.setMonth(d.getMonth() + i * Math.max(1, gapMonths));
+    const d = addMonths(start, off + i * Math.max(1, gapMonths));
     return {
       no: i + 1,
       amount: base + (i === 0 ? extra : 0),

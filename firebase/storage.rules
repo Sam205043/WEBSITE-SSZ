@@ -29,8 +29,16 @@ service firebase.storage {
       return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
     }
 
+    /* Wahi jaanch jo firestore.rules me hai — block kiya hua admin account
+       yahan bhi kuch nahi kar sakta. `status` usi document me hai jo `role`
+       batata hai, isliye ek bhi extra Firestore read nahi lagta. */
     function isAdmin() {
-      return hasUserDoc() && role() == 'admin';
+      return hasUserDoc() && role() == 'admin' && userStatus() == 'active';
+    }
+
+    function userStatus() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid))
+        .data.get('status', 'active');
     }
 
     /* Guarded: firestore.get() on a missing document throws and denies the

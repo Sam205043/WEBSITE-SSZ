@@ -46,8 +46,24 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    /* Admin par bhi `status` ki jaanch — pehle sirf `role` dekha jaata tha.
+
+       `users/{uid}.status == 'blocked'` par app khud sign-out kar deta hai
+       (firebase/auth-service.js), par wo sirf browser ka pehra hai. Rules me
+       koi jaanch nahi thi, isliye block kiya hua admin account console se
+       seedhe Firestore par sab kuch padh-likh sakta tha — students, fees,
+       admissions, sab. Yaani admin ka access band karne ka koi asli raasta
+       tha hi nahi.
+
+       Field na ho to 'active' maana jaata hai, isliye purane admin record
+       waise ke waise chalte rahenge.
+
+       Ek baat dhyan me rahe: apna hi status koi nahi badal sakta
+       (`keepsOwnPrivileges()` use rokta hai). Isliye kisi admin ko block
+       karna ya wapas chaalu karna sirf Firebase Console se hoga —
+       jaan-boojh kar, taaki koi khud ko galti se band na kar le. */
     function isAdmin() {
-      return hasUserDoc() && userDoc().role == 'admin';
+      return hasUserDoc() && userDoc().role == 'admin' && isActive();
     }
 
     function isActive() {

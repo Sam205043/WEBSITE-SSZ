@@ -28,8 +28,8 @@ function row(c) {
           `${formatDateTime(c.startsAt)} · ${c.batchName || c.batchId} · ${c.facultyName || ""}`)),
       el("a", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", href: c.meetLink, target: "_blank", rel: "noopener" }, "Meet link"),
       past && !cancelled
-        ? el("button", { class: `btn-ssz btn-sm-ssz ${c.recordingURL ? "btn-ghost-ssz" : "btn-secondary-ssz"}`, type: "button", dataset: { rec: c.id } },
-            c.recordingURL ? (c.recordingPublished ? "Recording ✓" : "Recording — approve baaki") : "Recording daalein")
+        ? el("button", { class: `btn-ssz btn-sm-ssz ${hasRec(c) ? "btn-ghost-ssz" : "btn-secondary-ssz"}`, type: "button", dataset: { rec: c.id } },
+            hasRec(c) ? (c.recordingPublished ? "Recording ✓" : "Recording — approve baaki") : "Recording daalein")
         : null,
       !past && !cancelled ? el("button", { class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button", dataset: { edit: c.id } }, "Edit") : null,
       !past && !cancelled ? el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", style: { color: "var(--danger)" }, type: "button", dataset: { cancel: c.id } }, "Cancel") : null,
@@ -47,7 +47,7 @@ function pendingRecordings(list) {
   return list
     .filter((c) => c.status !== CLASS_STATUS.CANCELLED
       && toDate(c.endsAt)?.getTime() < Date.now()
-      && !c.recordingURL)
+      && !hasRec(c))
     .sort((a, b) => toDate(b.startsAt) - toDate(a.startsAt))
     .slice(0, 10);
 }
@@ -89,6 +89,22 @@ function paint() {
    apne aap chali jaye, ye theek nahi hoga. Approve karte hi batch ko khabar
    bhi chali jaati hai.
    ========================================================================== */
+/* Class ke record me ab sirf ye jhandi rehti hai — link nahi. `recordingURL`
+   sirf un purane record me bacha hai jo shift nahi hue; niche wala button
+   unhe uthakar surakshit jagah le jaata hai. */
+const hasRec = (c) => !!(c.hasRecording || c.recordingURL);
+const isLegacy = (c) => !!c.recordingURL;
+
+/* Recording ka link kahan se laayein: pehle nayi jagah, na mile to purana
+   record. Dono na hon to khaali. */
+async function loadRecording(c) {
+  if (mode === "preview") return { url: c.recordingURL || "", published: !!c.recordingPublished };
+  const { getOne } = await import("../../firebase/db-service.js");
+  const rec = await getOne(COLLECTIONS.CLASS_RECORDINGS, c.id, { useCache: false }).catch(() => null);
+  if (rec) return { url: rec.url || "", published: !!rec.published };
+  return { url: c.recordingURL || "", published: !!c.recordingPublished };
+}
+
 function recordingDialog(c) {
   const body = el("div", {});
   body.innerHTML = `
@@ -98,20 +114,26 @@ function recordingDialog(c) {
     </p>
     <div class="field">
       <label class="field__label">Recording ka link</label>
-      <input class="input-ssz" id="recUrl" type="url" placeholder="https://drive.google.com/... ya YouTube ka link"
-             value="${(c.recordingURL || "").replace(/"/g, "&quot;")}">
+      <input class="input-ssz" id="recUrl" type="url" placeholder="https://drive.google.com/... ya YouTube ka link">
       <p class="field__hint" style="font-size:.76rem;color:var(--text-muted);margin:.3rem 0 0">
         Google Drive ka link ho to usme "jiske paas link hai wo dekh sakta hai" kar dein,
         warna students nahi khol paayenge. YouTube par "unlisted" rakhein.
       </p>
     </div>`;
 
-  const status = el("p", { style: { fontSize: ".8rem", margin: ".25rem 0 0", fontWeight: "600" } },
-    c.recordingURL
-      ? (c.recordingPublished ? "Students ko mil chuki hai." : "Link save hai, par students ko abhi nahi mili.")
-      : "Abhi koi link nahi hai.");
-  status.style.color = c.recordingPublished ? "var(--success)" : "var(--text-muted)";
+  const status = el("p", { style: { fontSize: ".8rem", margin: ".25rem 0 0", fontWeight: "600", color: "var(--text-muted)" } },
+    "Dekh rahe hain…");
   body.appendChild(status);
+
+  /* Link ab alag document me hai, isliye use kholne ke baad laate hain. */
+  loadRecording(c).then(({ url, published }) => {
+    const input = body.querySelector("#recUrl");
+    if (input && !input.value) input.value = url;
+    status.textContent = url
+      ? (published ? "Students ko mil chuki hai." : "Link save hai, par students ko abhi nahi mili.")
+      : "Abhi koi link nahi hai.";
+    status.style.color = published ? "var(--success)" : "var(--text-muted)";
+  }).catch(() => { status.textContent = "Purana link nahi padha ja saka."; });
 
   const saveBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Sirf save karein");
   const pubBtn = el("button", { class: "btn-ssz btn-success-ssz", type: "button" }, "Students ko de dein");
@@ -125,15 +147,28 @@ function recordingDialog(c) {
     if (!/^https?:\/\//i.test(url)) return toast.error("Link https:// se shuru hona chahiye.");
 
     if (mode === "preview") {
-      Object.assign(c, { recordingURL: url, recordingPublished: publish });
+      Object.assign(c, { recordingURL: url, hasRecording: true, recordingPublished: publish });
       m.close(); paint();
       return toast.info("Preview mode.");
     }
     try {
       saveBtn.disabled = pubBtn.disabled = true;
-      const { update } = await import("../../firebase/db-service.js");
-      await update(COLLECTIONS.LIVE_CLASSES, c.id, { recordingURL: url, recordingPublished: publish });
-      Object.assign(c, { recordingURL: url, recordingPublished: publish });
+      const { createWithId, update, deleteField } = await import("../../firebase/db-service.js");
+
+      /* Link nayi jagah — class ke record me sirf jhandi. `batchId` yahan bhi
+         rakhna zaroori hai: rule isi se dekhta hai ki maangne wala usi batch
+         ka hai ya nahi (class ka document padhe bina). */
+      await createWithId(COLLECTIONS.CLASS_RECORDINGS, c.id, {
+        classId: c.id, batchId: c.batchId || "", url, published: publish
+      }, { merge: true });
+
+      /* Purana `recordingURL` class ke record se hata bhi dete hain — warna
+         wo wahin pada rehta aur batch ka koi bhi student use padh leta. */
+      const patch = { hasRecording: true, recordingPublished: publish };
+      if (isLegacy(c)) patch.recordingURL = deleteField();
+      await update(COLLECTIONS.LIVE_CLASSES, c.id, patch);
+      delete c.recordingURL;
+      Object.assign(c, { hasRecording: true, recordingPublished: publish });
 
       if (publish) {
         await notifyBatch({ ...c, title: c.title }, 0, {
@@ -362,7 +397,8 @@ function classForm(c = null) {
       startsAt: new Date(form.elements.startsAt.value),
       endsAt: new Date(form.elements.endsAt.value),
       status: CLASS_STATUS.SCHEDULED,
-      recordingURL: "",
+      /* Link yahan kabhi nahi aata — wo classRecordings me jaata hai. */
+      hasRecording: false,
       recordingPublished: false
     };
 
@@ -446,6 +482,81 @@ batches.forEach((b) => fSel.appendChild(el("option", { value: b.id }, b.name)));
 fSel.addEventListener("change", () => { batchF = fSel.value; paint(); });
 
 paint();
+
+/* --------------------------------------------------------------------------
+   Purani recordings ko surakshit jagah le jaana — ek baar ka kaam
+
+   Jo classes pehle se hain unke record me link abhi bhi andar pada hai, aur
+   wahan wo poori batch ko dikhta hai. Naya code sirf aage ke liye theek hai;
+   purane record khud nahi hatte.
+
+   Isliye ye button. Ye har purane record ka link `classRecordings` me utaar
+   deta hai (published wahi rakhta hai jo pehle tha) aur phir class ke record
+   se `recordingURL` mita deta hai. Dabaane se pehle poochha jaata hai, aur
+   kitne record hain wo bhi likha hota hai — chup-chaap kuch nahi hota.
+   -------------------------------------------------------------------------- */
+async function migrateLegacyRecordings(list) {
+  const { createWithId, update, deleteField } = await import("../../firebase/db-service.js");
+  const done = [], failed = [];
+  for (const c of list) {
+    try {
+      await createWithId(COLLECTIONS.CLASS_RECORDINGS, c.id, {
+        classId: c.id, batchId: c.batchId || "",
+        url: c.recordingURL, published: !!c.recordingPublished
+      }, { merge: true });
+      await update(COLLECTIONS.LIVE_CLASSES, c.id, {
+        hasRecording: true,
+        recordingPublished: !!c.recordingPublished,
+        recordingURL: deleteField()
+      });
+      delete c.recordingURL;
+      c.hasRecording = true;
+      done.push(c.id);
+    } catch (err) {
+      failed.push(`${c.id}: ${err.message}`);
+    }
+  }
+  return { done, failed };
+}
+
+function paintLegacyBanner() {
+  const host = $("#lcLegacy");
+  if (!host) return;
+  const old = classes.filter(isLegacy);
+  host.hidden = !old.length;
+  if (!old.length) return;
+
+  const btn = el("button", { class: "btn-ssz btn-primary-ssz btn-sm-ssz", type: "button" },
+    `${old.length} purani recording surakshit karein`);
+  render(host, el("div", { class: "card-ssz", style: { borderLeft: "3px solid var(--warning)" } },
+    el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" } },
+      el("span", { style: { flex: 1, minWidth: "240px" } },
+        el("strong", { style: { display: "block", fontSize: ".9rem" } }, "Purani recordings abhi class ke record ke andar hain"),
+        el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
+          "Wahan wo poori batch ko dikhti hain — chahe aapne approve na kiya ho. Ek baar dabaiye, link alag surakshit jagah chala jaayega. Students ko koi farq nahi padega.")),
+      btn)));
+
+  btn.addEventListener("click", async () => {
+    const ok = await confirmModal({
+      title: "Purani recordings shift karein?",
+      message: `${old.length} recording ka link alag jagah chala jaayega aur class ke record se hat jaayega. ` +
+        "Jo recordings students ko mil chuki hain wo waise hi milti rahengi.",
+      confirmText: "Haan, shift karein"
+    });
+    if (!ok) return;
+    btn.disabled = true; btn.textContent = "Shift kar rahe hain…";
+    const { done, failed } = await migrateLegacyRecordings(old);
+    paint(); paintLegacyBanner();
+    if (failed.length) {
+      console.warn("[classes] kuch shift nahi hui:", failed);
+      toast.warning(`${done.length} shift ho gayin, ${failed.length} nahi — console me dekh lein.`, { duration: 9000 });
+    } else {
+      toast.success(`${done.length} recording surakshit jagah chali gayin.`);
+    }
+  });
+}
+
+paintLegacyBanner();
 
 $("#lcNew").addEventListener("click", () => classForm(null));
 on(document, "click", "[data-rec]", (e, btn) => {

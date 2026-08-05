@@ -98,8 +98,8 @@ function watermark(student) {
   return tag;
 }
 
-function player(cls, student) {
-  const id = driveFileId(cls.recordingURL);
+function player(cls, recordingURL, student) {
+  const id = driveFileId(recordingURL);
 
   /* Drive ka link na ho (jaise koi YouTube link daal diya ho) to zabardasti
      nahi karte — seedha khol dete hain, warna student ko kuch bhi nahi
@@ -109,7 +109,7 @@ function player(cls, student) {
       el("p", { style: { margin: "0 0 1rem", fontSize: ".88rem" } },
         "Is recording ka link Google Drive ka nahi hai, isliye yahan andar nahi chal sakta."),
       el("a", {
-        class: "btn-ssz btn-primary-ssz", href: cls.recordingURL,
+        class: "btn-ssz btn-primary-ssz", href: recordingURL,
         target: "_blank", rel: "noopener"
       }, "Recording kholein", el("span", { html: icon("externalLink", { size: 16 }) }))
     );
@@ -162,15 +162,27 @@ if (mode === "preview") {
      sandesh dikh jaata hai jo "class hai hi nahi" par dikhta hai. Dono ka
      jawab ek jaisa rakhna hi theek hai: warna id badal-badal kar ye pata
      kiya ja sakta hai ki kaunsi class maujood hai. */
-  const cls = await getOne(COLLECTIONS.LIVE_CLASSES, classId, { useCache: false })
-    .catch(() => null);
+  /* Do alag document: class ki jaankari (naam, tareekh) aur recording ka
+     asli link. Link isliye alag hai ki class ka record poori batch padh
+     sakti hai — usme link rakhne ka matlab tha ki bina approve wali
+     recording bhi console se nikal jaati. Us alag document par rule me
+     `published` ki shart lagti hai, isliye approve se pehle wo milta hi
+     nahi. Purane record ke liye class ke andar wala link fallback hai. */
+  const [cls, rec] = await Promise.all([
+    getOne(COLLECTIONS.LIVE_CLASSES, classId, { useCache: false }).catch(() => null),
+    getOne(COLLECTIONS.CLASS_RECORDINGS, classId, { useCache: false }).catch(() => null)
+  ]);
 
-  /* Teen shart — teeno ka jawab ek jaisa rakha hai. Alag-alag sandesh dene
-     par koi id badal-badal kar ye pata kar leta ki kaunsi class maujood hai
-     aur kaunsi nahi. */
+  const recordingURL = (rec?.published && rec.url)
+    ? rec.url
+    : (cls?.recordingPublished ? (cls.recordingURL || "") : "");
+
+  /* Saari shartein — jawab ek hi rakha hai. Alag-alag sandesh dene par koi
+     id badal-badal kar ye pata kar leta ki kaunsi class maujood hai aur
+     kaunsi nahi. */
   const allowed = cls && student &&
     cls.batchId && cls.batchId === student.batchId &&
-    cls.recordingPublished && cls.recordingURL;
+    recordingURL;
 
   if (!allowed) {
     message(
@@ -179,6 +191,6 @@ if (mode === "preview") {
       back
     );
   } else {
-    render($("#recBody"), player(cls, student));
+    render($("#recBody"), player(cls, recordingURL, student));
   }
 }

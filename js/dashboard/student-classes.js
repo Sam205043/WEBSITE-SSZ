@@ -50,7 +50,11 @@ function classCard(c, big = false) {
       /* Recording sirf tab dikhti hai jab admin ne use approve kiya ho. Sirf
          link save kar dene se student ko kuch nahi milta — warna adhoori ya
          galat recording apne aap chali jaati. */
-      ? (c.recordingURL && c.recordingPublished
+      /* Link ab class ke record me hai hi nahi — sirf jhandi hai. Asli link
+         recording wale page par alag document se aata hai, jise rules
+         approve hone se pehle kisi ko dete hi nahi. `recordingURL` wali
+         jaanch un purane record ke liye hai jo abhi shift nahi hue. */
+      ? ((c.hasRecording || c.recordingURL) && c.recordingPublished
           /* Drive ka link seedha nahi diya jaata — Drive ke viewer me Download
              ka button saamne hota hai. Recording apne player page par chalti
              hai, jahan wo button nahi hota aur video par student ka apna

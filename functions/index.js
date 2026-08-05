@@ -876,6 +876,74 @@ async function onStudentPaid(studentId, amount, paymentId) {
 }
 
 /* ==========================================================================
+   gradeMcq — MCQ ka result, server par
+
+   PEHLE YE KAAM BROWSER KARTA THA, AUR WAHI SABSE BADI GALTI THI.
+
+   Student ka page khud `assignmentKeys` padhta tha, khud marks ginta tha, aur
+   khud apne submission me `marks: N, status: "graded"` likh deta tha. Rules
+   pehli baar likhne se rokte hi nahi the (`marks` tab tak null hota hai).
+   Matlab console me ek line — `marks: 100, status: "graded"` — aur aapke
+   panel me wo bilkul asli graded paper jaisa dikhta. Usi par certificate bhi
+   ban jaata.
+
+   Doosra chhed isi ke saath tha: jawab dene ke baad student ko answer key
+   padhne ki ijaazat thi (taaki result dikh sake). Wo apne liye to bekaar thi
+   — uske apne jawab jam chuke hote hain — par usi key ko WhatsApp par bhej
+   dena kaafi tha, aur jis dost ne abhi paper diya hi nahi, use saare jawab
+   pehle se mil jaate.
+
+   Ab dono band hain: answer key sirf admin padh sakta hai, aur marks yahan
+   lagte hain. Student ka browser sirf "mera result nikaal do" keh sakta hai.
+
+   Ginti wahi hai jo pehle browser me thi, taaki purane record se mel khaye.
+   ========================================================================== */
+exports.gradeMcq = onCall({ cors: true }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "Pehle login karein.");
+
+  const assignmentId = String(req.data?.assignmentId || "").trim();
+  if (!assignmentId) throw new HttpsError("invalid-argument", "Assignment nahi bataya gaya.");
+
+  /* Kaun maang raha hai — login se, client ke bheje hue Student ID se NAHI.
+     Warna koi bhi doosre ka paper "grade" karwa sakta tha. */
+  const u = (await db.collection("users").doc(uid).get()).data() || {};
+  const studentId = String(u.studentId || "").trim();
+  if (!studentId) throw new HttpsError("permission-denied", "Aapka login kisi student record se juda nahi hai.");
+
+  const subRef = db.collection("submissions").doc(`${assignmentId}__${studentId}`);
+  const subSnap = await subRef.get();
+  if (!subSnap.exists) throw new HttpsError("not-found", "Aapka paper abhi jama nahi hua.");
+
+  const sub = subSnap.data() || {};
+  /* Jawab wahi liye jaate hain jo Firestore me pade hain — request me jo aaya
+     wo dekha hi nahi jaata. Isi wajah se "sahi jawab bhej kar poore marks"
+     wala raasta hai hi nahi. */
+  const answers = Array.isArray(sub.answers) ? sub.answers : [];
+  if (!answers.length) throw new HttpsError("failed-precondition", "Aapke jawab record me nahi mile.");
+
+  const keySnap = await db.collection("assignmentKeys").doc(assignmentId).get();
+  const correct = Array.isArray(keySnap.data()?.correct) ? keySnap.data().correct : [];
+  if (!correct.length) throw new HttpsError("failed-precondition", "Is paper ki answer key abhi nahi bani.");
+
+  const marks = answers.reduce((t, ans, i) => t + (ans === correct[i] ? 1 : 0), 0);
+
+  await subRef.set({
+    marks,
+    status: "graded",
+    gradedAt: admin.firestore.FieldValue.serverTimestamp(),
+    autoGraded: true
+  }, { merge: true });
+
+  logger.info("mcq grade hua", { assignmentId, studentId, marks, total: correct.length });
+
+  /* Sahi jawab yahan lautaye jaate hain taaki student apna paper dekh sake —
+     par sirf uske apne paper dene ke BAAD, aur sirf ek baar ke jawab me.
+     Firestore me key ab uske liye khuli hui nahi hai. */
+  return { marks, total: correct.length, correct, answers };
+});
+
+/* ==========================================================================
    3) publishRecording — class ki recording ka link, apne aap
    --------------------------------------------------------------------------
    Pankaj ke laptop par ek chhota program chalta hai. Class khatam hone par

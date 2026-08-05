@@ -95,7 +95,6 @@ const COURSES = {
 /* Admission ke waqt kam se kam itna hissa — baaki kisten ban jaati hain. */
 const MIN_SHARE = 0.10;
 
-
 /* ==========================================================================
    Chhoti madad
    ========================================================================== */
@@ -237,30 +236,22 @@ async function pickBatch(courseId, pref) {
    taaki ye bhi pata na chale ki record maujood hai ya nahi.
    -------------------------------------------------------------------------- */
 async function assertMayPay(req, kind, id, rec) {
-  /* Login sabse pehle dekhte hain — sirf "haan/na" ke liye nahi, balki ye
-     jaanne ke liye bhi ki maangne wala ADMIN hai ya nahi. Wo jaankari
-     laut kar jaati hai, kyunki rakam ki sabse chhoti hadd admin ke liye
-     alag hai (₹1 — asli payment test karne ke liye). */
-  const uid = req.auth?.uid;
-  let isAdmin = false;
-  let isOwnStudent = false;
-
-  if (uid) {
-    const u = (await db.collection("users").doc(uid).get()).data() || {};
-    isAdmin = u.role === "admin";
-    isOwnStudent = kind === "student" && u.studentId === id;
-  }
-
-  if (isAdmin || isOwnStudent) return { isAdmin };
-
-  /* Raasta 2 — email mel khaata hai. Dono taraf khaali na ho, warna jinke
-     record me email hi nahi likha unke liye darwaza khul jaata.
-
-     Admission ke waqt yahi ekmatra sabooti hai: tab account bana hi nahi
-     hota, isliye login se admission ka koi raasta nahi. */
   const askedEmail = String(req.data?.email || "").trim().toLowerCase();
   const recEmail = String(rec.email || "").trim().toLowerCase();
-  if (askedEmail && recEmail && askedEmail === recEmail) return { isAdmin: false };
+
+  /* Raasta 2 — email mel khaata hai. Dono taraf khaali na ho, warna jinke
+     record me email hi nahi likha unke liye darwaza khul jaata. */
+  if (askedEmail && recEmail && askedEmail === recEmail) return;
+
+  /* Raasta 1 — login. */
+  const uid = req.auth?.uid;
+  if (uid) {
+    const u = (await db.collection("users").doc(uid).get()).data() || {};
+    if (u.role === "admin") return;                       // admin kisi ke liye bhi
+    if (kind === "student" && u.studentId === id) return; // student sirf apne liye
+    /* Admission ke waqt user ke paas abhi studentId hoti hi nahi, isliye
+       login se admission ka koi raasta nahi — wahan email hi sabooti hai. */
+  }
 
   logger.warn("payment link — bina sabooti ke maanga gaya", { kind, id, hadAuth: !!uid });
   throw new HttpsError("not-found", "Record nahi mila.");
@@ -292,7 +283,7 @@ exports.createPaymentLink = onCall(
 
     /* Rakam ki koi baat isse pehle nahi — pehle ye tay ho ki poochhne ka
        haq hai bhi ya nahi. */
-    const { isAdmin } = await assertMayPay(req, kind, id, rec);
+    await assertMayPay(req, kind, id, rec);
 
     /* --------------------------------------------------------------------
        Admission approve ho chuka ho to hisaab student ke record se lo.
@@ -348,30 +339,10 @@ exports.createPaymentLink = onCall(
        wale payment se receipt ki ginti bhar jaana.
 
        Dono halat me `due` se zyada kabhi nahi — aakhri kist chhoti bachi ho
-       to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai.
-
-       TEESRI HAALAT — ADMIN. Jab link aap khud (admin ke login se) maangte
-       hain, hadd ₹1 ho jaati hai.
-
-       Kyun: payment ka poora raasta — paisa jaana, Razorpay ka webhook aana,
-       Student ID banna, receipt banna — asli paise se ek baar jaanche bina
-       bharosa nahi kiya ja sakta. Wo test ₹1 me ho jaana chahiye, ₹700 me
-       nahi. Pehle iske liye poore system ki hadd ₹1 kar di gayi thi, par
-       usme khatra tha: un dinon koi bhi anjaan visitor ₹1 me admission le
-       leta, aur Student ID, batch, kist plan sab ban jaate.
-
-       Ab wo chhoot sirf admin ke login ke saath milti hai. Isliye:
-         - aap Live hone ke baad bhi jab chahein ₹1 ka asli test kar sakte hain
-         - kisi visitor ke liye hadd kabhi kam nahi hoti
-         - aur Live jaane se pehle kuchh badalna, kuchh yaad rakhna nahi hai
-
-       `due` wali hadd yahan bhi lagti hai — admin bhi bakaye se zyada nahi
-       bhej sakta. */
-    const min = isAdmin
-      ? Math.min(due, 1)
-      : feeKind === "admission"
-        ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))
-        : Math.min(due, 100);
+       to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai. */
+    const min = feeKind === "admission"
+      ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))
+      : Math.min(due, 100);
 
     const amount = Math.min(due, Math.max(min, asked || min));
 
@@ -1044,30 +1015,85 @@ exports.attachPayment = onCall({ cors: true }, async (req) => {
   }
 
   const parkRef = db.collection("unmatchedPayments").doc(`rzp_${paymentId}`);
-  const parkSnap = await parkRef.get();
-  if (!parkSnap.exists) throw new HttpsError("not-found", "Ye payment list me nahi mila.");
-
-  const p = parkSnap.data();
-  if (p.status === "attached") {
-    /* Do baar click ho gaya ho to ghabrane ki baat nahi — onStudentPaid
-       waise bhi dobara paisa nahi ginta. Bas seedha jawab de dete hain. */
-    return { ok: true, alreadyDone: true, studentId: p.studentId || studentId };
-  }
+  const feeRef = db.collection("fees").doc(`rzp_${paymentId}`);
 
   const stuSnap = await db.collection("students").doc(studentId).get();
   if (!stuSnap.exists) throw new HttpsError("not-found", "Student nahi mila.");
 
-  const amount = rupees(p.amount);
-  if (!amount) throw new HttpsError("failed-precondition", "Is payment ki rakam saaf nahi hai.");
+  /* --------------------------------------------------------------------------
+     "Ye payment mera hai" — dawa transaction ke andar
+
+     PEHLE YE TEEN ALAG KADAM THE: padho -> "attached to nahi hai?" -> credit
+     karo -> phir status likho. Beech me `await` tha, aur usi khidki me
+     doosra admin bhi wahi payment jod sakta tha.
+
+     Do admin, ek hi parked payment, alag-alag student:
+       A -> status "unmatched" mila, aage badha, Rohit ko ₹3,000 mil gaye
+       B -> wahi purana "unmatched" mila, aage badha, par onStudentPaid ne
+            dekha ki fees/rzp_<id> pehle se hai, to kuchh nahi chadhaya —
+            AUR PHIR B ne record par Rohan ka naam likh diya.
+
+     Natija: paisa Rohit par, receipt Rohit ki, par record kehta tha Rohan —
+     aur B ki screen par hara toast "Rohan ke khaate me chadh gaya".
+
+     Ab dawa transaction ke andar hota hai: sirf wahi aage badh sakta hai jo
+     "unmatched" ko "attached" me badalne me kaamyaab ho. Doosre ko saaf
+     jawab milta hai ki ye kis student se jud chuka hai.
+     -------------------------------------------------------------------------- */
+  const claim = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(parkRef);
+    if (!snap.exists) throw new HttpsError("not-found", "Ye payment list me nahi mila.");
+    const p = snap.data();
+    const amount = rupees(p.amount);
+
+    if (p.status === "attached") {
+      /* Pehle se juda hua hai. Kisi AUR student se juda ho to ye galti hai —
+         chup-chaap "ho gaya" kehna sabse bura jawab hoga. */
+      if (p.studentId && p.studentId !== studentId) {
+        return { conflict: true, other: p.studentId, amount };
+      }
+      /* Usi student se juda hai. Par kya paisa sach me chadha tha? Agar
+         pichhli baar dawa ke baad crediting fail ho gayi thi, to fees ka
+         record banega hi nahi. Wo neeche jaanch kar poora kar dete hain. */
+      return { already: true, amount };
+    }
+
+    if (!amount) throw new HttpsError("failed-precondition", "Is payment ki rakam saaf nahi hai.");
+
+    tx.update(parkRef, {
+      status: "attached",
+      studentId,
+      attachedBy: uid,
+      attachedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    return { already: false, amount };
+  });
+
+  if (claim.conflict) {
+    logger.warn("ye payment kisi aur student se jud chuka hai", { paymentId, maanga: studentId, juda: claim.other });
+    throw new HttpsError(
+      "failed-precondition",
+      `Ye payment pehle hi ${claim.other} se jod diya gaya hai. Dobara nahi joda ja sakta.`
+    );
+  }
+
+  const amount = claim.amount;
+
+  /* Dawa ho chuka hai; ab paisa chadhate hain. `onStudentPaid` khud idempotent
+     hai (fees/rzp_<id> ke naam par), isliye dobara chalne par paisa dobara
+     nahi ginta — aur jo adhoora reh gaya tha wo poora ho jaata hai. */
+  if (claim.already) {
+    const feeSnap = await feeRef.get();
+    if (feeSnap.exists) {
+      logger.info("ye payment pehle hi jud chuka tha", { paymentId, studentId });
+      return { ok: true, alreadyDone: true, studentId, amount };
+    }
+    /* Record kehta hai "attached" par paisa kahin chadha hi nahi — pichhli
+       baar beech me kuchh toot gaya tha. Ab poora kar dete hain. */
+    logger.warn("attached tha par paisa nahi chadha tha — ab poora kar rahe hain", { paymentId, studentId });
+  }
 
   await onStudentPaid(studentId, amount, paymentId);
-
-  await parkRef.set({
-    status: "attached",
-    studentId,
-    attachedBy: uid,
-    attachedAt: admin.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
 
   logger.info("bina juda payment jod diya gaya", { paymentId, studentId, amount, by: uid });
   return { ok: true, studentId, amount };

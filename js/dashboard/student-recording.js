@@ -21,6 +21,11 @@
    nahi — par jo leak karega, uski apni pehchaan us recording par likhi
    hogi. Asli asar isi ka hota hai.
 
+   Isi wajah se yahan browser ka fullscreen band hai. Wo sirf iframe ko bada
+   karta tha aur watermark peechhe chhod deta tha — theek us pal jab uski
+   sabse zyada zaroorat hoti hai. "Bada karein" wala apna button poore dabbe
+   ko bada karta hai, isliye naam-ID upar bana rehta hai.
+
    Teesra pehra: recording sirf usi batch ke student ko dikhti hai. Kisi aur
    batch ka id URL me daal dene se kuch nahi milta — aur ye rok ab SIRF is
    page me nahi, Firestore ke rules me bhi hai. Yahi asli rok hai: page ka
@@ -115,7 +120,28 @@ function player(cls, recordingURL, student) {
     );
   }
 
+  /* ------------------------------------------------------------------------
+     Bada karna — par watermark ke saath
+
+     PEHLE YAHAN `allowfullscreen` LAGA THA, AUR WAHI POORE PEHRE KO BEKAAR
+     KAR DETA THA.
+
+     Watermark iframe ke BAHAR ek parat hai. Drive ke player ka fullscreen
+     button dabate hi sirf iframe screen par aata hai — parat peechhe reh
+     jaati hai, aur naam-ID dikhna band. Yaani jo aadmi screen record karega,
+     wahi fullscreen bhi dabayega, aur us recording par koi pehchaan hi nahi
+     hogi. Jo ek cheez asli me leak rokti hai, wo theek us pal gayab ho jaati
+     thi jab uski sabse zyada zaroorat hai.
+
+     Ab `allowfullscreen` hata diya gaya hai — Drive ka apna button ab kaam
+     nahi karta. Bade karne ka apna button neeche hai, aur wo POORE dabbe ko
+     bada karta hai (video + watermark, dono). Browser ka Fullscreen API
+     istemaal nahi kiya: iPhone par wo `<div>` par chalta hi nahi. Iske
+     bajaye dabba screen bhar jaata hai — har phone aur laptop par ek jaisa,
+     aur watermark hamesha upar.
+     ---------------------------------------------------------------------- */
   const frame = el("div", {
+    class: "rec-frame",
     style: {
       position: "relative", width: "100%", aspectRatio: "16 / 9",
       background: "#000", borderRadius: "var(--r-md)", overflow: "hidden"
@@ -123,13 +149,35 @@ function player(cls, recordingURL, student) {
   },
     el("iframe", {
       src: `https://drive.google.com/file/d/${id}/preview`,
-      allow: "autoplay; fullscreen",
-      allowfullscreen: "",
+      allow: "autoplay",
       referrerpolicy: "no-referrer",
       style: { width: "100%", height: "100%", border: "0", display: "block", position: "relative", zIndex: "1" }
     }),
     watermark(student)
   );
+
+  const bigBtn = el("button", {
+    class: "btn-ssz btn-secondary-ssz btn-sm-ssz", type: "button",
+    style: { position: "absolute", right: ".6rem", bottom: ".6rem", zIndex: "3" }
+  }, el("span", { html: icon("maximize", { size: 15 }) }), " Bada karein");
+  frame.appendChild(bigBtn);
+
+  let big = false;
+  const setBig = (on) => {
+    big = on;
+    Object.assign(frame.style, on
+      ? { position: "fixed", inset: "0", width: "100%", height: "100%",
+          aspectRatio: "auto", borderRadius: "0", zIndex: "9999" }
+      : { position: "relative", inset: "", width: "100%", height: "",
+          aspectRatio: "16 / 9", borderRadius: "var(--r-md)", zIndex: "" });
+    document.body.style.overflow = on ? "hidden" : "";
+    bigBtn.innerHTML = "";
+    bigBtn.append(el("span", { html: icon(on ? "minimize" : "maximize", { size: 15 }) }),
+                  on ? " Chhota karein" : " Bada karein");
+  };
+  bigBtn.addEventListener("click", () => setBig(!big));
+  /* Esc se bhi bahar — phone par back gesture ke sabse kareeb yahi hai. */
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && big) setBig(false); });
 
   const wrap = el("div", {});
   wrap.appendChild(el("h2", { style: { margin: "0 0 .3rem", fontSize: "1.1rem" } }, cls.title || "Class recording"));
@@ -138,7 +186,7 @@ function player(cls, recordingURL, student) {
   wrap.appendChild(frame);
   wrap.appendChild(el("p", { style: { margin: "1rem 0 0", fontSize: ".78rem", color: "var(--text-muted)" } },
     "Ye recording sirf aapke batch ke liye hai. Ise kisi ke saath share na karein — " +
-    "video par aapka apna naam aur Student ID darj hai."));
+    "video par aapka apna naam aur Student ID darj hai, bade screen par bhi."));
   wrap.appendChild(el("div", { class: "cluster", style: { marginTop: "1.25rem" } },
     el("a", { class: "btn-ssz btn-secondary-ssz", href: url("studentClasses") }, "Live Classes par wapas")));
   return wrap;

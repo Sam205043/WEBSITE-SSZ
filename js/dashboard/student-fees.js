@@ -424,11 +424,34 @@ mode = shell.mode;
 if (mode === "preview") {
   student = DEMO_STUDENT; fees = [...DEMO_FEES];
 } else {
-  student = await data.getStudent(shell.user);
+  /* Ek bhi read fail ho jaye (net gaya, index thanda, rule badla) to page
+     KHAALI nahi chhodna. Ye file top-level `await` par chalti hai — pehle
+     yahan koi `.catch` tha hi nahi, isliye reject hote hi poora module wahin
+     ruk jaata tha aur student ko bilkul khaali screen milti thi. Aur ye wahi
+     page hai jahan wo apna paisa dekhne aata hai. */
+  student = await data.getStudent(shell.user).catch((err) => {
+    console.error("[fees] student record nahi mila:", err);
+    return null;
+  });
   if (student) {
-    [fees, settings] = await Promise.all([data.getFees(student), data.getSettings().catch(() => null)]);
+    const settled = await Promise.allSettled([data.getFees(student), data.getSettings()]);
+    settled.forEach((r, i) => {
+      if (r.status === "rejected") {
+        console.error(`[fees] ${i === 0 ? "receipts" : "settings"} load nahi hue:`, r.reason);
+      }
+    });
+    fees = settled[0].status === "fulfilled" ? settled[0].value : [];
+    settings = settled[1].status === "fulfilled" ? settled[1].value : null;
+    if (settled[0].status === "rejected") {
+      toast.warning(
+        "Aapki receipt ki list abhi nahi khul payi. Totals upar sahi hain. " +
+        "Dobara na khule to institute ko bata dein.", { duration: 9000 });
+    }
   } else {
     student = { pendingFee: 0, totalFee: 0, paidFee: 0 };
+    toast.warning(
+      "Aapka record abhi nahi khul paya. Agar ye baar-baar ho to institute ko bata dein — " +
+      "ho sakta hai aapka login abhi student record se juda na ho.", { duration: 9000 });
   }
 }
 

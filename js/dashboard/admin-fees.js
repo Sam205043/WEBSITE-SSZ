@@ -31,7 +31,17 @@ function tiles() {
   const today = new Date().toDateString();
   const todayTotal = sum(paid.filter((f) => new Date(toMs(f.paidOn)).toDateString() === today), "amount");
   const pendingCount = fees.filter((f) => f.status === FEE_STATUS.PENDING).length;
-  const totalDue = sum(students.filter((s) => s.status === "active"), "pendingFee");
+  /* Bakaya jodte waqt sirf UPAR wale (positive) hi jodte hain.
+
+     Pehle yahan seedha sum() tha. Agar kisi ek student ka pendingFee negative
+     ho gaya (jo ab nahi hona chahiye, par purane record me pada ho sakta hai),
+     to wo DOOSRON ka bakaya kaat deta tha: teen students ka asli ₹9,000 bakaya
+     screen par ₹3,000 dikhta. Ek galat record poori report chhupa deta tha.
+
+     Ab wo apne aap alag dikh jaate hain — chhupte nahi. */
+  const active = students.filter((s) => s.status === "active");
+  const totalDue = active.reduce((t, s) => t + Math.max(0, Number(s.pendingFee) || 0), 0);
+  const overpaidCount = active.filter((s) => (Number(s.pendingFee) || 0) < 0).length;
 
   const tile = (ic, value, label, tone) => el("div", { class: `stat-tile stat-tile--${tone}` },
     el("div", { class: "stat-tile__icon", html: icon(ic, { size: 22 }) }),
@@ -40,7 +50,9 @@ function tiles() {
   render($("#feeTiles"),
     tile("rupee", money(todayTotal), "Aaj ka collection", "success"),
     tile("trending", money(monthTotal), "Is mahine ka collection", "accent"),
-    tile("alert", money(totalDue), "Kul bakaya (active)", totalDue ? "warning" : "success"),
+    tile("alert", money(totalDue),
+      overpaidCount ? `Kul bakaya · ${overpaidCount} record galat` : "Kul bakaya (active)",
+      totalDue ? "warning" : "success"),
     tile("clock", String(pendingCount), "Verify pending", pendingCount ? "danger" : "success")
   );
 }
@@ -125,7 +137,7 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     toast.info("Preview mode: Firebase ke baad asli receipt banegi.");
     return null;
   }
-  const { nextSequence, createWithId, update, increment } = await import("../../firebase/db-service.js");
+  const { nextSequence, createWithId, update, updateInTransaction } = await import("../../firebase/db-service.js");
 
   const year = new Date().getFullYear();
   const seq = await nextSequence(`receipts-${year}`);
@@ -151,30 +163,68 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     await createWithId(COLLECTIONS.FEES, receiptNo.replace(/\//g, "-"), doc);
   }
 
-  /* Payment jama hote hi agli kist badal jaati hai — nayi due date wahin se
-     nikaal kar likh dete hain, taaki student ke dashboard par aur reminder
-     wali list me sahi tareekh dikhe. */
-  const after = {
-    ...student,
-    paidFee: (Number(student.paidFee) || 0) + amount,
-    pendingFee: Math.max(0, (Number(student.pendingFee) || 0) - amount)
-  };
-  /* nextDueDate par do alag haalat hain, aur inhe alag rakhna zaroori hai:
+  /* ------------------------------------------------------------------------
+     Student ke totals — ab transaction ke andar, taaza record par
 
-       plan HAI    -> jo nikla wahi likho, chaahe null ho. Yahan null ka saaf
-                      matlab hai "ab koi kist baaki nahi" — poori fees jama.
-       plan NAHI   -> kuchh mat likho. Yahan null ka matlab "hume pata nahi"
-                      hota hai, aur us "pata nahi" se student ki sahi tareekh
-                      mita dena — yahi purani galti thi.
+     PEHLE YAHAN TEEN ALAG GALTIYAAN EK SAATH BAITHI THI:
 
-     Pehle dono ek jaise the: dono soorat me null likh diya jaata tha. */
-  const patch = {
-    paidFee: increment(amount),
-    pendingFee: increment(-amount)
-  };
-  const hasPlan = Array.isArray(after.feePlan) && after.feePlan.length > 0;
-  if (hasPlan) patch.nextDueDate = nextDueFrom(after);
-  await update(COLLECTIONS.STUDENTS, student.studentId, patch);
+       patch = { paidFee: increment(amount), pendingFee: increment(-amount),
+                 nextDueDate: nextDueFrom(pageLoadWaalaStudent) }
+
+     1) BAKAYA NEGATIVE HO JAATA THA. `increment(-amount)` ko nahi pata ki
+        bakaya kitna bacha hai. Kisi se ₹6,000 le liya jiska ₹3,000 bakaya
+        tha -> uska pendingFee -₹3,000. Aur "Kul bakaya" wala tile in sabko
+        jod deta hai, isliye teen students ka asli ₹9,000 bakaya screen par
+        ₹3,000 dikhta tha. Jis ek number se aap dhandha chalate hain wahi
+        chup-chaap galat tha.
+
+     2) DUE DATE PURANE DATA SE BANTI THI. `student` wo object hai jo page
+        khulte waqt aaya tha. Beech me student ne Razorpay se paisa de diya
+        to wo isme nahi hota. Natija: aap cash confirm karte, aur uski due
+        date PEECHHE chali jaati — us kist par jo wo pehle hi de chuka hai.
+        Phir usi ke liye use reminder chala jaata.
+
+     3) Do jagah se ek saath hone par (aap + webhook) dono purana padh kar
+        likhte the.
+
+     Ab teeno ek hi ilaaj se theek hote hain: hisaab TRANSACTION ke andar,
+     us record par jo usi pal padha gaya hai. Paisa jodte waqt bhi taaza
+     `paidFee` par jodte hain, aur bakaya `totalFee - paidFee` se nikaalte
+     hain (jo apne aap 0 par ruk jaata hai) — ghata kar nahi.
+     ------------------------------------------------------------------------ */
+  const { before, patch } = await updateInTransaction(
+    COLLECTIONS.STUDENTS, student.studentId,
+    (cur) => {
+      const total = Number(cur.totalFee) || 0;
+      const paidNow = Math.max(0, Number(cur.paidFee) || 0) + amount;
+      const p = {
+        paidFee: paidNow,
+        /* Bakaya hamesha total me se nikala jaata hai, ghata kar nahi —
+           isliye ye kabhi negative nahi ho sakta. */
+        pendingFee: Math.max(0, total - paidNow)
+      };
+      /* nextDueDate par do alag haalat hain, aur inhe alag rakhna zaroori hai:
+           plan HAI  -> jo nikla wahi likho, chaahe null ho. Null ka saaf
+                        matlab: ab koi kist baaki nahi.
+           plan NAHI -> kuchh mat likho. Yahan null ka matlab "hume pata
+                        nahi" hota hai, aur us "pata nahi" se student ki
+                        sahi tareekh mitana galat hai. */
+      const plan = Array.isArray(cur.feePlan) ? cur.feePlan : [];
+      if (plan.length) p.nextDueDate = nextDueFrom({ ...cur, feePlan: plan, paidFee: paidNow });
+      return p;
+    }
+  );
+
+  /* Zyada paisa aa gaya (do link ek saath ban gaye the, ya cash + online) to
+     chup nahi rehte — aap tay karenge ki wapas karna hai ya agle course me
+     jodna hai. Chup-chaap "bakaya 0" dikha dena galat hai. */
+  const overpaid = (Number(patch.paidFee) || 0) - (Number(before.totalFee) || 0);
+  if (overpaid > 0) {
+    toast.warning(
+      `${student.fullName || student.studentId} ne kul fees se ${money(overpaid)} zyada de diya hai. ` +
+      "Bakaya 0 dikhega — ye rakam wapas karni hai ya kisi aur course me jodni hai, aap tay karein.",
+      { duration: 12000 });
+  }
 
   /* Bakaya sirf tab likhte hain jab hume sach me pata ho. Pehle
      `(undefined || 0) - amount` hamesha 0 nikalta tha, aur us wajah se
@@ -247,8 +297,32 @@ function collectDialog(preStudent = null) {
 
   saveBtn.addEventListener("click", async () => {
     if (!validator.validate()) return;
-    const student = students.find((x) => x.studentId === sSel.value);
     const amount = Number(form.elements.amount.value);
+
+    /* Poora record chahiye — na mile to yahin ruk jaate hain. */
+    const student = await fullStudent(sSel.value);
+    if (!student) {
+      return toast.error(
+        `${sSel.value} ka record nahi mil paaya, isliye kuchh save nahi kiya. ` +
+        "Page refresh karke dobara try karein.", { duration: 9000 });
+    }
+
+    /* Bakaya se zyada le rahe hain to pehle poochh lete hain. Rokte nahi —
+       kabhi sach me zyada liya jaata hai (agla course, ya galti se) — par
+       chup-chaap hone dena galat hai. Server ab bhi bakaya 0 par rok deta
+       hai, isliye extra paisa student ke khaate me "zyada jama" ban jaata
+       hai, negative bakaya nahi. */
+    const due = Math.max(0, Number(student.pendingFee) || 0);
+    if (due > 0 && amount > due) {
+      const go = await confirmModal({
+        title: "Bakaya se zyada rakam?",
+        message: `${student.fullName || student.studentId} ka bakaya sirf ${money(due)} hai, ` +
+          `aur aap ${money(amount)} le rahe hain — ${money(amount - due)} zyada. ` +
+          "Receipt poori rakam ki banegi aur bakaya 0 ho jayega. Aage badhein?",
+        confirmText: "Haan, theek hai"
+      });
+      if (!go) return;
+    }
 
     try {
       saveBtn.disabled = true;

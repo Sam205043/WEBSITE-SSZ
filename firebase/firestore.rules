@@ -82,15 +82,52 @@ service cloud.firestore {
         : '';
     }
 
+    /* --------------------------------------------------------------------
+       "Abhi padh raha hai" — course chhod chuke student ko material nahi
+
+       DO ALAG `status` THE AUR RULES SIRF EK KO DEKHTE THE.
+
+         users/{uid}.status      'active' | 'blocked'   <- rules yahi dekhte the
+         students/{sid}.status   'active' | 'completed' | 'dropped'
+
+       Admin panel ka Status dropdown (js/dashboard/admin-students.js) DOOSRE
+       wale par likhta hai, aur use koi rule padhta hi nahi tha. Nateeja: jo
+       student course chhod chuka ho ya poora kar chuka ho, uska access app se
+       band karne ka koi raasta hi nahi tha — wo apni batch ki nayi recording,
+       naye notes aur naye assignments hamesha dekhta rehta. Band karne ka ek
+       hi tarika bacha tha: Firebase Console kholkar `users` me haath se
+       'blocked' likhna.
+
+       Ab study material ke liye DONO dekhe jaate hain.
+
+       Apna PURANA record — fees, receipt, haazri, certificate, apne sandesh —
+       phir bhi khula rehta hai. Ye jaan-boojh kar hai: course poora karne wale
+       ko apna certificate aur apni receipt hamesha milni chahiye, aur chhod
+       chuke student ko bakaya bharne ka raasta bhi khula rehna chahiye.
+       Isliye `ownsRow()` waise ka waisa hai; sirf `inMyBatch()` aur
+       `inMyCourse()` par ye nayi shart lagi hai.
+
+       Yahan koi extra document nahi padha ja raha — `students/{sid}` upar
+       wale helpers pehle se hi padhte hain. */
+    function studentStatus() {
+      return exists(/databases/$(database)/documents/students/$(myStudentId()))
+        ? get(/databases/$(database)/documents/students/$(myStudentId())).data.get('status', 'active')
+        : '';
+    }
+
+    function isStudying() {
+      return hasStudentId() && studentStatus() == 'active';
+    }
+
     /* Sirf apne hi batch ki cheez. Khaali batch wale ko kuch nahi milta —
        warna jis document me galti se batchId khaali reh gaya ho wo har
        bina-batch wale student ko dikhne lagta. */
     function inMyBatch() {
-      return hasStudentId() && myBatchId() != '' && resource.data.batchId == myBatchId();
+      return isStudying() && myBatchId() != '' && resource.data.batchId == myBatchId();
     }
 
     function inMyCourse() {
-      return hasStudentId() && myCourseId() != '' && resource.data.courseId == myCourseId();
+      return isStudying() && myCourseId() != '' && resource.data.courseId == myCourseId();
     }
 
     /* Rows tagged with this student's id. Written as a plain field comparison
@@ -344,7 +381,11 @@ service cloud.firestore {
     match /notifications/{id} {
       allow read: if isAdmin()
         || (isStudent() && resource.data.audience == 'all')
-        || (hasStudentId() && resource.data.audience == 'batch'
+        /* Batch wale sandesh bhi ab sirf padh rahe student ko — warna course
+           chhod chuke student ko "recording aa gayi" ka sandesh to jaata,
+           par khol wo paata hi nahi. Apne naam wale sandesh (fees, receipt)
+           neeche wali line se hamesha milte rehte hain. */
+        || (isStudying() && resource.data.audience == 'batch'
             && resource.data.batchId == myBatchId())
         || (hasStudentId() && resource.data.audience == 'student'
             && resource.data.studentId == myStudentId());

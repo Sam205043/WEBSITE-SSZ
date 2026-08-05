@@ -67,8 +67,16 @@ service firebase.storage {
     /* Ye course/batch us student ka hai ya nahi. Khaali kabhi match nahi
        karta, warna jis record me course/batch bhara hi na ho wo har aise
        student ko khul jaata. */
+    /* `status` bhi wahi document batata hai jo course batata hai, isliye ye
+       shart muft me lag jaati hai — ek bhi extra Firestore read nahi.
+       Course chhod chuke ya poora kar chuke student ki file ab nahi khulti;
+       uska apna record (fees, certificate) waise hi khula rehta hai. */
+    function isStudying() {
+      return hasStudentDoc() && myStudentDoc().get('status', 'active') == 'active';
+    }
+
     function myCourse(courseId) {
-      return hasStudentDoc() && courseId != ''
+      return isStudying() && courseId != ''
         && myStudentDoc().get('courseId', '') == courseId;
     }
 
@@ -94,7 +102,7 @@ service firebase.storage {
        badalne wala kaam hai aur purani files ko hilana padega, isliye alag
        se karna behtar hai. */
     function isLinkedStudent() {
-      return hasUserDoc() && myStudentId() != '';
+      return isStudying();
     }
 
     // 5 MB ceiling; the app already compresses photos client-side.

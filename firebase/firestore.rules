@@ -67,11 +67,30 @@ service cloud.firestore {
       return isStudent() && myStudentId() != '';
     }
 
-    /* The batch of the signed-in student — used by batch-wide notifications. */
+    /* The batch of the signed-in student — used by batch-wide notifications,
+       live classes, recordings and assignments. */
     function myBatchId() {
       return exists(/databases/$(database)/documents/students/$(myStudentId()))
         ? get(/databases/$(database)/documents/students/$(myStudentId())).data.get('batchId', '')
         : '';
+    }
+
+    /* The course of the signed-in student — notes are shared per course. */
+    function myCourseId() {
+      return exists(/databases/$(database)/documents/students/$(myStudentId()))
+        ? get(/databases/$(database)/documents/students/$(myStudentId())).data.get('courseId', '')
+        : '';
+    }
+
+    /* Sirf apne hi batch ki cheez. Khaali batch wale ko kuch nahi milta —
+       warna jis document me galti se batchId khaali reh gaya ho wo har
+       bina-batch wale student ko dikhne lagta. */
+    function inMyBatch() {
+      return hasStudentId() && myBatchId() != '' && resource.data.batchId == myBatchId();
+    }
+
+    function inMyCourse() {
+      return hasStudentId() && myCourseId() != '' && resource.data.courseId == myCourseId();
     }
 
     /* Rows tagged with this student's id. Written as a plain field comparison
@@ -93,13 +112,25 @@ service cloud.firestore {
        Compared lower-cased on both sides: the admission form may have been
        filled in as "Soft@Gmail.com" while Firebase Auth stores the address
        lower-cased, and a case difference is not a different person. */
+    /* Doosra raasta: admin ne khud us student ke record me is login ka `uid`
+       likh diya ho. `student-data.js` ka fallback isi par chalta hai
+       (where("uid","==",myUid)) aur `students` ka rule use pehle se maanta
+       hai. Bina iske wo student `users` doc me apni Student ID kabhi jod hi
+       nahi paata — aur ab jab study material apni hi batch/course tak simit
+       hai, wo Student ID ke bina apni class, notes aur assignment kuch bhi
+       nahi dekh paata. Ye branch admin ke apne haath se banaye rishte ko
+       hi maanta hai, isliye email wali shart jitna hi pakka hai. */
     function mayClaimStudentId() {
       return request.resource.data.get('studentId', '') == ''
         || (
-             request.auth.token.email != null
-             && exists(/databases/$(database)/documents/students/$(request.resource.data.studentId))
-             && get(/databases/$(database)/documents/students/$(request.resource.data.studentId))
-                  .data.get('email', '').lower() == request.auth.token.email.lower()
+             exists(/databases/$(database)/documents/students/$(request.resource.data.studentId))
+             && (
+                  (request.auth.token.email != null
+                   && get(/databases/$(database)/documents/students/$(request.resource.data.studentId))
+                        .data.get('email', '').lower() == request.auth.token.email.lower())
+                  || get(/databases/$(database)/documents/students/$(request.resource.data.studentId))
+                       .data.get('uid', '') == request.auth.uid
+                )
            );
     }
 
@@ -337,16 +368,55 @@ service cloud.firestore {
       allow create, delete: if isAdmin();
     }
 
-    /* ------------------- study material — any signed-in student -------------- */
-    match /liveClasses/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /assignments/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    /* -------------- study material — sirf apne batch/course ka --------------
+
+       PEHLE YAHAN TEENO PAR SIRF `isSignedIn()` THA, AUR WO BAHUT DHEELA THA.
+
+       `isSignedIn()` ka matlab hai "koi bhi Firebase login". Yaani jisne abhi
+       website par signup kiya ho — na koi student record, na batch, na ek
+       rupaya fees — wo bhi:
+
+         * har batch ki HAR live class padh sakta tha, jisme class ka join
+           link aur `recordingURL` dono hote hain. Recording ka page batch
+           dekhta tha, par rules nahi — aur asli pehra rules hi hain. Browser
+           console se seedhe Firestore poochh lena kaafi tha.
+         * har course ke saare notes ki list utha sakta tha (paid material).
+         * doosre batch ke assignments padh sakta tha.
+
+       Aur `isSignedIn()` `status` bhi nahi dekhta, isliye BLOCK kiya hua
+       student bhi sab kuch padhta rehta tha.
+
+       Ab teeno wahi shart lagate hain jo app pehle se query me lagata hai
+       (js/dashboard/student-data.js):
+
+         liveClasses  where("batchId",  "==", student.batchId)
+         assignments  where("batchId",  "==", student.batchId)
+         notes        where("courseId", "==", student.courseId)
+
+       Rule aur query ka bilkul mel khaana zaroori hai — list query me
+       Firestore document padhta nahi, sirf ye dekhta hai ki query kabhi
+       aisa document laut hi na sake jise rule mana karta ho.
+
+       `hasStudentId()` ke andar `isStudent()` hai aur usme `isActive()` —
+       isliye block kiya hua login yahin ruk jaata hai.
+       ---------------------------------------------------------------------- */
+    match /liveClasses/{id} {
+      allow get, list: if isAdmin() || inMyBatch();
+      allow write: if isAdmin();
+    }
+
+    match /assignments/{id} {
+      allow get, list: if isAdmin() || inMyBatch();
+      allow write: if isAdmin();
+    }
 
     match /notes/{id} {
-      allow read: if isSignedIn();
+      allow get, list: if isAdmin() || inMyCourse();
       // The download counter is bumped from the student dashboard.
       // `updatedAt` bhi chahiye — update() use hamesha jodta hai.
+      // Ginti wahi badha sakta hai jo note padh bhi sakta hai.
       allow update: if isAdmin()
-        || (isStudent() && request.resource.data.diff(resource.data)
+        || (inMyCourse() && request.resource.data.diff(resource.data)
               .affectedKeys().hasOnly(['downloads', 'updatedAt']));
       allow create, delete: if isAdmin();
     }

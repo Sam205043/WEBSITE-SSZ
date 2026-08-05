@@ -52,6 +52,51 @@ service firebase.storage {
       return hasUserDoc() && myStudentId() != '' && sid == myStudentId();
     }
 
+    /* Student ka apna course aur batch — Firestore se, wahi jagah jahan se
+       Firestore ke rules bhi padhte hain. `exists()` pehle isliye ki gayab
+       document par `get()` poore rule ko gira deta hai. */
+    function myStudentDoc() {
+      return firestore.get(/databases/(default)/documents/students/$(myStudentId())).data;
+    }
+
+    function hasStudentDoc() {
+      return myStudentId() != ''
+        && firestore.exists(/databases/(default)/documents/students/$(myStudentId()));
+    }
+
+    /* Ye course/batch us student ka hai ya nahi. Khaali kabhi match nahi
+       karta, warna jis record me course/batch bhara hi na ho wo har aise
+       student ko khul jaata. */
+    function myCourse(courseId) {
+      return hasStudentDoc() && courseId != ''
+        && myStudentDoc().get('courseId', '') == courseId;
+    }
+
+    /* Ek juda hua, chalu student — yaani jiska login admin ke banaye student
+       record se juda hai.
+
+       Ye `isSignedIn()` se bahut sakht hai (naya-naya signup kiya account,
+       ya bina record wala login, yahan ruk jaata hai) par batch tak simit
+       nahi hai. Wajah ek hi hai, aur wo bandish Firebase ki apni hai:
+
+         Storage ke rule me EK request par SIRF DO Firestore document
+         padhe ja sakte hain. Teesra chhoote hi Firebase khud mana kar
+         deta hai.
+
+       Assignment ka folder uske apne id se banta hai (assignments/{aid}/…),
+       isliye batch jaanchne ke liye teen document chahiye hote: users,
+       students, aur assignments — ek zyada. Notes ka folder courseId se
+       banta hai, isliye wahan do me hi kaam ho jaata hai aur wo poori tarah
+       course tak simit hai.
+
+       Assignment ki file ko batch tak simit karne ka saaf raasta ye hai ki
+       folder me hi batch aa jaye (assignments/{batchId}/{aid}/…). Wo path
+       badalne wala kaam hai aur purani files ko hilana padega, isliye alag
+       se karna behtar hai. */
+    function isLinkedStudent() {
+      return hasUserDoc() && myStudentId() != '';
+    }
+
     // 5 MB ceiling; the app already compresses photos client-side.
     function sizeOk() {
       return request.resource.size < 5 * 1024 * 1024;
@@ -136,14 +181,33 @@ service firebase.storage {
         || (ownsFolder(sid) && isImage() && sizeOk());
     }
 
-    /* --------------------------------- study material (signed-in students) --- */
-    match /notes/{allPaths=**} {
-      allow read: if isSignedIn();
+    /* ------------------- study material — apne hi course/batch ka -----------
+
+       PEHLE DONO PAR SIRF `isSignedIn()` THA.
+
+       Firestore me notes ka record ab sirf apne course ka khulta hai, par
+       ASLI FILE yahan padi hai — aur yahan koi bhi Firebase login use padh
+       sakta tha. Storage me `read` ke andar `list` bhi aata hai, isliye ek
+       naya account `notes/` par listAll() chalakar har course ka folder aur
+       har file ka naam nikaal sakta tha, phir ek-ek karke download kar leta.
+       Jitna paid material hai, sab.
+
+       Isi wajah se `admin-materials.js` file ka URL nahi, `filePath` rakhta
+       hai — taaki link dene se pehle Storage khud padhne wale ko jaanche.
+       Wo poori soch in do rules ki wajah se bekaar thi.
+
+       Ab notes folder ke naam (courseId) se jaanche jaate hain. Assignments
+       par kam se kam itni shart lag gayi hai ki login kisi asli student ke
+       record se juda ho — poora kyun nahi, wo `isLinkedStudent()` ke upar
+       likha hai.
+       ---------------------------------------------------------------------- */
+    match /notes/{courseId}/{allPaths=**} {
+      allow read: if isAdmin() || myCourse(courseId);
       allow write: if isAdmin();
     }
 
-    match /assignments/{allPaths=**} {
-      allow read: if isSignedIn();
+    match /assignments/{aid}/{allPaths=**} {
+      allow read: if isAdmin() || isLinkedStudent();
       allow write: if isAdmin();
     }
 

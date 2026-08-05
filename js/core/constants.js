@@ -13,6 +13,12 @@ export const COLLECTIONS = Object.freeze({
   FEES:          "fees",
   ATTENDANCE:    "attendance",
   LIVE_CLASSES:  "liveClasses",
+  /* Recording ka asli link YAHAN rehta hai, class ke record me NAHI.
+     Class ka record poori batch padh sakti hai — usme link rakhne ka matlab
+     tha ki jo recording aapne abhi "students ko de dein" nahi kiya, wo bhi
+     batch ka koi bhi student console se dekh leta. Yahan rule me "published"
+     ki shart lagti hai, isliye approve se pehle wo kisi ko nahi milta. */
+  CLASS_RECORDINGS: "classRecordings",
   ASSIGNMENTS:   "assignments",
   // MCQ ke sahi jawab yahan rehte hain, assignment ke saath NAHI — warna
   // student browser console se paper se pehle hi jawab dekh leta.

@@ -331,8 +331,21 @@ service cloud.firestore {
       // ke baad apna paper sudhaar nahi sakta — marks bhale hi browser me
       // gine jaate hon, `answers` waise ke waise pade rehte hain aur admin
       // kabhi bhi unhe sahi jawab se milaakar dekh sakta hai.
+      /* Student apne paper me marks ya "graded" KABHI nahi likh sakta.
+
+         Pehle sirf itna tha ki `marks` abhi null ho — yaani PEHLI baar likhne
+         par student khud ko 100 de sakta tha, aur panel me wo asli graded
+         paper jaisa dikhta. Ab wo teeno field (`marks`, `status`, `gradedAt`,
+         `autoGraded`) student ki taraf se badle hi nahi ja sakte; ye kaam
+         `gradeMcq` Cloud Function karta hai, jo rules ke upar se chalta hai.
+
+         Student ke liye bacha kya: apni file ya reference badalna, jab tak
+         paper checked na ho. `answers` phir bhi patthar ki lakeer hain. */
       allow update: if isAdmin()
-        || (ownsRow() && resource.data.get('marks', null) == null
+        || (ownsRow()
+            && resource.data.get('marks', null) == null
+            && !request.resource.data.diff(resource.data).affectedKeys()
+                 .hasAny(['marks', 'status', 'gradedAt', 'autoGraded', 'studentId', 'assignmentId'])
             && request.resource.data.get('answers', []) == resource.data.get('answers', []));
       allow delete: if isAdmin();
     }
@@ -348,20 +361,18 @@ service cloud.firestore {
        jawab dekhne ka ek hi raasta hai — pehle apna paper jama karo.
        ---------------------------------------------------------------------- */
     match /assignmentKeys/{assignmentId} {
-      /* Answer key tabhi khulti hai jab student SACH ME jawab de chuka ho.
+      /* Ab student ise BILKUL nahi padh sakta — na paper dene se pehle, na
+         baad me.
 
-         PEHLE SIRF `exists()` DEKHA JAATA THA. Uska matlab tha ki ek khaali
-         submission bana dena hi kaafi hai — teen line me answer key mil
-         jaati thi, bina ek bhi sawaal hal kiye. Ab jawab (`answers`) ka
-         khaali na hona bhi zaroori hai.
+         Pehle "paper de chuke student" ko chhoot thi, taaki uska result dikh
+         sake. Uske apne liye wo bekaar thi (jawab jam chuke hote hain), par
+         usi key ko WhatsApp par bhej dena kaafi tha — aur jis dost ne abhi
+         paper diya hi nahi tha, use saare jawab pehle se mil jaate.
 
-         `get()` maujood na hone par khud hi mana kar deta hai, isliye alag
-         se `exists()` ki zaroorat nahi. */
-      allow get: if isAdmin()
-        || (hasStudentId()
-            && get(/databases/$(database)/documents/submissions/$(assignmentId + '__' + myStudentId()))
-                 .data.get('answers', []).size() > 0);
-      allow list: if isAdmin();
+         Ab result `gradeMcq` Cloud Function deta hai, aur sahi jawab usi ek
+         jawab me lautate hain — sirf us student ko, sirf uska paper jama
+         hone ke baad. Key khud yahan band hai. */
+      allow read: if isAdmin();
       allow write: if isAdmin();
     }
 

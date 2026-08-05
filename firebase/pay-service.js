@@ -124,6 +124,23 @@ export async function openPaymentLink(kind, id, amount, email = "") {
 }
 
 /** Firebase callable ki galti ko padhne layak Hindi/Hinglish me badalta hai. */
+/**
+ * MCQ ka result — ginti server par hoti hai, browser par nahi.
+ *
+ * Yahan se sirf "kaunsa paper" jaata hai. Kaun maang raha hai ye login se tay
+ * hota hai, aur jawab wahi liye jaate hain jo pehle se Firestore me jam chuke
+ * hain — isliye na koi doosre ka paper grade karwa sakta hai, na apne jawab
+ * badal kar poore marks le sakta hai.
+ *
+ * @param {string} assignmentId
+ * @returns {Promise<{marks:number, total:number, correct:Array, answers:Array}>}
+ */
+export async function gradeMcq(assignmentId) {
+  const fn = await getCallable("gradeMcq");
+  const res = await fn({ assignmentId: String(assignmentId || "").trim() });
+  return res?.data || { marks: 0, total: 0, correct: [], answers: [] };
+}
+
 export function payError(err) {
   const code = String(err?.code || "").replace("functions/", "");
   const map = {

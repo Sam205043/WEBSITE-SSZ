@@ -168,7 +168,36 @@ async function fullStudent(studentId, fallbackName = "") {
   return fresh;
 }
 
+/* Ek hi galat type kiya hua number poore hisaab ko bigaad deta hai, aur wo
+   galti chup-chaap chadh jaati thi. Isliye rakam ki jaanch AB EK HI JAGAH
+   hoti hai — saveCollection ke andar — taaki har raasta (collect dialog,
+   verify dialog, ek-tap wala confirm) usi kasauti se guzre. Kisi ek dialog
+   me jaanch daalne se doosre raaste khule reh jaate hain. */
+const MAX_ONE_PAYMENT = 10_00_000;    // ek payment me itne se zyada? zaroor typo hai
+
+function checkAmount(amount) {
+  const n = Number(amount);
+  if (!Number.isFinite(n) || n <= 0) {
+    return "Rakam sahi nahi hai — 0 se zyada koi number likhein.";
+  }
+  /* Paise (dashamlav) jaan-boojh kar mana hain. Receipt, bakaya aur kist
+     sab poore rupaye me chalte hain; 1500.75 aage jaakar 1500.7499999 jaisi
+     ginti banata hai aur milaan bigadta hai. */
+  if (!Number.isInteger(n)) {
+    return "Poore rupaye likhein — paise (jaise 1500.75) nahi chalte.";
+  }
+  if (n > MAX_ONE_PAYMENT) {
+    return `Ek payment me ${money(MAX_ONE_PAYMENT)} se zyada nahi liya ja sakta. ` +
+           "Number dobara dekh lein — aksar ek zero zyada lag jaata hai.";
+  }
+  return "";
+}
+
 async function saveCollection({ student, amount, payMode, remarks, existingFeeId = null, txnRef = "" }) {
+  const bad = checkAmount(amount);
+  if (bad) { toast.error(bad, { duration: 9000 }); return null; }
+  amount = Number(amount);
+
   if (mode === "preview") {
     toast.info("Preview mode: Firebase ke baad asli receipt banegi.");
     return null;
@@ -272,7 +301,10 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     toast.warning(
       "Ye payment pehle hi confirm ho chuka hai — dobara paisa nahi chadhaya gaya. " +
       `Receipt: ${result.existing.receiptNo || "—"}`, { duration: 9000 });
-    return result.existing;
+    /* Nishaan zaroori hai: bulane wale ko pata hona chahiye ki paisa NAHI
+       chadha, warna wo screen par ginti dobara badha deta hai aur admin ko
+       lagta hai ki do baar jama ho gaya. */
+    return { ...result.existing, alreadyDone: true };
   }
 
   const { before, patch } = result;
@@ -443,12 +475,32 @@ function verifyDialog(f) {
   okBtn.addEventListener("click", async () => {
     if (!validator.validate()) return;
     const amount = Number(form.elements.amount.value);
+
+    const bad = checkAmount(amount);
+    if (bad) return toast.error(bad, { duration: 9000 });
+    if (inFlight.has(f.id)) return toast.info("Isi payment par kaam chal raha hai — ek pal rukein.");
+
+    /* Bakaya se zyada — ek zero zyada lag jaana sabse aam galti hai. */
+    const known = students.find((s) => s.studentId === f.studentId);
+    const due = Math.max(0, Number(known?.pendingFee) || 0);
+    if (due && amount > due) {
+      const go = await confirmModal({
+        title: "Bakaya se zyada rakam?",
+        message: `${f.studentName || f.studentId} ka bakaya ${money(due)} hai, par aap ${money(amount)} bhar rahe hain — ` +
+                 `${money(amount - due)} zyada. Number dobara dekh lein.`,
+        confirmText: "Haan, rakam sahi hai"
+      });
+      if (!go) return;
+    }
+
+    inFlight.add(f.id);
     try {
       okBtn.disabled = true;
       /* Poora record — na mile to yahin ruk jaate hain. Dekhein fullStudent(). */
       const rec = await fullStudent(f.studentId, f.studentName);
       if (!rec) {
         okBtn.disabled = false;
+        inFlight.delete(f.id);
         return toast.error(
           `${f.studentId} ka record nahi mil paaya, isliye kuchh save nahi kiya. ` +
           "Page refresh karke dobara try karein — aadha likhne se rukna behtar hai.",
@@ -458,12 +510,16 @@ function verifyDialog(f) {
       m.close();
       if (doc) {
         Object.assign(f, doc, { status: "paid" });
-        const student = rec;
-        if (student) { student.paidFee = (student.paidFee || 0) + amount; student.pendingFee = Math.max(0, (student.pendingFee || 0) - amount); }
+        /* `alreadyDone` par paisa chadha hi nahi — screen par bhi mat jodo. */
+        if (!doc.alreadyDone) {
+          rec.paidFee = (rec.paidFee || 0) + amount;
+          rec.pendingFee = Math.max(0, (rec.pendingFee || 0) - amount);
+        }
         tiles(); paintVerify(); paintDue(); paintRows();
-        toast.success(`Verify ho gaya — ${doc.receiptNo}`);
+        if (!doc.alreadyDone) toast.success(`Verify ho gaya — ${doc.receiptNo}`);
       }
-    } catch (err) { okBtn.disabled = false; toast.error(err.message || "Fail ho gaya."); }
+      inFlight.delete(f.id);
+    } catch (err) { okBtn.disabled = false; inFlight.delete(f.id); toast.error(err.message || "Fail ho gaya."); }
   });
 
   badBtn.addEventListener("click", async () => {
@@ -780,25 +836,56 @@ async function reloadFees() {
   } catch { /* list purani reh jayegi, par jodna ho chuka hai — koi nuksaan nahi */ }
 }
 
+/* Jo payment abhi chal rahe hain. Do jagah se ek hi payment par kaam shuru
+   ho jaaye (do baar tap, ya ek tap + verify dialog) to doosra yahin ruk
+   jaata hai. Sirf button disable karna kaafi nahi tha — wo dialog ke BAAD
+   hota tha, aur do dialog to pehle hi khul chuke hote the. */
+const inFlight = new Set();
+
 /** Ek tap wala raasta — student ki batayi rakam seedhe jama kar deta hai. */
 async function quickConfirm(f, btn) {
   const claimed = Number(f.claimedAmount) || 0;
   if (claimed < 1) return verifyDialog(f);
 
-  const student = students.find((s) => s.studentId === f.studentId);
+  if (inFlight.has(f.id)) {
+    return toast.info("Isi payment par kaam chal raha hai — ek pal rukein.");
+  }
+
+  const bad = checkAmount(claimed);
+  if (bad) {
+    return toast.error(
+      `Student ne jo rakam batayi hai wo theek nahi lag rahi (${f.claimedAmount}). ${bad} ` +
+      "Neeche wale 'Verify' se sahi rakam bhar dein.", { duration: 11000 });
+  }
+
+  /* Button DIALOG SE PEHLE band hota hai. Pehle iske baad hota tha, isliye
+     do baar jaldi dabane par do dialog khul jaate the aur dono "Haan" ho
+     sakte the. Paisa to transaction rok leta hai, par screen par ginti do
+     baar badh jaati thi aur ek receipt number bekaar me kharch hota tha. */
+  btn && (btn.disabled = true);
+  inFlight.add(f.id);
+  const release = () => { inFlight.delete(f.id); btn && (btn.disabled = false); };
+
+  /* Bakaya se zyada hai to alag se batate hain — ₹1,000 ki jagah ₹10,000
+     wala typo yahin pakda jaata hai. Rokte nahi, kyunki kabhi sach me zyada
+     liya jaata hai. */
+  const known = students.find((s) => s.studentId === f.studentId);
+  const due = Math.max(0, Number(known?.pendingFee) || 0);
+  const extra = (due && claimed > due) ? claimed - due : 0;
+
   const ok = await confirmModal({
     title: `${money(claimed)} confirm karein?`,
     message: `${f.studentName || f.studentId} ka ${money(claimed)} jama maan liya jaayega — receipt ban jaayegi aur student ko notification chali jaayegi. ` +
-             "Pehle apne bank/PhonePe me dekh lein ki paisa aa gaya hai.",
+             "Pehle apne bank/PhonePe me dekh lein ki paisa aa gaya hai." +
+             (extra ? `\n\nDhyaan dein: iska bakaya sirf ${money(due)} hai — ye ${money(extra)} ZYADA hai.` : ""),
     confirmText: "Haan, aa gaya hai"
   });
-  if (!ok) return;
+  if (!ok) { release(); return; }
 
   try {
-    btn && (btn.disabled = true);
     const rec = await fullStudent(f.studentId, f.studentName);
     if (!rec) {
-      btn && (btn.disabled = false);
+      release();
       return toast.error(
         `${f.studentId} ka record nahi mil paaya, isliye kuchh save nahi kiya. ` +
         "Page refresh karke dobara try karein — aadha likhne se rukna behtar hai.",
@@ -812,17 +899,23 @@ async function quickConfirm(f, btn) {
       existingFeeId: f.id,
       txnRef: f.txnRef || ""
     });
-    if (!doc) return;
+    if (!doc) { release(); return; }
     Object.assign(f, doc, { status: "paid" });
     /* `rec` hi asli record hai (list se ya Firestore se). Pehle yahan purana
        `student` istemaal hota tha, jo list me na hone par undefined rehta —
-       yaani screen par ginti update hoti hi nahi thi. */
-    rec.paidFee = (rec.paidFee || 0) + claimed;
-    rec.pendingFee = Math.max(0, (rec.pendingFee || 0) - claimed);
+       yaani screen par ginti update hoti hi nahi thi.
+
+       Aur `alreadyDone` par ginti CHHUTE NAHI: us haalat me paisa chadha hi
+       nahi (pehle se chadha hua tha), isliye yahan jodna jhooth hoga. */
+    if (!doc.alreadyDone) {
+      rec.paidFee = (rec.paidFee || 0) + claimed;
+      rec.pendingFee = Math.max(0, (rec.pendingFee || 0) - claimed);
+    }
     tiles(); paintVerify(); paintDue(); paintRows();
-    toast.success(`${money(claimed)} jama ho gaya — ${doc.receiptNo}`);
+    if (!doc.alreadyDone) toast.success(`${money(claimed)} jama ho gaya — ${doc.receiptNo}`);
+    inFlight.delete(f.id);
   } catch (err) {
-    btn && (btn.disabled = false);
+    release();
     toast.error(err.message || "Confirm nahi ho paaya.");
   }
 }

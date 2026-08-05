@@ -133,6 +133,27 @@ const dateStr = (d) => {
 /** Abhi Ara me kaun sa saal chal raha hai. IDs isi se bante hain. */
 const istYear = () => new Date(Date.now() + IST_OFFSET_MS).getUTCFullYear();
 
+/**
+ * IST tareekh me mahine jodo — bina mahina laanghe.
+ *
+ * JavaScript ka `setMonth` 31 January me 1 mahina jode to "31 February"
+ * banata hai, jo hota hi nahi, isliye wo 3 March par chhalak jaata hai.
+ * Nateeja: February wali kist banti hi nahi thi, aur baaki tareekhein 31
+ * se khisak kar 3 ho jaati thin. Yahan din ko us mahine ke aakhri din tak
+ * seemit kar dete hain: 31 Jan + 1 = 28 Feb, 31 Mar + 1 = 30 Apr.
+ *
+ * Hisaab poora IST me hota hai, kyunki jo tareekh dikhni hai wo IST ki hai.
+ * (Server UTC par chalta hai — Ara me raat 1 baje wahan abhi kal hi hai.)
+ */
+const addMonthsStr = (from, months) => {
+  const t = new Date(from.getTime() + IST_OFFSET_MS);
+  const y = t.getUTCFullYear(), m = t.getUTCMonth(), day = t.getUTCDate();
+  const add = Math.round(Number(months) || 0);
+  const lastDay = new Date(Date.UTC(y, m + add + 1, 0)).getUTCDate();
+  const d = new Date(Date.UTC(y, m + add, Math.min(day, lastDay)));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+};
+
 /** Counter ek transaction me badhta hai, taaki do admission ek hi ID na le lein. */
 async function nextSequence(name, start = 1) {
   const ref = db.collection("counters").doc(name);
@@ -165,9 +186,7 @@ function buildFeePlan(totalFee, durationMonths, from = new Date()) {
   const extra = rest - base * n;
 
   for (let i = 0; i < n; i++) {
-    const d = new Date(from);
-    d.setMonth(d.getMonth() + i + 1);
-    plan.push({ no: i + 2, amount: base + (i === 0 ? extra : 0), dueDate: dateStr(d) });
+    plan.push({ no: i + 2, amount: base + (i === 0 ? extra : 0), dueDate: addMonthsStr(from, i + 1) });
   }
   return plan;
 }

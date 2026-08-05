@@ -304,6 +304,52 @@ export async function nextSequence(name, start = 1) {
 /** Run any custom transaction. `fn` receives the Firestore transaction. */
 export function transaction(fn) { return runTransaction(db, fn); }
 
+/**
+ * Ek document ko transaction ke andar padho, phir uske TAAZA roop se patch
+ * banao aur likh do.
+ *
+ * KYUN CHAHIYE THA
+ *
+ * `update()` + `increment()` jodne-ghatane ke liye theek hai — do log ek
+ * saath jodein to bhi ginti sahi rehti hai. Par do cheezein wo nahi kar
+ * sakta:
+ *
+ *   1. HADD nahi laga sakta. `increment(-5000)` ko nahi pata ki bakaya sirf
+ *      ₹3,000 tha; wo use -₹2,000 par le jaata hai. Aur negative bakaya
+ *      report me DOOSRON ka bakaya kaat deta hai.
+ *
+ *   2. Ek field ki nayi keemat doosre field se nahi nikal sakta. "Nayi due
+ *      date" ke liye "kitna paisa aa chuka hai" pata hona chahiye — aur wo
+ *      page khulte waqt wala purana number nahi, is pal wala.
+ *
+ * Yahan `mutate(current)` ko hamesha wahi record milta hai jo transaction ke
+ * andar abhi padha gaya hai. Jo patch wo lautata hai wahi likha jaata hai.
+ * Beech me koi aur likh de to Firestore poora transaction dobara chala deta
+ * hai — yaani hisaab phir se taaza record par hota hai.
+ *
+ * @param {string} path
+ * @param {string} id
+ * @param {(current: object) => object|null} mutate  patch, ya null (kuchh na likho)
+ * @returns {Promise<{before: object, patch: object|null}>}
+ */
+export async function updateInTransaction(path, id, mutate) {
+  const out = await runTransaction(db, async (tx) => {
+    const ref = doc(db, path, id);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) {
+      const e = new Error("Record nahi mila.");
+      e.code = "not-found";
+      throw e;
+    }
+    const before = withId(snap);
+    const patch = mutate(before);
+    if (patch) tx.update(ref, { ...patch, updatedAt: serverTimestamp() });
+    return { before, patch };
+  });
+  clearCache(path);
+  return out;
+}
+
 /* ==========================================================================
    Firestore error -> human message
    ========================================================================== */

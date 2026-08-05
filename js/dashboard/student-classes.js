@@ -9,6 +9,7 @@ import { formatDateTime, formatTime, timeAgo, toDate } from "../core/utils.js";
 import { url } from "../core/routes.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
+import toast from "../core/toast.js";
 import { DEMO_STUDENT, DEMO_CLASSES } from "./demo-data.js";
 
 const isLive = (c) => {
@@ -77,8 +78,20 @@ let classes;
 if (mode === "preview") {
   classes = [...DEMO_CLASSES];
 } else {
-  const student = await data.getStudent(user);
-  classes = student ? await data.getClasses(student) : [];
+/* Ek bhi query mana ho jaye (rule badla ho, index thanda ho, ya account
+   abhi kisi student record se juda hi na ho) to page KHAALI nahi chhodna.
+   Pehle yahan `.catch` tha hi nahi, aur ye file top-level `await` par chalti
+   hai — matlab reject hote hi poora module wahin ruk jaata tha aur student
+   ko bilkul khaali page milta tha, bina ye jaane ki hua kya. Ab section
+   khaali dikhta hai aur ek saaf sandesh chala jaata hai. */
+  const student = await data.getStudent(user).catch(() => null);
+  classes = student
+    ? await data.getClasses(student).catch((err) => {
+        console.error("[classes] load nahi hui:", err);
+    toast.warning("Classes ki list abhi nahi khul payi. Agar ye baar-baar ho to institute ko bata dein — ho sakta hai aapka login abhi kisi batch se juda na ho.", { duration: 9000 });
+        return [];
+      })
+    : [];
 }
 
 const liveNow = classes.filter(isLive);

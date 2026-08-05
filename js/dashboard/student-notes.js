@@ -182,8 +182,20 @@ mode = shell.mode;
 if (mode === "preview") {
   notes = [...DEMO_NOTES];
 } else {
-  student = await data.getStudent(shell.user);
-  notes = student ? await data.getNotes(student) : [];
+/* Ek bhi query mana ho jaye (rule badla ho, index thanda ho, ya account
+   abhi kisi student record se juda hi na ho) to page KHAALI nahi chhodna.
+   Pehle yahan `.catch` tha hi nahi, aur ye file top-level `await` par chalti
+   hai — matlab reject hote hi poora module wahin ruk jaata tha aur student
+   ko bilkul khaali page milta tha, bina ye jaane ki hua kya. Ab section
+   khaali dikhta hai aur ek saaf sandesh chala jaata hai. */
+  student = await data.getStudent(shell.user).catch(() => null);
+  notes = student
+    ? await data.getNotes(student).catch((err) => {
+        console.error("[notes] load nahi hue:", err);
+    toast.warning("Study material ki list abhi nahi khul payi. Agar ye baar-baar ho to institute ko bata dein — ho sakta hai aapka login abhi kisi batch se juda na ho.", { duration: 9000 });
+        return [];
+      })
+    : [];
 }
 
 paint();

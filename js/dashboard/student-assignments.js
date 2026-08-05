@@ -201,9 +201,29 @@ mode = shell.mode;
 if (mode === "preview") {
   assignments = [...DEMO_ASSIGNMENTS]; submissions = [...DEMO_SUBMISSIONS]; student = DEMO_STUDENT;
 } else {
-  student = await data.getStudent(shell.user);
+/* Ek bhi query mana ho jaye (rule badla ho, index thanda ho, ya account
+   abhi kisi student record se juda hi na ho) to page KHAALI nahi chhodna.
+   Pehle yahan `.catch` tha hi nahi, aur ye file top-level `await` par chalti
+   hai — matlab reject hote hi poora module wahin ruk jaata tha aur student
+   ko bilkul khaali page milta tha, bina ye jaane ki hua kya. Ab section
+   khaali dikhta hai aur ek saaf sandesh chala jaata hai. */
+/* `Promise.all` yahan galat tha: assignments mana ho jaate to submissions ka
+   aaya hua jawab bhi phenk diya jaata. `allSettled` se jo mil gaya wo bacha
+   rehta hai. */
+  student = await data.getStudent(shell.user).catch(() => null);
   if (student) {
-    [assignments, submissions] = await Promise.all([data.getAssignments(student), data.getSubmissions(student)]);
+    const settled = await Promise.allSettled([
+      data.getAssignments(student), data.getSubmissions(student)
+    ]);
+    settled.forEach((r, i) => {
+      if (r.status === "rejected") {
+        console.error(`[assignments] ${i === 0 ? "assignments" : "submissions"} load nahi hua:`, r.reason);
+      }
+    });
+    if (settled.some((r) => r.status === "rejected")) {
+    toast.warning("Assignments ki list poori abhi nahi khul payi. Agar ye baar-baar ho to institute ko bata dein — ho sakta hai aapka login abhi kisi batch se juda na ho.", { duration: 9000 });
+    }
+    [assignments, submissions] = settled.map((r) => (r.status === "fulfilled" ? r.value : []));
   }
 }
 

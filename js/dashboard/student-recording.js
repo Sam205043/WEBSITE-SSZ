@@ -22,7 +22,12 @@
    hogi. Asli asar isi ka hota hai.
 
    Teesra pehra: recording sirf usi batch ke student ko dikhti hai. Kisi aur
-   batch ka id URL me daal dene se kuch nahi milta.
+   batch ka id URL me daal dene se kuch nahi milta — aur ye rok ab SIRF is
+   page me nahi, Firestore ke rules me bhi hai. Yahi asli rok hai: page ka
+   code browser me chalta hai, use koi bhi chhod kar seedhe Firestore se
+   poochh sakta hai. Pehle wahan `liveClasses` par sirf "login hona chahiye"
+   likha tha, isliye kisi bhi naye account se har batch ka `recordingURL`
+   nikala ja sakta tha.
    ========================================================================== */
 
 import { $, el, render } from "../core/dom.js";
@@ -151,7 +156,14 @@ if (mode === "preview") {
 } else {
   const student = await data.getStudent(user);
   const { getOne } = await import("../../firebase/db-service.js");
-  const cls = await getOne(COLLECTIONS.LIVE_CLASSES, classId, { useCache: false });
+  /* Ab asli pehra Firestore rules me hai: doosre batch ki class ka document
+     padha hi nahi ja sakta, isliye ye read permission-denied ho kar throw
+     karega. Us galti par page khaali nahi chhodna — neeche wala wahi seedha
+     sandesh dikh jaata hai jo "class hai hi nahi" par dikhta hai. Dono ka
+     jawab ek jaisa rakhna hi theek hai: warna id badal-badal kar ye pata
+     kiya ja sakta hai ki kaunsi class maujood hai. */
+  const cls = await getOne(COLLECTIONS.LIVE_CLASSES, classId, { useCache: false })
+    .catch(() => null);
 
   /* Teen shart — teeno ka jawab ek jaisa rakha hai. Alag-alag sandesh dene
      par koi id badal-badal kar ye pata kar leta ki kaunsi class maujood hai

@@ -142,6 +142,31 @@ export function feeStatus(student, today = new Date()) {
   return due.dueDate.getTime() === midToday.getTime() ? "today" : "upcoming";
 }
 
+/**
+ * Kul fees se kitna ZYADA aa gaya hai (0 ya usse upar).
+ *
+ * KYUN CHAHIYE
+ *
+ * `pendingFee` har likhne wali jagah par `Math.max(0, total - paid)` hai —
+ * yaani wo kabhi negative nahi hota. Ye jaan-boojh kar hai (negative bakaya
+ * report me DOOSRON ka bakaya kaat deta tha). Par iska ulta nateeja ye hua
+ * ki zyada aaya paisa KAHIN DIKHTA HI NAHI THA: bakaya 0, aur bas.
+ *
+ * Admin panel me "kitne record galat hain" ki ginti `pendingFee < 0` dhoondh
+ * rahi thi — jo ho hi nahi sakta, isliye wo hamesha 0 batati thi. Asli jaanch
+ * yahi hai: jama hui rakam ko kul fees se milao.
+ *
+ * `overpaidFee` ab student ke record par bhi likha jaata hai, par ginti
+ * yahan se hoti hai — taaki us field ke aane se PEHLE bane record bhi pakde
+ * jaayein. Purane record ke liye koi migration nahi chahiye.
+ */
+export function overpaidOf(student) {
+  const paid = Math.max(0, Number(student?.paidFee) || 0);
+  const total = Math.max(0, Number(student?.totalFee) || 0);
+  if (!total) return 0;                     // total pata hi nahi -> koi daawa nahi
+  return Math.max(0, paid - total);
+}
+
 /** Student ke record me likhne ke liye agli due date (Date ya null). */
 export function nextDueFrom(student) {
   return currentDue(student)?.dueDate || null;

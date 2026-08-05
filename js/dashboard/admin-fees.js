@@ -13,7 +13,7 @@ import { initAdminShell, watchPendingFees } from "./admin-shell.js";
 import { DEMO_STUDENTS, DEMO_FEE_ROWS } from "./admin-demo.js";
 import { COLLECTIONS, ID_FORMATS, FEE_STATUS, PAYMENT_MODES } from "../core/constants.js";
 import { INSTITUTE } from "../config/site-data.js";
-import { currentDue, feeStatus, nextDueFrom, FEE_STATUS_LABEL } from "../core/fee-plan.js";
+import { currentDue, feeStatus, nextDueFrom, overpaidOf, FEE_STATUS_LABEL } from "../core/fee-plan.js";
 import toast from "../core/toast.js";
 
 let mode = "preview", fees = [], students = [], unmatched = [], term = "";
@@ -41,7 +41,12 @@ function tiles() {
      Ab wo apne aap alag dikh jaate hain — chhupte nahi. */
   const active = students.filter((s) => s.status === "active");
   const totalDue = active.reduce((t, s) => t + Math.max(0, Number(s.pendingFee) || 0), 0);
-  const overpaidCount = active.filter((s) => (Number(s.pendingFee) || 0) < 0).length;
+  /* Zyada aaya paisa `pendingFee` me kabhi nahi dikhta — wo hamesha 0 par
+     rok diya jaata hai. Pehle yahan `pendingFee < 0` dhoondha jaata tha, jo
+     kabhi hota hi nahi tha, isliye ye ginti HAMESHA 0 rehti thi aur zyada
+     paisa chup-chaap dabba rehta tha. Ab seedhe jama-vs-kul milate hain. */
+  const overpaidList = active.map((s) => ({ s, extra: overpaidOf(s) })).filter((r) => r.extra > 0);
+  const overpaidTotal = overpaidList.reduce((t, r) => t + r.extra, 0);
 
   const tile = (ic, value, label, tone) => el("div", { class: `stat-tile stat-tile--${tone}` },
     el("div", { class: "stat-tile__icon", html: icon(ic, { size: 22 }) }),
@@ -50,11 +55,42 @@ function tiles() {
   render($("#feeTiles"),
     tile("rupee", money(todayTotal), "Aaj ka collection", "success"),
     tile("trending", money(monthTotal), "Is mahine ka collection", "accent"),
-    tile("alert", money(totalDue),
-      overpaidCount ? `Kul bakaya · ${overpaidCount} record galat` : "Kul bakaya (active)",
-      totalDue ? "warning" : "success"),
-    tile("clock", String(pendingCount), "Verify pending", pendingCount ? "danger" : "success")
+    tile("alert", money(totalDue), "Kul bakaya (active)", totalDue ? "warning" : "success"),
+    overpaidList.length
+      ? tile("wallet", money(overpaidTotal),
+          `${overpaidList.length} student ne zyada diya`, "danger")
+      : tile("clock", String(pendingCount), "Verify pending", pendingCount ? "danger" : "success")
   );
+
+  paintOverpaid(overpaidList);
+}
+
+/* --------------------------------------------------------------------------
+   Zyada aaya paisa — chhupana nahi hai
+
+   Ye students bakaya wali list me kabhi nahi aate (unka bakaya 0 hai), aur
+   pendingFee bhi kuchh nahi batata. Isliye inhe alag se dikhate hain: rakam
+   institute ke paas hai, aur ispar faisla aapko lena hai — wapas karni hai,
+   ya agle course/kist me jodni hai.
+   -------------------------------------------------------------------------- */
+function paintOverpaid(list) {
+  const host = $("#overpaidSection");
+  if (!host) return;
+  host.hidden = !list.length;
+  if (!list.length) return;
+
+  render($("#overpaidList"), list
+    .sort((a, b) => b.extra - a.extra)
+    .map(({ s, extra }) => el("div", {
+      class: "card-ssz", style: { borderLeft: "3px solid var(--danger)" }
+    },
+      el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },
+        el("span", { style: { flex: 1, minWidth: "220px" } },
+          el("strong", { style: { display: "block", fontSize: ".93rem" } }, s.fullName || s.studentId),
+          el("span", { style: { fontSize: ".78rem", color: "var(--text-muted)" } },
+            `${s.studentId} · jama ${money(s.paidFee || 0)} · kul fees ${money(s.totalFee || 0)}`)),
+        el("span", { class: "num", style: { fontWeight: 700, fontSize: "1rem", color: "var(--danger)" } },
+          `+${money(extra)}`)))));
 }
 
 /* ==========================================================================
@@ -215,7 +251,10 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
       paidFee: paidNow,
       /* Bakaya hamesha total me se nikala jaata hai, ghata kar nahi —
          isliye ye kabhi negative nahi ho sakta. */
-      pendingFee: Math.max(0, total - paidNow)
+      pendingFee: Math.max(0, total - paidNow),
+      /* ...aur jo us 0 ke neeche dab jaata tha wo yahan alag se likha
+         jaata hai, taaki baad me bhi pata chale ki kitna zyada aaya. */
+      overpaidFee: total ? Math.max(0, paidNow - total) : 0
     };
     /* nextDueDate par do alag haalat hain:
          plan HAI  -> jo nikla wahi likho, null bhi (matlab: koi kist baaki nahi)

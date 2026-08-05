@@ -12,6 +12,7 @@ import * as data from "./student-data.js";
 import { DEMO_STUDENT, DEMO_FEES } from "./demo-data.js";
 import { INSTITUTE } from "../config/site-data.js";
 import { COLLECTIONS } from "../core/constants.js";
+import { overpaidOf } from "../core/fee-plan.js";
 import { open as openModal } from "../core/modal.js";
 import toast from "../core/toast.js";
 
@@ -432,11 +433,18 @@ if (mode === "preview") {
 }
 
 function paintStats() {
+  /* Kul fees se zyada jama ho gaya ho to "Bakaya ₹0" adhoora sach hai —
+     student ko lagta hai hisaab barabar hai, jabki uska paisa institute ke
+     paas pada hai. Aisi haalat me chauthi tile due date ki jagah wahi rakam
+     dikhati hai, taaki student poochh sake. */
+  const extra = overpaidOf(student);
   render($("#feeStats"),
     tile("wallet", money(student.totalFee || 0), "Total Fees", "accent"),
     tile("checkCircle", money(student.paidFee || 0), "Jama ho chuki", "success"),
     tile("alert", money(student.pendingFee || 0), "Bakaya", (student.pendingFee || 0) > 0 ? "warning" : "success"),
-    tile("calendar", student.nextDueDate ? formatDate(student.nextDueDate) : "—", "Agli due date", "danger")
+    extra > 0
+      ? tile("rupee", money(extra), "Zyada jama — institute se baat karein", "danger")
+      : tile("calendar", student.nextDueDate ? formatDate(student.nextDueDate) : "—", "Agli due date", "danger")
   );
 }
 

@@ -12,7 +12,7 @@ import { initAdminShell } from "./admin-shell.js";
 import { DEMO_STUDENTS, DEMO_BATCHES } from "./admin-demo.js";
 import { COLLECTIONS, STUDENT_STATUS } from "../core/constants.js";
 import { COURSES } from "../config/site-data.js";
-import { buildPlan, currentDue, nextDueFrom, planDate, planDateStr } from "../core/fee-plan.js";
+import { buildPlan, currentDue, nextDueFrom, overpaidOf, planDate, planDateStr } from "../core/fee-plan.js";
 import toast from "../core/toast.js";
 
 let mode = "preview", students = [], batches = [];
@@ -80,7 +80,8 @@ function openStudent(s) {
   body.appendChild(el("dl", { style: { margin: "0 0 1.25rem" } },
     ...[["Student ID", s.studentId], ["Pita", s.fatherName], ["Course", s.courseName],
         ["Admission", s.admissionDate ? formatDate(s.admissionDate) : "—"],
-        ["Fees", `${money(s.paidFee || 0)} / ${money(s.totalFee || 0)} (bakaya ${money(s.pendingFee || 0)})`],
+        ["Fees", `${money(s.paidFee || 0)} / ${money(s.totalFee || 0)} (bakaya ${money(s.pendingFee || 0)}` +
+          (overpaidOf(s) > 0 ? `, ${money(overpaidOf(s))} ZYADA` : "") + ")"],
         ["Address", s.address]]
       .map(([k, v]) => el("div", { class: "verify-row" }, el("dt", {}, k), el("dd", {}, v || "—")))
   ));

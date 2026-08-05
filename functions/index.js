@@ -966,14 +966,37 @@ exports.publishRecording = onRequest(
       /* Dobara bhej diya (program restart hua, ya file phir se mili) to
          chup-chaap "ho chuka hai" keh dete hain — dobara notification bhej
          kar student ko pareshan nahi karte. */
-      if (cls.recordingURL === url && cls.recordingPublished) {
+      /* Recording ka link ab class ke document me NAHI jaata.
+
+         Class ka document poori batch padh sakti hai, aur rules poore
+         document par lagte hain — kisi ek field par nahi. Isliye link wahan
+         rakhne ka matlab tha ki bina approve wali recording bhi usi batch ka
+         koi bhi student console se nikaal leta. Ab link `classRecordings`
+         me jaata hai, jahan rule me `published` ki shart lagti hai; class ke
+         document me sirf jhandi rehti hai. */
+      const recRef = db.collection("classRecordings").doc(cls.id);
+      const prev = (await recRef.get()).data() || {};
+      if (prev.url === url && prev.published) {
         return res.status(200).json({ ok: true, already: true, classId: cls.id });
       }
 
+      await recRef.set({
+        classId: cls.id,
+        /* Rule isi se dekhta hai ki maangne wala usi batch ka hai ya nahi —
+           class ka document padhe bina. */
+        batchId: cls.batchId || "",
+        url: String(url),
+        published: true,
+        file: String(file || ""),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
       await db.collection("liveClasses").doc(cls.id).set({
-        recordingURL: String(url),
+        hasRecording: true,
         recordingPublished: true,
         recordingFile: String(file || ""),
+        /* Purana link, agar pada ho, yahin saaf ho jaata hai. */
+        recordingURL: admin.firestore.FieldValue.delete(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 

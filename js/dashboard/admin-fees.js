@@ -71,6 +71,55 @@ async function notifyStudent(studentId, title, message) {
   }
 }
 
+/* --------------------------------------------------------------------------
+   "Ye student hai kaun" — poora record, ya phir kuchh nahi
+
+   PEHLE YAHAN EK CHUP-CHAAP GALTI THI, AUR WO PAISE SE ZYADA BHAROSE KI THI.
+
+   Verify wale dono raaste (quickConfirm aur verifyDialog) aisa likhte the:
+
+       student || { studentId: f.studentId, fullName: f.studentName }
+
+   Yaani agar student page ki list me na mila, to ek nakli "stub" bana kar
+   aage bhej diya jaata tha. Us stub me na feePlan hota, na paidFee, na
+   pendingFee. Uska natija:
+
+     * `nextDueFrom(stub)` ko plan milta hi nahi -> `null` lautata hai, aur
+       wo null student ki SAHI due date ke UPAR likh diya jaata tha.
+     * `left = Math.max(0, (undefined || 0) - amount)` hamesha 0 nikalta,
+       isliye student ko sandesh jaata tha:
+       "Aapki poori fees jama ho chuki hai — dhanyavaad!"
+
+   Yaani jis student ka ₹8,000 bakaya hai use likha jaata tha ki sab jama ho
+   gaya, aur uski due date mit jaati thi. Aapko sirf hara toast dikhta tha.
+
+   Do tarah se ye ho sakta tha, aur dono aam hain:
+     1. 500 se zyada students ho jayein — list `limit: 500` par kat jaati hai
+     2. `getMany(...).catch(() => [])` — Firestore ek baar bhi hichke to us
+        POORE session me list khali rehti hai, aur har confirm aisa hi karta
+
+   Ab stub banta hi nahi. List me na mile to seedha Firestore se mangwate
+   hain; wahan bhi na mile to kaam ROK dete hain aur saaf batate hain.
+   Aadha-adhoora likhne se ruk jaana behtar hai.
+   -------------------------------------------------------------------------- */
+async function fullStudent(studentId, fallbackName = "") {
+  const local = students.find((s) => s.studentId === studentId);
+  if (local && Array.isArray(local.feePlan)) return local;
+
+  if (mode === "preview") return local || { studentId, fullName: fallbackName };
+
+  const { getOne } = await import("../../firebase/db-service.js");
+  const fresh = await getOne(COLLECTIONS.STUDENTS, studentId, { useCache: false }).catch(() => null);
+  if (!fresh) return null;
+
+  /* Local list ko bhi sudhaar dete hain, taaki isi page par aage ke kaam
+     sahi record par hon. */
+  const i = students.findIndex((s) => s.studentId === studentId);
+  if (i >= 0) students[i] = { ...students[i], ...fresh };
+  else students.push(fresh);
+  return fresh;
+}
+
 async function saveCollection({ student, amount, payMode, remarks, existingFeeId = null, txnRef = "" }) {
   if (mode === "preview") {
     toast.info("Preview mode: Firebase ke baad asli receipt banegi.");
@@ -110,17 +159,36 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
     paidFee: (Number(student.paidFee) || 0) + amount,
     pendingFee: Math.max(0, (Number(student.pendingFee) || 0) - amount)
   };
-  await update(COLLECTIONS.STUDENTS, student.studentId, {
-    paidFee: increment(amount),
-    pendingFee: increment(-amount),
-    nextDueDate: nextDueFrom(after)
-  });
+  /* nextDueDate par do alag haalat hain, aur inhe alag rakhna zaroori hai:
 
-  const left = Math.max(0, (Number(student.pendingFee) || 0) - amount);
+       plan HAI    -> jo nikla wahi likho, chaahe null ho. Yahan null ka saaf
+                      matlab hai "ab koi kist baaki nahi" — poori fees jama.
+       plan NAHI   -> kuchh mat likho. Yahan null ka matlab "hume pata nahi"
+                      hota hai, aur us "pata nahi" se student ki sahi tareekh
+                      mita dena — yahi purani galti thi.
+
+     Pehle dono ek jaise the: dono soorat me null likh diya jaata tha. */
+  const patch = {
+    paidFee: increment(amount),
+    pendingFee: increment(-amount)
+  };
+  const hasPlan = Array.isArray(after.feePlan) && after.feePlan.length > 0;
+  if (hasPlan) patch.nextDueDate = nextDueFrom(after);
+  await update(COLLECTIONS.STUDENTS, student.studentId, patch);
+
+  /* Bakaya sirf tab likhte hain jab hume sach me pata ho. Pehle
+     `(undefined || 0) - amount` hamesha 0 nikalta tha, aur us wajah se
+     bakaya wale student ko bhi "poori fees jama ho chuki hai" chala jaata
+     tha. Ab pata na ho to us line ko chhod dete hain — jhooth likhne se
+     kuchh na likhna behtar hai. */
+  const knownPending = Number.isFinite(Number(student.pendingFee)) ? Number(student.pendingFee) : null;
+  const left = knownPending === null ? null : Math.max(0, knownPending - amount);
   await notifyStudent(student.studentId,
     `${money(amount)} jama ho gaya`,
     `Aapka ${money(amount)} ka payment confirm ho gaya hai. Receipt No. ${receiptNo}. ` +
-    (left > 0 ? `Ab bakaya ${money(left)} hai.` : "Aapki poori fees jama ho chuki hai — dhanyavaad!"));
+    (left === null ? ""
+      : left > 0 ? `Ab bakaya ${money(left)} hai.`
+      : "Aapki poori fees jama ho chuki hai — dhanyavaad!"));
 
   return { ...doc, id: existingFeeId || receiptNo.replace(/\//g, "-") };
 }
@@ -239,10 +307,20 @@ function verifyDialog(f) {
     const amount = Number(form.elements.amount.value);
     try {
       okBtn.disabled = true;
-      const doc = await saveCollection({ student: student || { studentId: f.studentId, fullName: f.studentName }, amount, payMode: f.mode || "upi", remarks: "Proof verified", existingFeeId: f.id, txnRef: f.txnRef || "" });
+      /* Poora record — na mile to yahin ruk jaate hain. Dekhein fullStudent(). */
+      const rec = await fullStudent(f.studentId, f.studentName);
+      if (!rec) {
+        okBtn.disabled = false;
+        return toast.error(
+          `${f.studentId} ka record nahi mil paaya, isliye kuchh save nahi kiya. ` +
+          "Page refresh karke dobara try karein — aadha likhne se rukna behtar hai.",
+          { duration: 9000 });
+      }
+      const doc = await saveCollection({ student: rec, amount, payMode: f.mode || "upi", remarks: "Proof verified", existingFeeId: f.id, txnRef: f.txnRef || "" });
       m.close();
       if (doc) {
         Object.assign(f, doc, { status: "paid" });
+        const student = rec;
         if (student) { student.paidFee = (student.paidFee || 0) + amount; student.pendingFee = Math.max(0, (student.pendingFee || 0) - amount); }
         tiles(); paintVerify(); paintDue(); paintRows();
         toast.success(`Verify ho gaya — ${doc.receiptNo}`);
@@ -443,118 +521,6 @@ function paintVerify() {
 }
 
 /* ==========================================================================
-   ₹1 ka test link — sirf admin ke liye
-   --------------------------------------------------------------------------
-   Payment ka poora raasta — paisa jaana, Razorpay ka webhook aana, fees
-   chadhna, receipt banna — asli paise se ek baar jaanche bina bharosa nahi
-   kiya ja sakta. Wo test ₹1 me ho jaana chahiye.
-
-   Chhoot server par hai (functions/index.js): jab link maangne wala admin ho
-   to kam se kam rakam ₹1. Student ke liye hadd wahi 10% / ₹100 rehti hai,
-   isliye is button se koi khatra nahi banta — koi visitor ise chhoo hi nahi
-   sakta, aur uske apne dashboard se ₹1 ka link banta hi nahi.
-   ========================================================================== */
-async function testLinkDialog() {
-  if (mode === "preview") return toast.info("Preview mode — asli link Firebase ke baad banega.");
-
-  /* Do tarah ke test hote hain, aur zyada zaroori DOOSRA wala hai:
-
-     - KIST ka test: bane hue student par ₹1. Isse webhook aur receipt
-       jaanche jaate hain.
-     - ADMISSION ka test: jis form ka payment abhi hua hi nahi. Isse poora
-       raasta jaanchta hai — paisa -> webhook -> Student ID banna -> batch
-       lagna -> kist plan banna -> receipt. Isi raaste par sabse zyada cheezein
-       ek saath hoti hain, isliye asli bharosa yahi test deta hai.
-
-     Admissions yahan ki list me nahi hote (ye fees ka page hai), isliye
-     dialog khulte waqt hi mangaate hain. */
-  const openBtnLabel = "₹1 ka link banayein";
-  let pendingAdms = [];
-  try {
-    const { getMany } = await import("../../firebase/db-service.js");
-    const rows = await getMany(COLLECTIONS.ADMISSIONS, { limit: 100, useCache: false });
-    /* Jinki Student ID ban chuki hai wo ab "admission" nahi rahe — unka
-       payment student wale raaste se hota hai. */
-    pendingAdms = rows.filter((a) => !a.studentId);
-  } catch { /* na mile to sirf students wali list dikhegi */ }
-
-  const withDue = students.filter((s) => (Number(s.pendingFee) || 0) > 0);
-
-  if (!withDue.length && !pendingAdms.length) {
-    return toast.warning("Na koi bakaya wala student hai, na koi bina payment wala admission — test link ke liye in dono me se ek chahiye.");
-  }
-
-  const body = el("div", {});
-  const sel = el("select", { class: "select-ssz" });
-
-  if (pendingAdms.length) {
-    const g = el("optgroup", { label: "Admission (poora raasta jaanchega)" });
-    pendingAdms.forEach((a) => {
-      const total = (Number(a.courseFee) || 0) + (Number(a.admissionFee) || 0);
-      g.appendChild(el("option", { value: `admission:${a.applicationNo || a.id}` },
-        `${a.fullName || a.applicationNo || a.id} — ${a.applicationNo || a.id}${total ? ` (kul ${money(total)})` : ""}`));
-    });
-    sel.appendChild(g);
-  }
-  if (withDue.length) {
-    const g = el("optgroup", { label: "Kist (bane hue student)" });
-    withDue.forEach((s) => g.appendChild(el("option", { value: `student:${s.studentId}` },
-      `${s.fullName || s.studentId} — ${s.studentId} (bakaya ${money(s.pendingFee)})`)));
-    sel.appendChild(g);
-  }
-
-  body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: ".9rem" } },
-    "₹1 ka asli payment link banega. Ye chhoot sirf aapke admin login par hai — " +
-    "student ya visitor ke liye hadd wahi 10% / ₹100 rehti hai."));
-  body.appendChild(el("div", { class: "field" },
-    el("label", { class: "field__label" }, "Kiske naam par?"), sel));
-  body.appendChild(el("p", { style: { fontSize: ".78rem", color: "var(--text-muted)", margin: ".7rem 0 0" } },
-    "Admission wala chunenge to payment poora hote hi Student ID, batch aur kist plan apne aap ban jayenge — " +
-    "wahi jaanchne layak asli cheez hai. Test Mode me paisa nahi katta; Live hone ke baad ye ₹1 sach me kategaa."));
-
-  const goBtn = el("button", { class: "btn-ssz btn-primary-ssz", type: "button" }, openBtnLabel);
-  const m = openModal({ title: "₹1 Test Link", body, footer: [goBtn] });
-
-  goBtn.addEventListener("click", async () => {
-    const [kind, id] = String(sel.value || "").split(":");
-    if (!kind || !id) return;
-    goBtn.disabled = true;
-    goBtn.textContent = "Link ban raha hai…";
-    try {
-      const pay = await import("../../firebase/pay-service.js");
-      const { url, amount } = await pay.createPaymentLink(kind, id, 1);
-      m.close();
-      /* Link naye tab me nahi kholte — click ke andar await ho chuka hai,
-         browser use "bina tap ke popup" samajh kar rok dega. Isliye link
-         dikha dete hain aur copy karne ka button de dete hain. */
-      showLink(url, amount, id);
-    } catch (err) {
-      goBtn.disabled = false;
-      goBtn.textContent = openBtnLabel;
-      const { payError } = await import("../../firebase/pay-service.js");
-      toast.error(payError(err));
-    }
-  });
-}
-
-function showLink(url, amount, sid) {
-  const body = el("div", {});
-  body.appendChild(el("p", { style: { fontSize: ".88rem", marginBottom: ".8rem" } },
-    `${money(amount)} ka link ban gaya — ${sid} ke naam par.`));
-  const input = el("input", { class: "input-ssz", type: "text", value: url, readonly: true });
-  body.appendChild(input);
-
-  const copyBtn = el("button", { class: "btn-ssz btn-secondary-ssz", type: "button" }, "Copy karein");
-  const openBtn = el("a", { class: "btn-ssz btn-primary-ssz", href: url, target: "_blank", rel: "noopener" }, "Kholein");
-  openModal({ title: "Test link taiyar", body, footer: [copyBtn, openBtn] });
-
-  copyBtn.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(url); toast.success("Link copy ho gaya."); }
-    catch { input.select(); toast.info("Link chun liya — Ctrl+C dabayein."); }
-  });
-}
-
-/* ==========================================================================
    Bina jude payment — paisa aa gaya, par kiska?
    --------------------------------------------------------------------------
    Ye wo payments hain jinke saath hamare `notes` nahi aaye — aksar tab jab
@@ -687,8 +653,16 @@ async function quickConfirm(f, btn) {
 
   try {
     btn && (btn.disabled = true);
+    const rec = await fullStudent(f.studentId, f.studentName);
+    if (!rec) {
+      btn && (btn.disabled = false);
+      return toast.error(
+        `${f.studentId} ka record nahi mil paaya, isliye kuchh save nahi kiya. ` +
+        "Page refresh karke dobara try karein — aadha likhne se rukna behtar hai.",
+        { duration: 9000 });
+    }
     const doc = await saveCollection({
-      student: student || { studentId: f.studentId, fullName: f.studentName },
+      student: rec,
       amount: claimed,
       payMode: f.mode || "upi",
       remarks: "Student ki batayi rakam confirm ki gayi",
@@ -697,10 +671,11 @@ async function quickConfirm(f, btn) {
     });
     if (!doc) return;
     Object.assign(f, doc, { status: "paid" });
-    if (student) {
-      student.paidFee = (student.paidFee || 0) + claimed;
-      student.pendingFee = Math.max(0, (student.pendingFee || 0) - claimed);
-    }
+    /* `rec` hi asli record hai (list se ya Firestore se). Pehle yahan purana
+       `student` istemaal hota tha, jo list me na hone par undefined rehta —
+       yaani screen par ginti update hoti hi nahi thi. */
+    rec.paidFee = (rec.paidFee || 0) + claimed;
+    rec.pendingFee = Math.max(0, (rec.pendingFee || 0) - claimed);
     tiles(); paintVerify(); paintDue(); paintRows();
     toast.success(`${money(claimed)} jama ho gaya — ${doc.receiptNo}`);
   } catch (err) {
@@ -720,16 +695,14 @@ function paintRows() {
       "Koi collection record nahi mila.")));
     return;
   }
-  /* `data-label` phone ke liye — 700px se neeche har row card banti hai aur
-     label CSS se har khaane ke aage lag jaata hai. Dekhein css/dashboard.css. */
   render($("#feeRows"), list.map((f) => el("tr", {},
-    el("td", { "data-label": "Receipt", style: { fontFamily: "var(--font-mono)", fontSize: ".76rem" } }, f.receiptNo || "—"),
-    el("td", { "data-label": "Student" },
+    el("td", { style: { fontFamily: "var(--font-mono)", fontSize: ".76rem" } }, f.receiptNo || "—"),
+    el("td", {},
       el("strong", { style: { display: "block", color: "var(--text-primary)" } }, f.studentName || "—"),
       el("span", { style: { fontSize: ".72rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" } }, f.studentId)),
-    el("td", { "data-label": "Date" }, formatDate(f.paidOn)),
-    el("td", { "data-label": "Mode" }, MODE_LABEL[f.mode] || f.mode),
-    el("td", { "data-label": "Amount", class: "num", style: { fontWeight: 600, color: "var(--text-primary)" } }, money(f.amount)),
+    el("td", {}, formatDate(f.paidOn)),
+    el("td", {}, MODE_LABEL[f.mode] || f.mode),
+    el("td", { class: "num", style: { fontWeight: 600, color: "var(--text-primary)" } }, money(f.amount)),
     el("td", {}, el("button", { class: "btn-ssz btn-ghost-ssz btn-sm-ssz", type: "button", dataset: { print: f.id } }, "Receipt"))
   )));
 }
@@ -747,17 +720,33 @@ if (mode === "preview") {
   const { getMany } = await import("../../firebase/db-service.js");
   [fees, students, unmatched] = await Promise.all([
     getMany(COLLECTIONS.FEES, { orderBy: ["paidOn", "desc"], limit: 300, useCache: false }).catch(() => []),
-    getMany(COLLECTIONS.STUDENTS, { limit: 500, useCache: false }).catch(() => []),
+    /* Ye .catch chup-chaap khali list de deta tha, aur us poore session me
+       har hisaab galat student ke saath hota tha. Ab khali list par neeche
+       chetavni dikhti hai — aur asli bachaav fullStudent() me hai, jo har
+       confirm par record dobara mangwata hai. */
+    getMany(COLLECTIONS.STUDENTS, { limit: 500, useCache: false }).catch((err) => {
+      console.error("[fees] students list load nahi hui:", err);
+      return null;
+    }),
     /* Naya collection hai — purane project me index ya permission na hone par
        poora page khaali na ho jaye, isliye alag se catch. */
     getMany(COLLECTIONS.UNMATCHED_PAYMENTS, { orderBy: ["createdAt", "desc"], limit: 100, useCache: false }).catch(() => [])
   ]);
 }
 
+/* List load hui ya nahi — ye farak zaroori hai. `null` ka matlab hai "load
+   fail", `[]` ka matlab "sach me koi student nahi". Dono ek jaise dikhte the. */
+if (students === null) {
+  students = [];
+  toast.error(
+    "Students ki list load nahi ho payi. Bakaya aur reminder wale khaane khali dikhenge. " +
+    "Payment confirm karna phir bhi surakshit hai — har record alag se mangwaya jaata hai.",
+    { duration: 12000 });
+}
+
 tiles(); paintUnmatched(); paintVerify(); paintDue(); paintRows();
 
 $("#feeCollect").addEventListener("click", () => collectDialog());
-$("#feeTestLink").addEventListener("click", () => testLinkDialog());
 $("#dueNotifyAll").addEventListener("click", (e) => notifyAllDue(e.currentTarget));
 
 on($("#dueList"), "click", "[data-collect-for]", (e, btn) => {

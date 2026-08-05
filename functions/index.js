@@ -50,10 +50,12 @@ const { defineSecret } = require("firebase-functions/params");
    ke waqt CLI code padhte hi "Cannot find module '@firebase/app'" par ruk
    jaata tha. Sirf options wala hissa lene se ye jhamela hi khatam. */
 const { setGlobalOptions } = require("firebase-functions/v2/options");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const nodemailer = require("nodemailer");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -69,6 +71,17 @@ const RZP_WEBHOOK_SECRET = defineSecret("RZP_WEBHOOK_SECRET");
 /* Class recording ka link chadhane wala raasta. Isse Pankaj ke laptop par
    chalne wala chhota program baat karta hai — wahi secret dono taraf hai. */
 const REC_SECRET = defineSecret("REC_SECRET");
+
+/* Email bhejne ke liye Brevo ka SMTP.
+
+   ZOHO SE KYUN NAHI — `info@softskillzone.in` Zoho Mail ke Forever Free plan
+   par hai, aur Zoho ne free plan par SMTP/IMAP/POP band kar diya hai. Inbox
+   aur webmail pehle jaisa chalta hai; bas bahar se program bhejkar mail karna
+   nahi hota. Isliye bhejne ka kaam Brevo karta hai (300 email roz, muft), aur
+   bhejne wala pata phir bhi info@softskillzone.in hi rehta hai. */
+const BREVO_USER = defineSecret("BREVO_USER");
+const BREVO_KEY = defineSecret("BREVO_KEY");
+const MAIL_SECRETS = [BREVO_USER, BREVO_KEY];
 
 /* --------------------------------------------------------------------------
    Course ki jaankari
@@ -100,6 +113,137 @@ const MIN_SHARE = 0.10;
    ========================================================================== */
 
 const rupees = (n) => Math.max(0, Math.round(Number(n) || 0));
+
+/* ==========================================================================
+   Email
+   --------------------------------------------------------------------------
+   TEEN NIYAM YAHAN BHI
+
+   1. EMAIL KABHI PAISE KA KAAM NAHI ROKTA. Jo bhi yahan galat ho — SMTP
+      band ho, pata galat ho, Brevo ki hadd bhar jaye — wo sirf log me
+      jaata hai. Receipt, Student ID aur bakaya ka hisaab email par tanik
+      bhi nirbhar nahi hai.
+
+   2. EK MAUKE PAR EK HI MAIL. Razorpay wahi webhook dobara bhej deta hai,
+      aur reminder roz chalta hai. Isliye har mail ka ek naam hota hai aur
+      wo naam `mailLog` me `create()` se likha jaata hai — dobara likhne par
+      Firestore khud mana kar deta hai (code 6), aur hum chup-chaap chhod
+      dete hain. Yahi tareeka notifications me pehle se chal raha hai.
+
+      `mailLog` kisi client ko na dikhta hai na likhne yogya hai — rules ke
+      aakhir wala "baaki sab mana" use apne aap band rakhta hai. Function
+      Admin SDK par chalta hai, isliye use farq nahi padta.
+
+   3. PATA HAMESHA RECORD SE. Email ka pata kabhi request se nahi liya
+      jaata, warna koi doosre ki receipt apne pate par mangwa leta.
+   ========================================================================== */
+
+const MAIL_FROM = `"${"Soft Skill Zone"}" <info@softskillzone.in>`;
+const MAIL_REPLY_TO = "info@softskillzone.in";
+const SITE = "https://softskillzone.in";
+
+let mailTransport = null;
+function mailer() {
+  if (!mailTransport) {
+    mailTransport = nodemailer.createTransport({
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,                    // 587 par STARTTLS khud lag jaata hai
+      auth: { user: BREVO_USER.value(), pass: BREVO_KEY.value() }
+    });
+  }
+  return mailTransport;
+}
+
+/** Bahar se aaye text ko HTML me daalne se pehle nirapad banao. */
+const esc = (v) => String(v ?? "")
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+const inr = (n) => `₹${rupees(n).toLocaleString("en-IN")}`;
+
+/* Ek hi dhaancha sab mail ke liye — koi image nahi, koi bahar ki file nahi.
+   Purane email client bhi ise theek dikhate hain, aur spam wale bhi kam
+   shak karte hain. */
+function wrap(title, bodyHtml) {
+  return `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f7f9;
+    font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1a1c1e">
+    <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;
+                border:1px solid #e5e7eb;overflow:hidden">
+      <div style="padding:18px 24px;border-bottom:1px solid #eef0f2">
+        <strong style="font-size:15px;letter-spacing:.2px">Soft Skill Zone Institute</strong><br>
+        <span style="font-size:12px;color:#6b7280">Learn Today. Lead Tomorrow.</span>
+      </div>
+      <div style="padding:24px">
+        <h1 style="margin:0 0 14px;font-size:17px;line-height:1.4">${esc(title)}</h1>
+        ${bodyHtml}
+      </div>
+      <div style="padding:16px 24px;border-top:1px solid #eef0f2;font-size:11px;color:#6b7280;line-height:1.6">
+        Near Gym Town, Pakri, Ara &middot;
+        <a href="${SITE}" style="color:#6b7280">softskillzone.in</a><br>
+        Ye mail apne aap bheji gayi hai. Koi sawaal ho to isi ka jawab de dijiye.
+      </div>
+    </div></body></html>`;
+}
+
+const row = (k, v) =>
+  `<tr><td style="padding:5px 0;color:#6b7280;font-size:13px">${esc(k)}</td>
+       <td style="padding:5px 0;text-align:right;font-weight:600;font-size:13px">${esc(v)}</td></tr>`;
+
+const table = (rows) =>
+  `<table style="width:100%;border-collapse:collapse;margin:6px 0 18px">${rows.join("")}</table>`;
+
+const button = (href, label) =>
+  `<a href="${esc(href)}" style="display:inline-block;padding:11px 20px;border-radius:8px;
+     background:#1a1c1e;color:#fff;text-decoration:none;font-size:14px;font-weight:600">${esc(label)}</a>`;
+
+/**
+ * Mail bhejo — ek hi baar, aur galti ho to chup-chaap.
+ *
+ * @param {string} key   is mauke ka naam (jaise `receipt_pay_xxx`). Isi se
+ *                       dobara bhejna ruk jaata hai.
+ * @returns {Promise<boolean>} bheji gayi ya nahi (bulane wale ko farq nahi
+ *                       padna chahiye — ye sirf log ke liye hai)
+ */
+async function sendMail(key, { to, subject, html, text }) {
+  const addr = String(to || "").trim();
+  if (!addr || !addr.includes("@")) {
+    logger.info("mail chhoda — pata nahi hai", { key });
+    return false;
+  }
+
+  /* Pehle nishaan, phir mail. Ulta karne par: mail chala gaya aur nishaan
+     lagne se pehle function mar gaya, to agli baar wahi mail dobara jaata. */
+  try {
+    await db.collection("mailLog").doc(key).create({
+      to: addr, subject, sentAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    if (err?.code === 6 /* ALREADY_EXISTS */) {
+      logger.info("mail pehle hi ja chuki hai", { key });
+      return false;
+    }
+    logger.warn("mailLog likhne me dikkat — mail chhod rahe hain", { key, err: err?.message });
+    return false;
+  }
+
+  try {
+    await mailer().sendMail({
+      from: MAIL_FROM, replyTo: MAIL_REPLY_TO, to: addr, subject, text, html
+    });
+    logger.info("mail chali gayi", { key, to: addr });
+    return true;
+  } catch (err) {
+    /* Yahan THROW NAHI KARNA. Paisa darj ho chuka hai; mail na jaane se use
+       palatna bilkul galat hoga. Nishaan hata dete hain taaki agli koshish
+       (webhook retry ya reminder) dobara bhej sake. */
+    logger.error("mail nahi ja payi", { key, to: addr, err: err?.message });
+    await db.collection("mailLog").doc(key).delete().catch(() => {});
+    return false;
+  }
+}
+
+
 
 /* --------------------------------------------------------------------------
    Tareekh — hamesha Ara ke hisaab se, kabhi server ke hisaab se nahi
@@ -409,7 +553,8 @@ exports.createPaymentLink = onCall(
    2) razorpayWebhook — paisa aane ki asli khabar
    ========================================================================== */
 exports.razorpayWebhook = onRequest(
-  { secrets: [RZP_WEBHOOK_SECRET], cors: false },
+  /* MAIL_SECRETS bhi chahiye — yahi raasta receipt aur admission mail bhejta hai. */
+  { secrets: [RZP_WEBHOOK_SECRET, ...MAIL_SECRETS], cors: false },
   async (req, res) => {
     if (req.method !== "POST") return res.status(405).send("POST only");
 
@@ -629,6 +774,46 @@ async function parkUnmatched({ paymentId, amount, payment, link, notes }) {
 async function onAdmissionPaid(admissionId, amount, paymentId) {
   const studentId = await claimStudentId(admissionId);
   await onStudentPaid(studentId, amount, paymentId);
+
+  /* "Aapka admission ho gaya" wali mail — receipt se ALAG.
+
+     Ye ek hi baar jaati hai, chaahe student aage kitni bhi kist bhare, kyunki
+     iska naam Student ID se banta hai. Isme wo teen cheezein hain jo student
+     baar-baar poochhta hai: uski ID, uska batch, aur agla kadam. */
+  try {
+    const s = (await db.collection("students").doc(studentId).get()).data() || {};
+    const signup = `${SITE}/pages/student/signup.html?email=${encodeURIComponent(s.email || "")}`;
+    await sendMail(`admission_${studentId}`, {
+      to: s.email,
+      subject: `Admission ho gaya — aapki Student ID ${studentId}`,
+      text:
+        `Namaste ${s.fullName || ""},\n\n` +
+        `Soft Skill Zone me aapka admission ho gaya hai.\n\n` +
+        `Student ID: ${studentId}\nCourse: ${s.courseName || ""}\n` +
+        (s.batchName ? `Batch: ${s.batchName}\n` : "") +
+        `\nAgla kadam: apna account bana lijiye — usi email se jo aapne form me diya tha. ` +
+        `Student ID yaad rakhne ki zaroorat nahi, wo apne aap jud jaayegi.\n${signup}\n\n` +
+        `— Soft Skill Zone Institute`,
+      html: wrap("Aapka admission ho gaya", [
+        `<p style="margin:0 0 14px;font-size:14px;line-height:1.6">Namaste <strong>${esc(s.fullName || "")}</strong>,
+          Soft Skill Zone me aapka swagat hai. Aapki jaankari neeche hai.</p>`,
+        table([
+          row("Student ID", studentId),
+          row("Course", s.courseName || "—"),
+          ...(s.batchName ? [row("Batch", s.batchName)] : []),
+          ...(s.batchPref ? [row("Timing", s.batchPref)] : [])
+        ]),
+        `<p style="margin:0 0 18px;font-size:14px;line-height:1.6"><strong>Agla kadam —</strong> apna account bana lijiye,
+          usi email se jo aapne form me diya tha. Student ID yaad rakhne ki zaroorat nahi; wo apne aap jud jaayegi.
+          Uske baad classes, notes, assignments aur fees — sab ek jagah dikhenge.</p>`,
+        button(signup, "Apna account banayein"),
+        `<p style="margin:18px 0 0;font-size:12px;color:#6b7280;line-height:1.6">Batch abhi na juda ho to ghabraiye mat —
+          institute se baat hote hi wo aapke dashboard me aa jaayega.</p>`
+      ].join(""))
+    });
+  } catch (err) {
+    logger.error("admission mail me dikkat", { admissionId, err: err?.message });
+  }
 }
 
 /**
@@ -868,6 +1053,41 @@ async function onStudentPaid(studentId, amount, paymentId) {
     logger.warn("fees se zyada paisa", { studentId, paymentId, extra, totalFee: rupees(result.totalFee) });
   }
 
+  /* Receipt email. Pata student ke RECORD se aata hai, request se nahi.
+     Sab kuch try/catch me — mail na jaane se paisa ulta nahi hota. */
+  try {
+    const sSnap = await stuRef.get();
+    const s = sSnap.exists ? sSnap.data() : {};
+    const left = rupees(pendingShown);
+    await sendMail(`receipt_${paymentId}`, {
+      to: s.email,
+      subject: `Fees mil gayi — ${inr(amountShown)} · Receipt ${receiptNo}`,
+      text:
+        `Namaste ${s.fullName || ""},\n\n` +
+        `Aapka ${inr(amountShown)} ka payment mil gaya hai.\n` +
+        `Receipt No: ${receiptNo}\nStudent ID: ${studentId}\n` +
+        (left > 0 ? `Ab bakaya: ${inr(left)}\n` : "Aapki poori fees jama ho gayi — dhanyavaad!\n") +
+        `\nReceipt dashboard me bhi rakhi hai: ${SITE}\n\n— Soft Skill Zone Institute`,
+      html: wrap("Aapki fees mil gayi", [
+        `<p style="margin:0 0 14px;font-size:14px;line-height:1.6">Namaste <strong>${esc(s.fullName || "")}</strong>,
+          aapka payment mil gaya hai. Iski receipt neeche hai — ise sambhaal kar rakhiye.</p>`,
+        table([
+          row("Rakam", inr(amountShown)),
+          row("Receipt No.", receiptNo),
+          row("Student ID", studentId),
+          row("Course", s.courseName || "—"),
+          left > 0 ? row("Ab bakaya", inr(left)) : row("Bakaya", "Kuch nahi — poori fees jama")
+        ]),
+        left > 0
+          ? `<p style="margin:0 0 18px;font-size:13px;color:#6b7280;line-height:1.6">Agli kist dashboard me dikh jaayegi.</p>`
+          : `<p style="margin:0 0 18px;font-size:13px;color:#6b7280;line-height:1.6">Aapki poori fees jama ho gayi — dhanyavaad!</p>`,
+        button(SITE, "Dashboard kholein")
+      ].join(""))
+    });
+  } catch (err) {
+    logger.error("receipt mail me dikkat", { paymentId, err: err?.message });
+  }
+
   if (result.duplicate) {
     logger.info("wahi payment dobara aaya — paisa dobara nahi gina", { paymentId, receiptNo });
   } else {
@@ -942,6 +1162,113 @@ exports.gradeMcq = onCall({ cors: true }, async (req) => {
      Firestore me key ab uske liye khuli hui nahi hai. */
   return { marks, total: correct.length, correct, answers };
 });
+
+/* ==========================================================================
+   feeReminders — kist ki tareekh se pehle ek yaad dilana
+   --------------------------------------------------------------------------
+   Roz subah 9 baje (Ara ke waqt se) chalta hai.
+
+   KITNI BAAR — ek kist par zyada se zyada DO mail: teen din pehle, aur usi
+   din. Iske baad chup. Roz-roz "fees do" bhejna student ko sirf naaraz
+   karta hai, aur mail spam me chali jaati hai; ek shaant yaad dilana kaam
+   kar jaata hai.
+
+   DOBARA NAHI — har mail ka naam me student ki ID, kist ki tareekh aur
+   "kitne din pehle" tinon hote hain. Isliye function roz chale to bhi wahi
+   mail dobara nahi jaati (dekhein `sendMail`).
+
+   QUERY EK HI FIELD PAR — sirf `nextDueDate` ki range par. Status, bakaya
+   aur email yahin code me chhaante jaate hain. Do field par filter lagate
+   hi Firestore composite index maangta, aur ek aur index banwana padta;
+   itne chhote list ke liye wo bekaar ka jhamela hai.
+   ========================================================================== */
+const REMIND_DAYS = [3, 0];          // kitne din pehle (0 = usi din)
+
+exports.feeReminders = onSchedule(
+  {
+    schedule: "0 9 * * *",
+    timeZone: "Asia/Kolkata",
+    secrets: MAIL_SECRETS
+  },
+  async () => {
+    /* Aaj se lekar sabse door reminder tak ki khidki. */
+    const maxDays = Math.max(...REMIND_DAYS);
+    const todayStr = dateStr(new Date());
+    const from = new Date(`${todayStr}T00:00:00+05:30`);
+    const till = new Date(from.getTime() + (maxDays + 1) * 24 * 3600 * 1000);
+
+    const snap = await db.collection("students")
+      .where("nextDueDate", ">=", admin.firestore.Timestamp.fromDate(from))
+      .where("nextDueDate", "<", admin.firestore.Timestamp.fromDate(till))
+      .limit(500)
+      .get();
+
+    let sent = 0, looked = 0;
+
+    for (const doc of snap.docs) {
+      const s = doc.data() || {};
+      looked++;
+
+      if ((s.status || "active") !== "active") continue;
+      if (rupees(s.pendingFee) <= 0) continue;
+      if (!s.email) continue;
+
+      const due = s.nextDueDate?.toDate ? s.nextDueDate.toDate() : null;
+      if (!due) continue;
+
+      const dueStr = dateStr(due);
+      /* Din ki ginti IST ki tareekhon se — ghanton se nahi. Warna "3 din
+         pehle" kabhi 2.7 din ban jaata hai aur reminder ek din khisak
+         jaata hai. */
+      const days = Math.round(
+        (new Date(`${dueStr}T00:00:00+05:30`) - new Date(`${todayStr}T00:00:00+05:30`)) / 86400000
+      );
+      if (!REMIND_DAYS.includes(days)) continue;
+
+      /* Kist ki rakam — plan me se wo pehli kist jo abhi poori nahi hui. */
+      const plan = Array.isArray(s.feePlan) ? s.feePlan : [];
+      let left = rupees(s.paidFee), instalment = 0, no = 0;
+      for (const k of plan) {
+        const amt = rupees(k.amount);
+        if (left >= amt) { left -= amt; continue; }
+        instalment = amt - left; no = k.no || 0; break;
+      }
+      const amount = instalment || rupees(s.pendingFee);
+
+      const when = days === 0 ? "aaj" : `${days} din baad`;
+      const ok = await sendMail(`due_${doc.id}_${dueStr}_${days}`, {
+        to: s.email,
+        subject: days === 0
+          ? `Aapki kist aaj due hai — ${inr(amount)}`
+          : `Kist ki yaad — ${inr(amount)}, ${days} din baad`,
+        text:
+          `Namaste ${s.fullName || ""},\n\n` +
+          `Aapki ${no ? `kist ${no} ` : ""}${inr(amount)} ki tareekh ${when} (${dueStr}) hai.\n` +
+          `Kul bakaya: ${inr(s.pendingFee)}\n\n` +
+          `Dashboard se online bhar sakte hain, ya institute aakar de sakte hain: ${SITE}\n\n` +
+          `Koi dikkat ho to bata dijiye — hum raasta nikaal lenge.\n\n— Soft Skill Zone Institute`,
+        html: wrap(days === 0 ? "Aapki kist aaj due hai" : "Kist ki yaad", [
+          `<p style="margin:0 0 14px;font-size:14px;line-height:1.6">Namaste <strong>${esc(s.fullName || "")}</strong>,
+            ye sirf ek yaad dilana hai — aapki agli kist ${esc(when)} deni hai.</p>`,
+          table([
+            ...(no ? [row("Kist", `No. ${no}`)] : []),
+            row("Rakam", inr(amount)),
+            row("Tareekh", dueStr),
+            row("Kul bakaya", inr(s.pendingFee))
+          ]),
+          `<p style="margin:0 0 18px;font-size:14px;line-height:1.6">Dashboard se online bhar sakte hain,
+            ya institute aakar de sakte hain.</p>`,
+          button(SITE, "Fees bharein"),
+          `<p style="margin:18px 0 0;font-size:12px;color:#6b7280;line-height:1.6">Koi dikkat ho to isi mail ka jawab
+            de dijiye ya WhatsApp kar dijiye — hum raasta nikaal lenge.</p>`
+        ].join(""))
+      });
+      if (ok) sent++;
+    }
+
+    logger.info("kist reminder chale", { dekhe: looked, bheje: sent });
+  }
+);
 
 /* ==========================================================================
    3) publishRecording — class ki recording ka link, apne aap
@@ -1157,7 +1484,8 @@ exports.admissionStatus = onCall({ cors: true }, async (req) => {
    panel se aane wale number par bharosa karna wahi galti hoti jo hamne
    createPaymentLink me theek ki thi.
    ========================================================================== */
-exports.attachPayment = onCall({ cors: true }, async (req) => {
+/* Ye bhi onStudentPaid chalata hai, isliye ise bhi mail ke secrets chahiye. */
+exports.attachPayment = onCall({ cors: true, secrets: MAIL_SECRETS }, async (req) => {
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Pehle login karein.");
 

@@ -462,6 +462,31 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    /* ---------------------- recording ka asli link -------------------------
+       Ye class ke document se ALAG isliye rakha gaya hai.
+
+       Rules poore document par lagte hain, kisi ek field par nahi. Isliye jab
+       tak `recordingURL` class ke andar tha, "Sirf save karein" wala qadam
+       sirf dikhawe ka tha: link save karte hi usi batch ka koi bhi student
+       browser console se class ka document padh kar wo link nikaal sakta tha,
+       chahe aapne "Students ko de dein" dabaya hi na ho. Adhoori recording,
+       galat take, dobara record karni padi — sab wahin se nikal jaati.
+
+       Ab link alag document me hai aur uspar `published` ki shart hai. Approve
+       se pehle wo kisi student ko nahi milta.
+
+       `list` sirf admin ke liye: student hamesha apni class ki id se ek hi
+       document maangta hai, poori list kabhi nahi. */
+    match /classRecordings/{classId} {
+      allow get: if isAdmin()
+        || (isStudying()
+            && resource.data.get('published', false) == true
+            && myBatchId() != ''
+            && resource.data.get('batchId', '') == myBatchId());
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
     match /assignments/{id} {
       allow get, list: if isAdmin() || inMyBatch();
       allow write: if isAdmin();

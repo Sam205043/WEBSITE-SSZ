@@ -25,7 +25,7 @@ import {
   getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs,
   updateDoc, deleteDoc, query, where, orderBy, limit, startAfter,
   onSnapshot, serverTimestamp, increment, arrayUnion, arrayRemove,
-  runTransaction, writeBatch, Timestamp, getCountFromServer
+  runTransaction, writeBatch, Timestamp, getCountFromServer, deleteField
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 import {
@@ -77,7 +77,7 @@ export {
   collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
   query, where, orderBy, limit, startAfter, onSnapshot, serverTimestamp,
   increment, arrayUnion, arrayRemove, runTransaction, writeBatch, Timestamp,
-  getCountFromServer,
+  getCountFromServer, deleteField,
 
   /* storage */
   storageRef, uploadBytesResumable, getDownloadURL, deleteObject, listAll,

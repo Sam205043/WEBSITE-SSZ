@@ -14,12 +14,12 @@ import {
   collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
   query, where, orderBy, limit, startAfter, onSnapshot, serverTimestamp,
   increment, arrayUnion, arrayRemove, runTransaction, writeBatch,
-  getCountFromServer, Timestamp
+  getCountFromServer, Timestamp, deleteField
 } from "./firebase-init.js";
 
 import { COLLECTIONS } from "../js/core/constants.js";
 
-export { serverTimestamp, increment, arrayUnion, arrayRemove, Timestamp, COLLECTIONS };
+export { serverTimestamp, increment, arrayUnion, arrayRemove, Timestamp, deleteField, COLLECTIONS };
 
 /* ==========================================================================
    Read cache — avoids re-fetching the same list on every page navigation.

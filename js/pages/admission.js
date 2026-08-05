@@ -542,20 +542,63 @@ async function waitForStudentId(box, appNo, email, payMod) {
   const pay = await payMod;
   const till = Date.now() + POLL_FOR_MS;
 
+  /* --------------------------------------------------------------------
+     "Jama hui ₹0" kyun dikh jaata tha
+
+     Server pehle student banata hai (`paidFee: 0`), phir admission par ID
+     likhta hai, aur USKE BAAD paisa darj karta hai. Purana code `ready`
+     dikhte hi ruk jaata tha — beech ke us aadhe second me poochh liya to
+     student ko "Jama hui ₹0 · bakaya ₹10,000" dikhta tha. Theek us screen
+     par jo use tasalli dene ke liye banayi thi, abhi-abhi paisa dene ke
+     baad. Bhale hi galat aankda ek pal ka ho, ghabrahat asli hoti hai.
+
+     Ab do kaam alag kar diye hain:
+       - Student ID milte hi screen dikha dete hain (wahi to wo maang raha
+         hai, use rokna galat hai)
+       - aur agar rakam abhi 0 hai, to chup-chaap poochhte rehte hain aur
+         aankda apne aap sudhar jaata hai
+     -------------------------------------------------------------------- */
+  let shown = false;
+
   while (Date.now() < till) {
     await new Promise((r) => setTimeout(r, POLL_EVERY_MS));
     try {
       const s = await pay.admissionStatus(appNo, email);
-      if (s?.ready) { showAdmitted(box, s, email); return; }
+      if (!s?.ready) continue;
+
+      if (!shown) { showAdmitted(box, s, email); shown = true; }
+      else updateAmounts(box, s);
+
+      /* Rakam chadh gayi — ab poochhne ki zaroorat nahi. */
+      if (rupeesOf(s.paidFee) > 0) return;
     } catch {
       /* Net ek pal ke liye gaya ya function garam ho raha hai — agli baar
          phir poochh lenge. Yahan rukna galat hoga. */
     }
   }
+  /* Waqt khatam par bhi ID dikh chuki hai to ghabrane ki baat nahi. */
+  if (shown) return;
 
   wait.innerHTML = `<span>ℹ️</span><span>Payment ho gaya ho to bhi kabhi-kabhi thodi der lagti hai.
     Ghabraiye mat — paisa surakshit hai. Thodi der baad
     <strong>Dashboard login</strong> se dekh lijiye, ya humein WhatsApp kar dijiye.</span>`;
+}
+
+const rupeesOf = (n) => Math.max(0, Math.round(Number(n) || 0));
+
+/* Paisa webhook se thodi der baad darj hota hai, isliye rakam wali do line
+   alag se badalti hain — poora card dobara banane se student jo padh raha
+   tha wo uske saamne se hil jaata. */
+function updateAmounts(box, s) {
+  const paid = box.querySelector("[data-paid]");
+  const due = box.querySelector("[data-due]");
+  if (paid) paid.textContent = money(rupeesOf(s.paidFee));
+  if (due) {
+    const left = rupeesOf(s.pendingFee);
+    due.textContent = left > 0 ? ` · bakaya ${money(left)}` : "";
+  }
+  const wait = box.querySelector("[data-pay-wait]");
+  if (wait && rupeesOf(s.paidFee) > 0) wait.remove();
 }
 
 /* Ho gaya — ab student ko ek hi kaam dikhna chahiye: account banao. */
@@ -574,8 +617,9 @@ function showAdmitted(box, s, email) {
           <strong style="font-size:1.15rem;letter-spacing:.5px">${s.studentId}</strong></div>
         ${s.batchName ? `<div><span style="color:var(--text-muted)">Batch</span><br><strong>${s.batchName}</strong></div>` : ""}
         <div><span style="color:var(--text-muted)">Jama hui</span><br>
-          <strong>${money(s.paidFee)}</strong>
-          ${s.pendingFee > 0 ? ` <span style="color:var(--text-muted)">· bakaya ${money(s.pendingFee)}</span>` : ""}</div>
+          <strong data-paid>${money(rupeesOf(s.paidFee))}</strong><span
+            data-due style="color:var(--text-muted)">${rupeesOf(s.pendingFee) > 0 ? ` · bakaya ${money(rupeesOf(s.pendingFee))}` : ""}</span>
+          ${rupeesOf(s.paidFee) === 0 ? `<br><span data-pay-wait style="font-size:.78rem;color:var(--text-muted)">Aapka payment darj ho raha hai — rakam yahin apne aap aa jaayegi.</span>` : ""}</div>
         ${s.nextDueDate ? `<div><span style="color:var(--text-muted)">Agli kist</span><br><strong>${s.nextDueDate}</strong></div>` : ""}
       </div>
 

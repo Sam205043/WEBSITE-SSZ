@@ -10,16 +10,18 @@
    hai, key browser me aati hi nahi, aur App Check pakka karta hai ki request
    sach me aapki website se aayi hai.
 
-   CHALU KAISE KAREIN — teen kadam, sab Firebase Console me:
-     1. Firebase Console -> Build -> AI Logic -> Get started
-        "Gemini Developer API" chunein (bina paise ke shuru ho jaata hai).
-     2. Console -> Build -> App Check -> apna web app register karein
-        reCAPTCHA Enterprise ke saath. Jo site key mile use neeche
-        RECAPTCHA_SITE_KEY me paste kar dein.
-     3. Neeche AI_ENABLED ko true kar dein.
+   CHALU HO CHUKA HAI (5 Aug 2026):
+     1. Firebase AI Logic — "Gemini Developer API" par chaalu. Free tier me
+        hai, billing nahi lagti. AI monitoring on hai par sampling 10% par.
+     2. App Check — web app "reCAPTCHA Enterprise" se registered. Enforcement
+        SIRF AI Logic par hai; Firestore aur Storage par nahi, isliye baaki
+        website par iska koi asar nahi.
+     3. AI_ENABLED = true.
 
-   Jab tak ye nahi hota, chatbot poori tarah kaam karta hai — bas na-samajh
-   aane wale sawaal par AI ke bajaye seedhe WhatsApp par bhej deta hai.
+   AI band karna ho to sirf AI_ENABLED false kar dijiye — chatbot phir bhi
+   poori tarah chalta rahega, bas na-samajh aane wale sawaal par AI ke bajaye
+   seedhe WhatsApp par bhej dega. Knowledge base wala hissa AI par bilkul
+   nirbhar nahi hai.
    ========================================================================== */
 
 import { firebaseConfig } from "../../firebase/firebase-config.js";
@@ -29,8 +31,12 @@ import { INSTITUTE } from "../config/site-data.js";
 /* ==========================================================================
    Settings — sirf ye teen lines badalni hoti hain
    ========================================================================== */
-export const AI_ENABLED = false;
-const RECAPTCHA_SITE_KEY = "";          // App Check se milne wali site key
+export const AI_ENABLED = true;
+/* App Check ki site key. Ye PUBLIC hai — page ke source me hi jaati hai,
+   chhupane wali cheez nahi. Iska kaam sirf itna hai ki Gemini ki request
+   sach me is website se aayi ho. Key Google Cloud -> Security -> reCAPTCHA
+   me "softskillzone-web" naam se bani hai, sirf softskillzone.in ke liye. */
+const RECAPTCHA_SITE_KEY = "6LeOwHYtAAAAAO9PUgo_J9fPh_4gEwEjB0f4PwWX";
 const MODEL = "gemini-3.6-flash";       // tez aur bina billing ke chalta hai
 
 /* AI Logic naye SDK me hai, isliye iska apna version. Baaki project 11.0.2

@@ -557,3 +557,79 @@ html.lang-hi { line-height: 1.75; }
 @media (max-width: 560px) {
   .receipt-sheet { padding: var(--sp-4); }
 }
+
+
+/* ==========================================================================
+   Phone ke liye neeche wali patti (sirf admin panel)
+   --------------------------------------------------------------------------
+   992px se badi screen par dikhti hi nahi — wahan sidebar hamesha saamne
+   hota hai aur ye sirf jagah kha rahi hoti.
+
+   Teen baatein jaan-boojh kar aisi hain:
+
+   1. Har khaana kam se kam 56px ooncha hai. Angootha 44px se chhote target
+      par theek se nahi lagta, aur ye patti sabse zyada dabai jaane wali
+      cheez hai.
+   2. Neeche `env(safe-area-inset-bottom)` ka gap hai. Bina iske iPhone ki
+      home wali lakeer patti ke upar aa jaati hai aur aakhri khaane par tap
+      hi nahi hota.
+   3. z-index drawer se KAM hai, taaki "More" dabaakar drawer khulte hi wo
+      is patti ke upar aaye aur backdrop ise dhak le. Zyada rakhne par patti
+      drawer ke upar tairti rehti — dekhne me tooti hui lagti.
+   ========================================================================== */
+.dash-bnav { display: none; }
+
+@media (max-width: 991.98px) {
+  .dash-bnav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: calc(var(--z-drawer) - 60);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -2px 12px rgb(0 0 0 / .06);
+  }
+
+  .dash-bnav__item {
+    position: relative;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    min-height: 56px; padding: .4rem .2rem;
+    border: 0; background: none; cursor: pointer;
+    color: var(--text-muted); text-decoration: none;
+    font: inherit; font-size: .66rem; font-weight: 600;
+    letter-spacing: .1px; line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dash-bnav__item:hover { color: var(--text-body); }
+  .dash-bnav__item.is-active { color: var(--brand); }
+
+  /* Chalu page ke upar ek patli lakeer — rang ke bharose akela nahi chhodte,
+     kyunki rang na dikhne wale log bhi ise istemaal karte hain. */
+  .dash-bnav__item.is-active::before {
+    content: ""; position: absolute; top: 0; left: 22%; right: 22%;
+    height: 2px; border-radius: 0 0 2px 2px; background: var(--brand);
+  }
+
+  .dash-bnav__icon { display: flex; }
+  .dash-bnav__text {
+    max-width: 100%; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .dash-bnav__badge {
+    position: absolute; top: 6px; left: 50%; margin-left: 4px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 999px;
+    background: var(--danger); color: #fff;
+    font-size: .58rem; font-weight: 800; line-height: 1;
+  }
+  .dash-bnav__badge[hidden] { display: none; }
+
+  /* Patti content ko dhak na le — page ke neeche utni jagah chhod dete hain.
+     Bina iske aakhri row ya button hamesha patti ke peechhe chhupa rehta. */
+  .dash-body { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + var(--sp-6)); }
+}

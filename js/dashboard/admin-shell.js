@@ -37,6 +37,59 @@ const NAV = [
   { key: "gallery",    label: "Gallery",    icon: "image",     route: "adminGallery" }
 ];
 
+/* --------------------------------------------------------------------------
+   Phone ke liye neeche wali patti
+
+   Admin panel ka poora nav ek drawer me hai jo hamburger dabane par khulta
+   hai. Laptop par wo theek hai — sidebar hamesha saamne rehta hai. Phone par
+   nahi: har baar Admissions se Fees jaane ke liye teen tap lagte the
+   (hamburger -> drawer -> link), aur roz ka kaam yahi do-teen page hai.
+
+   Isliye char sabse zyada istemaal hone wale page neeche pin kar diye hain,
+   aur paanchvaan "More" wahi purana drawer khol deta hai (baaki nau page
+   wahin milte hain). Ye patti sirf 992px se chhoti screen par dikhti hai —
+   laptop par sidebar hi kaafi hai.
+
+   Ye poora hissa yahin JS me banta hai, kisi HTML file me nahi — warna teraah
+   admin page me ek-ek karke wahi markup daalna padta, aur agli baar badalne
+   par teraah jagah badalna padta.
+   -------------------------------------------------------------------------- */
+const BOTTOM = [
+  { key: "home",       label: "Overview",   icon: "home",     route: "adminHome" },
+  { key: "admissions", label: "Admissions", icon: "userPlus", route: "adminAdmissions", badge: true },
+  { key: "fees",       label: "Fees",       icon: "wallet",   route: "adminFees", badge: true },
+  { key: "students",   label: "Students",   icon: "users",    route: "adminStudents" }
+];
+
+function buildBottomNav(active) {
+  const bar = el("nav", { class: "dash-bnav", "aria-label": "Admin quick navigation" });
+
+  BOTTOM.forEach((item) => {
+    const link = el("a", {
+      class: `dash-bnav__item${item.key === active ? " is-active" : ""}`,
+      href: url(item.route),
+      "aria-current": item.key === active ? "page" : null
+    },
+      el("span", { class: "dash-bnav__icon", html: icon(item.icon, { size: 21 }) }),
+      el("span", { class: "dash-bnav__text" }, item.label)
+    );
+    /* Badge ka apna id — sidebar wale se alag, kyunki dono ek saath maujood
+       hote hain aur ek hi id do jagah nahi ho sakti. */
+    if (item.badge) {
+      link.appendChild(el("span", { class: "dash-bnav__badge", id: `bbadge-${item.key}`, hidden: true }));
+    }
+    bar.appendChild(link);
+  });
+
+  /* Paanchvaan khaana — baaki sab kuch. */
+  bar.appendChild(el("button", { class: "dash-bnav__item", type: "button", id: "bnavMore" },
+    el("span", { class: "dash-bnav__icon", html: icon("menu", { size: 21 }) }),
+    el("span", { class: "dash-bnav__text" }, "More")
+  ));
+
+  document.body.appendChild(bar);
+}
+
 let shellState = { user: null, mode: "preview" };
 let stopWatch = null;
 let stopFeeWatch = null;
@@ -150,6 +203,10 @@ function wireShell() {
       store.set(LS_KEYS.SIDEBAR + ".admin", collapsed ? "collapsed" : "open");
     }
   });
+  /* "More" wahi kaam karta hai jo upar wala hamburger — do alag raaste rakhne
+     se dono ka vyavhaar alag ho jaata (ek se khula, doosre se band na hua). */
+  $("#bnavMore")?.addEventListener("click", () => $("#btnSidebar").click());
+
   backdrop.addEventListener("click", closeSide);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSide(); });
   on(side, "click", ".dash-link", () => { if (isMobile()) closeSide(); });
@@ -165,12 +222,15 @@ function wireShell() {
   });
 }
 
-/** Laal counter kisi bhi sidebar link par — key = NAV ka key. */
+/** Laal counter — sidebar aur neeche wali patti, DONO par. key = NAV ka key.
+    Ek jagah lagakar doosri bhool jaane se phone par ginti dikhti hi nahi. */
 export function setNavBadge(key, n) {
-  const node = $(`#badge-${key}`);
-  if (!node) return;
-  node.hidden = !n;
-  node.textContent = n > 99 ? "99+" : String(n);
+  [`#badge-${key}`, `#bbadge-${key}`].forEach((sel) => {
+    const node = $(sel);
+    if (!node) return;
+    node.hidden = !n;
+    node.textContent = n > 99 ? "99+" : String(n);
+  });
 }
 
 export function setAdmissionBadge(n) { setNavBadge("admissions", n); }
@@ -321,6 +381,8 @@ export function initAdminShell({ active, title }) {
       document.title = `${title} | SSZ Admin`;
       buildSidebar(active);
       buildTopbar(user, title);
+      /* wireShell() se PEHLE — wo #bnavMore ko dhoondhta hai. */
+      buildBottomNav(active);
       wireShell();
       if (mode === "preview") previewBanner();
 
@@ -328,6 +390,13 @@ export function initAdminShell({ active, title }) {
          karte hain ki demo data dikhana hai ya asli. Pehle ye assignment inke
          BAAD tha, isliye live mode me bhi badge demo data dikha raha tha. */
       shellState = { user, mode };
+
+      /* "Aaj ki class" wali patti — har admin page ke sabse upar. Alag file
+         me isliye hai ki shell pehle hi bada hai, aur ye ek alag kaam hai.
+         Fail ho jaye to shell ruke nahi: patti suvidha hai, zaroorat nahi. */
+      import("./admin-today-class.js")
+        .then((m) => m.mountTodayClass(mode))
+        .catch(() => { /* patti ek suvidha hai, zaroorat nahi */ });
 
       // Badges are useful on every admin page
       watchPendingAdmissions(null);

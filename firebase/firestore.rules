@@ -213,10 +213,27 @@ service cloud.firestore {
     // Anyone may submit the public admission form. Nobody but admin may read
     // them back — they hold phone numbers, addresses and documents.
     match /admissions/{appId} {
+      /* `studentId` yahan se nahi aa sakta.
+
+         Form ise likhta hi nahi — wo webhook ya admin ke approve karne par
+         lagta hai. Par create har kisi ke liye khula hai, isliye console se
+         banayi hui admission me kisi AUR ka studentId likha ja sakta tha.
+         Uske baad us admission par payment link maangne par hisaab us doosre
+         student ke record se hota tha — yaani kisi ka bhi bakaya padha ja
+         sakta tha, aur paisa unke khaate me chadhaya ja sakta tha.
+
+         Server par bhi ye khaai band ki gayi hai (createPaymentLink ab
+         student ke record par ijaazat dobara jaanchta hai). Ye doosra
+         taala hai — darwaze par hi.
+
+         Fees (`courseFee`/`admissionFee`) yahan rok nahi sakte, kyunki form
+         unhe khud likhta hai. Un par bharosa ab kahin kiya hi nahi jaata:
+         rakam hamesha course ki list se aati hai. */
       allow create: if request.resource.data.get('status', '') == 'pending'
         && request.resource.data.fullName is string
         && request.resource.data.fullName.size() > 1
-        && request.resource.data.mobile is string;
+        && request.resource.data.mobile is string
+        && request.resource.data.get('studentId', '') == '';
       allow read, update, delete: if isAdmin();
     }
 

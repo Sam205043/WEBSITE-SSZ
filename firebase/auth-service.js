@@ -78,10 +78,35 @@ function isAutoLetterAvatar(url) {
   return /googleusercontent\.com/.test(url || "") && /default-user/.test(url || "");
 }
 
+/* --------------------------------------------------------------------------
+   Profile padhne ki teen koshish
+
+   `users/{uid}` ka ek read fail ho jaana aam baat hai — mobile net ek pal
+   ke liye kat jaata hai, ya Firestore ka pehla connection thoda der leta
+   hai. Ek koshish par haar maan lena mehnga padta tha (dekhein neeche wala
+   catch), isliye thodi der ruk kar dobara poochh lete hain. Do baar rukna
+   kul milakar do second se bhi kam hai — user ko sirf "session check ho
+   raha hai" thoda lamba dikhta hai.
+   -------------------------------------------------------------------------- */
+const nap = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function loadProfileRetry(fbUser) {
+  let lastErr;
+  for (let i = 0; i < 3; i++) {
+    try {
+      return await loadProfile(fbUser);
+    } catch (err) {
+      lastErr = err;
+      if (i < 2) await nap(i === 0 ? 400 : 1200);
+    }
+  }
+  throw lastErr;
+}
+
 /* Single global auth listener — everything else hangs off this. */
 onAuthStateChanged(auth, async (fbUser) => {
   try {
-    currentUser = await loadProfile(fbUser);
+    currentUser = await loadProfileRetry(fbUser);
     if (currentUser && currentUser.status === USER_STATUS.BLOCKED) {
       await signOut(auth);
       currentUser = null;
@@ -96,8 +121,22 @@ onAuthStateChanged(auth, async (fbUser) => {
       currentUser = await loadProfile(fbUser);
     }
   } catch (err) {
+    /* YAHAN PEHLE `role: ROLES.STUDENT` LIKHA THA, AUR WO EK ANDAZA THA.
+
+       Andaza galat hone par asar seedha dikhta tha: net ek pal ko kharab
+       hua, profile nahi aayi, aur ADMIN ko student maan liya gaya. Guard
+       turant use student wale dashboard par bhej deta — aur wahan bhi kuchh
+       nahi milta, kyunki uske paas koi Student ID hai hi nahi. Bar-bar
+       login karne par bhi wahi. Lagta ki panel hi kho gaya.
+
+       Ab hum andaza nahi lagate. Role khaali rehta hai aur ek nishaan lag
+       jaata hai (`profileFailed`), jise dekh kar guard page rokta hai aur
+       "dobara koshish karein" kehta hai — kisi galat dashboard par
+       dhakelta nahi. */
     console.error("[auth] profile load failed:", err);
-    currentUser = fbUser ? { uid: fbUser.uid, email: fbUser.email, role: ROLES.STUDENT, hasProfile: false } : null;
+    currentUser = fbUser
+      ? { uid: fbUser.uid, email: fbUser.email, role: null, hasProfile: false, profileFailed: true }
+      : null;
   }
   authResolved = true;
   emit();

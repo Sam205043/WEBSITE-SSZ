@@ -62,20 +62,32 @@ export function uploadFile(file, path, options = {}) {
       },
       (err) => reject(new Error(storageError(err))),
       async () => {
-        /* getDownloadURL needs READ permission on the file. The public
-           admission form uploads into a folder only the admin may read, so
-           asking for a URL there fails (and, with retries, just hangs).
-           Pass skipUrl and store the path — whoever is allowed to read it
-           resolves the URL later. */
-        const url = skipUrl ? "" : await getDownloadURL(task.snapshot.ref);
-        resolve({
-          url,
-          path: fullPath,
-          name: file.name,
-          storedName: name,
-          size: file.size,
-          type: file.type
-        });
+        /* Ye callback `async` hai, aur iske andar ka `await` girne par uska
+           reject KAHIN NAHI JAATA — SDK ise sirf bula deta hai, uska jawab
+           nahi dekhta. Yaani `getDownloadURL` fail hua to neeche wala
+           `resolve` chalta hi nahi aur ye Promise HAMESHA ke liye adhoora
+           lataka reh jaata: modal khula rehta, spinner ghoomta rehta, koi
+           galti nahi dikhti, aur fee ki rasid kahin darj nahi hoti.
+           Isliye poora hissa try/catch me hai — ab kam se kam saaf error
+           milta hai. */
+        try {
+          /* getDownloadURL needs READ permission on the file. The public
+             admission form uploads into a folder only the admin may read, so
+             asking for a URL there fails (and, with retries, just hangs).
+             Pass skipUrl and store the path — whoever is allowed to read it
+             resolves the URL later. */
+          const url = skipUrl ? "" : await getDownloadURL(task.snapshot.ref);
+          resolve({
+            url,
+            path: fullPath,
+            name: file.name,
+            storedName: name,
+            size: file.size,
+            type: file.type
+          });
+        } catch (err) {
+          reject(new Error(storageError(err)));
+        }
       }
     );
   });

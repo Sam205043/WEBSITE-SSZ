@@ -74,6 +74,10 @@ async function pool(items, size, fn) {
 const admissionIdOf = (student) =>
   String(student.admissionId || student.applicationNo || "").trim();
 
+/* Public verify wale chhote record — id certificate ka verifyCode hoti hai,
+   studentId nahi, isliye ye neeche wali list se nahi mit-te. */
+const VERIFY_CODES = "certificateCodes";
+
 /* Kaun-kaun si jagah studentId se judi hui hai */
 const LINKED = [
   { key: "attendance",    coll: COLLECTIONS.ATTENDANCE,    label: "haazri ke record" },
@@ -186,6 +190,15 @@ export async function deleteStudentCascade(student, fp, onStep = () => {}) {
 
       onStep(`${l.label} hata rahe hain… (${done}/${fp.counts?.[l.key] ?? list.length})`);
       await pool(list, 8, async (row) => {
+        /* Certificate ke saath uska public verify wala record bhi jaana
+           chahiye. Wo alag collection me hai (`certificateCodes`, id =
+           verifyCode), isliye studentId wali safaai use chhoo hi nahi
+           paati thi: student poora mit jaata aur uske certificate ka
+           verify link duniya ko "asli hai" dikhata rehta. */
+        if (l.key === "certificates" && row.verifyCode) {
+          await remove(VERIFY_CODES, row.verifyCode)
+            .catch((e) => problems.push(`${VERIFY_CODES}/${row.verifyCode}: ${e.message}`));
+        }
         await remove(l.coll, row.id).catch((e) => problems.push(`${l.key}/${row.id}: ${e.message}`));
         done++;
       });

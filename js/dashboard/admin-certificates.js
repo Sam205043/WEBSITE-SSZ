@@ -272,6 +272,25 @@ on($("#certAdminList"), "click", "[data-del-cert]", async (e, btn) => {
   try {
     const { remove } = await import("../../firebase/db-service.js");
     await remove(COLLECTIONS.CERTIFICATES, c.id);
+
+    /* PUBLIC VERIFY WALA RECORD BHI — WARNA DIALOG JHOOTH BOLTA HAI.
+
+       Verify page `certificates` nahi padhta; wo alag chhota document
+       padhta hai — `certificateCodes/<verifyCode>` — taaki bina login ke
+       koi bhi employer certificate jaanch sake. Delete se sirf bada
+       record hatta tha aur ye chhota wahin pada reh jaata tha. Yaani
+       hataye hue certificate ka link aage bhi "asli hai" dikhata rehta.
+       Dialog me hum saaf likhte hain ki "verify link bhi kaam karna band
+       kar dega" — ab wo baat sach hai.
+
+       Ye galat ho jaye to poora delete nahi rokte: bada record ja chuka
+       hai, aur chhota reh jaana theek karne laayak hai — is baare me
+       console me likh dete hain. */
+    if (c.verifyCode) {
+      await remove("certificateCodes", c.verifyCode)
+        .catch((err) => console.warn("[certs] verify wala record nahi hata:", err));
+    }
+
     if (c.filePath) {
       const { deleteFile } = await import("../../firebase/storage-service.js");
       await deleteFile(c.filePath).catch((err) => console.warn("[certs] PDF nahi hati:", err));

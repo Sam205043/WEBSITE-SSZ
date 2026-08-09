@@ -374,6 +374,17 @@ async function approve(a, modal) {
       status: ADMISSION_STATUS.APPROVED, studentId, isRead: true
     });
 
+    /* SAAMNE PADI COPY BHI BADALNI PADTI HAI.
+
+       Firestore me status badal gaya, par `a` browser ki apni copy hai aur
+       usme abhi bhi "pending" likha tha. Live listener sirf pending wale
+       laata hai, aur baaki list wo `all.filter(status !== "pending")` se
+       banata hai — is card par purana "pending" likha hone ki wajah se wo
+       us chhanni se bhi bahar ho jaata. Natija: approve karte hi card
+       Pending, Approved AUR "Sab" — teenon se gayab. Refresh par wapas aa
+       jaata tha, par tab tak lagta ki kuchh gadbad ho gayi. */
+    Object.assign(a, { status: ADMISSION_STATUS.APPROVED, studentId, isRead: true });
+
     modal.close();
     toast.success(`Approve ho gaya! Student ID: ${studentId}`, { duration: 7000 });
 
@@ -420,6 +431,8 @@ async function reject(a, modal) {
     await update(COLLECTIONS.ADMISSIONS, a.id, {
       status: ADMISSION_STATUS.REJECTED, remarks, isRead: true
     });
+    /* Wahi baat jo approve me — dekhein uparwali tippani. */
+    Object.assign(a, { status: ADMISSION_STATUS.REJECTED, remarks, isRead: true });
     modal.close();
     toast.success("Application reject ho gayi.");
   } catch (err) {
@@ -477,6 +490,9 @@ await loadAll();
 
 /* realtime: pending set updates merge into the full list */
 watchPendingAdmissions((rows) => {
+  /* `rows` sirf pending wale hain. Baaki wahi jo pending nahi hain — aur
+     ab pending-se-nikle hue card bhi isme aate hain, kyunki approve/reject
+     par unki local copy bhi turant badal di jaati hai. */
   const others = all.filter((a) => a.status !== "pending");
   const merged = [...rows, ...others];
   // keep newest-first ordering

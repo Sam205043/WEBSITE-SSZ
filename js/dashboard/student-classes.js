@@ -112,5 +112,33 @@ else $("#liveNow").remove();
 if (upcoming.length) render($("#upcomingList"), upcoming.map((c) => classCard(c)));
 else emptyBox("#upcomingList", "Abhi koi class scheduled nahi hai. Nayi class lagte hi notification aayegi.");
 
-if (past.length) render($("#pastList"), past.slice(0, 10).map((c) => classCard(c)));
-else emptyBox("#pastList", "Abhi tak koi class nahi hui.");
+/* PURANI CLASS — DAS PAR ROK DENA GALAT THA.
+
+   Pehle yahan sirf `past.slice(0, 10)` tha aur aage kuchh nahi. Roz class
+   wale batch me das ka matlab hai "pichhle do hafte" — aur exam se theek
+   pehle student ko pehle module ki recording chahiye hoti hai, jo is
+   khidki se kab ki bahar nikal chuki hoti. Uske paas us recording tak
+   pahunchne ka koi raasta hi nahi tha, jabki wo maujood hoti thi.
+
+   Ab das dikhte hain aur neeche "aur dikhayein" — har baar das aur. */
+const PAST_STEP = 10;
+let pastShown = PAST_STEP;
+
+function paintPast() {
+  if (!past.length) return emptyBox("#pastList", "Abhi tak koi class nahi hui.");
+
+  const cards = past.slice(0, pastShown).map((c) => classCard(c));
+
+  if (past.length > pastShown) {
+    const more = el("button", {
+      class: "btn-ssz btn-secondary-ssz", type: "button",
+      style: { width: "100%", marginTop: ".75rem", minHeight: "44px" }
+    }, `Aur dikhayein (${past.length - pastShown} aur)`);
+    more.addEventListener("click", () => { pastShown += PAST_STEP; paintPast(); });
+    cards.push(more);
+  }
+
+  render($("#pastList"), cards);
+}
+
+paintPast();

@@ -7,6 +7,7 @@ import { icon } from "../core/icons.js";
 import { pct } from "../core/utils.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
+import toast from "../core/toast.js";
 import { DEMO_STUDENT, DEMO_ATTENDANCE } from "./demo-data.js";
 
 const STATUS_META = {
@@ -35,15 +36,35 @@ let rows;
 if (mode === "preview") {
   rows = [...DEMO_ATTENDANCE].reverse();   // newest first
 } else {
-  const student = await data.getStudent(user);
-  rows = student ? await data.getAttendance(student) : [];
+/* Ek bhi query mana ho jaye (rule badla ho, index thanda ho, ya account
+   abhi kisi student record se juda hi na ho) to page KHAALI nahi chhodna.
+   Ye file top-level `await` par chalti hai — matlab reject hote hi poora
+   module wahin ruk jaata tha aur student ko bilkul khaali page milta tha,
+   bina ye jaane ki hua kya. Ab list khaali dikhti hai aur ek saaf sandesh
+   chala jaata hai. */
+  const student = await data.getStudent(user).catch(() => null);
+  rows = student
+    ? await data.getAttendance(student).catch((err) => {
+        console.error("[attendance] load nahi hui:", err);
+        toast.warning("Haazri ka record abhi nahi khul paya. Agar ye baar-baar ho to institute ko bata dein.", { duration: 9000 });
+        return [];
+      })
+    : [];
 }
 
 const count = (s) => rows.filter((r) => r.status === s).length;
 const attended = count("present") + count("late");
 
 render($("#attStats"),
-  tile("trending", rows.length ? pct(attended, rows.length, 0) : "—", "Overall Attendance", "success"),
+  /* "Overall" tabhi likhte hain jab sach me poora ho.
+
+     student-data.js aakhri 120 haazri hi laata hai (roz class wale batch me
+     kareeb paanch mahina). Utne record aa gaye ho to ye ginti poore course
+     ki nahi hai — aur "Overall" likhna use jhootha bana deta hai, khaaskar
+     tab jab shuru me haazri kamzor rahi ho aur baad me sudhri ho. Aisi
+     halat me hum saaf likh dete hain ki kitne tak ki ginti hai. */
+  tile("trending", rows.length ? pct(attended, rows.length, 0) : "—",
+       rows.length >= 120 ? "Attendance (aakhri 120 class)" : "Overall Attendance", "success"),
   tile("checkCircle", String(count("present")), "Present", "success"),
   tile("xCircle", String(count("absent")), "Absent", "danger"),
   tile("clock", String(count("late") + count("leave")), "Late / Leave", "warning")

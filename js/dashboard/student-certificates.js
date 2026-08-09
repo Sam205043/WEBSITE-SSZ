@@ -17,8 +17,20 @@ let certs;
 if (shell.mode === "preview") {
   certs = [...DEMO_CERTIFICATES];
 } else {
-  const student = await data.getStudent(shell.user);
-  certs = student ? await data.getCertificates(student) : [];
+/* Ek bhi query mana ho jaye (rule badla ho, index thanda ho, ya account
+   abhi kisi student record se juda hi na ho) to page KHAALI nahi chhodna.
+   Ye file top-level `await` par chalti hai — matlab reject hote hi poora
+   module wahin ruk jaata tha aur student ko bilkul khaali page milta tha,
+   bina ye jaane ki hua kya. Ab list khaali dikhti hai aur ek saaf sandesh
+   chala jaata hai. */
+  const student = await data.getStudent(shell.user).catch(() => null);
+  certs = student
+    ? await data.getCertificates(student).catch((err) => {
+        console.error("[certificates] load nahi hue:", err);
+        toast.warning("Certificate ki list abhi nahi khul payi. Agar ye baar-baar ho to institute ko bata dein.", { duration: 9000 });
+        return [];
+      })
+    : [];
 }
 
 function card(c) {

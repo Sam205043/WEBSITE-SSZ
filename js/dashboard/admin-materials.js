@@ -390,8 +390,17 @@ async function showSubmissions(a) {
   on(body, "click", "[data-grade]", async (e, btn) => {
     const id = btn.dataset.grade;
     const s = subs.find((x) => x.id === id);
-    const marks = Number(body.querySelector(`[data-marks="${id}"]`).value);
+    /* KHAALI DABBE KO SHUNYA NAHI MAANTE.
+
+       `Number("")` JavaScript me 0 hota hai, aur 0 is jaanch se aaraam se
+       nikal jaata tha. Natija: aap sirf feedback likh kar "Save" dabate,
+       aur student ko "Graded · 0/10" dikh jaata — saath hi dobara jama
+       karne ka raasta bhi band ho jaata, kyunki status "graded" ho chuka
+       hota. Number dena hai ya nahi, ye ab saaf poochha jaata hai. */
+    const marksRaw = String(body.querySelector(`[data-marks="${id}"]`).value).trim();
     const feedback = body.querySelector(`[data-fb="${id}"]`).value.trim();
+    if (marksRaw === "") return toast.warning("Marks likhna zaroori hai — khaali chhodne par 0 chadh jaata hai.");
+    const marks = Number(marksRaw);
     if (isNaN(marks) || marks < 0 || marks > a.totalMarks) return toast.warning(`Marks 0 se ${a.totalMarks} ke beech dein.`);
 
     if (mode === "preview") { Object.assign(s, { marks, feedback, status: "graded" }); toast.info("Preview mode."); return; }

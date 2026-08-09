@@ -67,7 +67,13 @@ export async function getClasses(student) {
      aane wali" list ke aakhir me milti hai. */
   const upcoming = rows.filter((c) => at(c) >= now);
   const past = rows.filter((c) => at(c) < now);
-  return [...upcoming.slice(-30), ...past.slice(0, 20)];
+  /* Peechhe ki 20 kam padti thi: exam se pehle student ko pehle hafte ki
+     recording chahiye hoti hai, aur wo 20 ki khidki se bahar nikal chuki
+     hoti thi — page par use dhoondhne ka koi raasta hi nahi tha. 60 se
+     lagbhag do-teen mahine ka course poora aa jaata hai. Ye ginti browser
+     me chhantne ki hai; query wahi ek hi hai, isliye koi extra kharcha
+     nahi. */
+  return [...upcoming.slice(-30), ...past.slice(0, 60)];
 }
 
 export async function getAttendance(student) {

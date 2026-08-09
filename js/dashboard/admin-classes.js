@@ -471,10 +471,35 @@ if (mode === "preview") {
   batches = [...DEMO_BATCHES];
 } else {
   const { getMany } = await import("../../firebase/db-service.js");
-  [classes, batches] = await Promise.all([
-    getMany(COLLECTIONS.LIVE_CLASSES, { orderBy: ["startsAt", "desc"], limit: 100, useCache: false }).catch(() => []),
+
+  /* DO ALAG QUERY — EK SE KAAM NAHI CHALTA.
+
+     PEHLE EK HI THI: `startsAt desc, limit 100`. `desc` matlab sabse door
+     ki tareekh pehle. Repeat ka button ek baar me 12 hafte × 7 din = 84
+     class bana deta hai; do baar lagate hi 168 ho gayi, aur wo 100 poori
+     ki poori AAGE ki nikal aayin. Natija: "Past classes" khaali, aur
+     "recording daalna baaki hai" wali peeli patti bhi khaali — jabki ek
+     bhi recording chadhi na ho. Kuchh toota hua nahi dikhta, bas kaam
+     chup-chaap band ho jaata hai.
+
+     Ab aage ki alag, peechhe ki alag. Dono me filter aur sort ek hi field
+     (`startsAt`) par hai, isliye koi composite index nahi chahiye. */
+  const aajSubah = new Date();
+  aajSubah.setHours(0, 0, 0, 0);
+
+  const [aage, peechhe, bList] = await Promise.all([
+    getMany(COLLECTIONS.LIVE_CLASSES, {
+      where: [["startsAt", ">=", aajSubah]],
+      orderBy: ["startsAt", "asc"], limit: 200, useCache: false
+    }).catch(() => []),
+    getMany(COLLECTIONS.LIVE_CLASSES, {
+      where: [["startsAt", "<", aajSubah]],
+      orderBy: ["startsAt", "desc"], limit: 80, useCache: false
+    }).catch(() => []),
     getMany(COLLECTIONS.BATCHES, { limit: 50 }).catch(() => [])
   ]);
+  classes = [...aage, ...peechhe];
+  batches = bList;
 }
 
 const fSel = $("#lcBatch");

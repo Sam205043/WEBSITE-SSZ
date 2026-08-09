@@ -309,6 +309,23 @@ async function approve(a, modal) {
       return;
     }
 
+    /* Fees admission ke document se nahi — course ki list se.
+
+       Admission ka document website ka public form banata hai, aur usme
+       `courseFee` bhi wahi likhta hai. Console se banayi hui admission me wo
+       ₹1 bhi ho sakta hai; approve karte waqt wo "1" saamne dikhta bhi hai,
+       par jaldi me kaun dhyan deta hai. Ab number list se aata hai, aur list
+       sirf deploy se badalti hai. (Server par bhi yahi rok hai —
+       functions/index.js ka `courseFeeOf`.)
+
+       Jaanch yahan, ID banane se PEHLE — warna course galat hone par ek
+       sequence number bekaar me kharch ho jaata aur Student ID ki ginti me
+       khaali jagah reh jaati. */
+    const course = COURSES.find((c) => c.id === a.courseId);
+    if (!course) {
+      return toast.error(`Course "${a.courseId}" list me nahi hai — pehle wo theek karein.`);
+    }
+
     const year = new Date().getFullYear();
     const code = getCourseCode(a.courseId);
     const seq = await nextSequence(`students-${year}-${code}`);
@@ -325,9 +342,8 @@ async function approve(a, modal) {
        rakhna padta. Batch na mile to khaali rehta hai aur toast bata deta
        hai, taaki chup-chaap galti na chhup jaye. */
     const batch = await pickBatch(a.courseId, a.batchPref);
-    const totalFee = (a.courseFee || 0) + (a.admissionFee || 0);
-    const course = COURSES.find((c) => c.id === a.courseId);
-    const feePlan = autoPlan(totalFee, course?.durationMonths);
+    const totalFee = Math.round(Number(course.fee) || 0) + Math.round(Number(course.admissionFee) || 0);
+    const feePlan = autoPlan(totalFee, course.durationMonths);
 
     await createWithId(COLLECTIONS.STUDENTS, studentId, {
       studentId,

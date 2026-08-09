@@ -154,10 +154,28 @@ export async function mountTodayClass(mode) {
       list = [...list];
     } else {
       const { getMany } = await import("../../firebase/db-service.js");
-      /* Sirf ek field par orderBy — koi composite index nahi chahiye.
-         Chhoti list kaafi hai: aaj ki class hamesha inhi me hogi. */
+      /* AAJ SE AAGE WALI, AAGE SE PEECHHE.
+
+         PEHLE YAHAN `desc` AUR `limit: 25` THA, AUR WAHI POORI PATTI KO
+         MAAR DETA THA.
+
+         `desc` matlab sabse door wali class pehle. Aap ek baar 4 hafte ka
+         repeat lagate hain to 28 class ban jaati hain — aaj wali un 25 me
+         hoti hi nahi thi, aur patti chup-chaap banni band ho jaati. Koi
+         error nahi, koi khaali dabba nahi: bas nahi dikhti. 12 hafte ka
+         repeat (84 class) lagane par to kabhi dikhti hi nahi.
+
+         Ab aaj aadhi raat se aage wali class maangte hain, aur `asc` se —
+         yaani sabse pehle wali sabse pehle. Aaj ki class hamesha in bees me
+         sabse upar hogi, chahe aage saal bhar ka schedule bana ho.
+
+         Filter aur sort ek hi field (`startsAt`) par hai, isliye koi
+         composite index nahi chahiye. */
+      const aajSubah = new Date();
+      aajSubah.setHours(0, 0, 0, 0);
       list = await getMany(COLLECTIONS.LIVE_CLASSES, {
-        orderBy: ["startsAt", "desc"], limit: 25, useCache: false
+        where: [["startsAt", ">=", aajSubah]],
+        orderBy: ["startsAt", "asc"], limit: 20, useCache: false
       });
     }
     paintTodayClass(list);

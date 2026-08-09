@@ -93,17 +93,42 @@ const MAIL_SECRETS = [BREVO_USER, BREVO_KEY];
    >>> code ya kist ka plan galat banega. <<<
    -------------------------------------------------------------------------- */
 const COURSES = {
-  "ai-dca":           { code: "DCA", months: 6,  fee: 6000 },
-  "ai-tally-prime":   { code: "TLY", months: 3,  fee: 5000 },
-  "python-314":       { code: "PYT", months: 4,  fee: 7000 },
-  "adca":             { code: "ADC", months: 12, fee: 10000 },
-  "ai-video-editing": { code: "VID", months: 3,  fee: 6500 },
-  "icom":             { code: "ICM", months: 24, fee: 12000 },
-  "bcom":             { code: "BCM", months: 36, fee: 18000 },
-  "gst-2":            { code: "GST", months: 2,  fee: 4500 },
-  "income-tax-2025":  { code: "ITX", months: 2,  fee: 4500 },
-  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500 }
+  "ai-dca":           { code: "DCA", months: 6,  fee: 6000,  admissionFee: 0 },
+  "ai-tally-prime":   { code: "TLY", months: 3,  fee: 5000,  admissionFee: 0 },
+  "python-314":       { code: "PYT", months: 4,  fee: 7000,  admissionFee: 0 },
+  "adca":             { code: "ADC", months: 12, fee: 10000, admissionFee: 0 },
+  "ai-video-editing": { code: "VID", months: 3,  fee: 6500,  admissionFee: 0 },
+  "icom":             { code: "ICM", months: 24, fee: 12000, admissionFee: 0 },
+  "bcom":             { code: "BCM", months: 36, fee: 18000, admissionFee: 0 },
+  "gst-2":            { code: "GST", months: 2,  fee: 4500,  admissionFee: 0 },
+  "income-tax-2025":  { code: "ITX", months: 2,  fee: 4500,  admissionFee: 0 },
+  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500,  admissionFee: 0 }
 };
+
+/* --------------------------------------------------------------------------
+   Fees ka ek hi sach — YAHI table.
+
+   YE FUNCTION KYUN BANA
+
+   Admission ka document website ka form banata hai, aur usme `courseFee` aur
+   `admissionFee` bhi form hi likhta hai. Firestore rules admission banane ki
+   ijaazat har kisi ko deti hain — deni bhi chahiye, form public hai. Par
+   iska matlab ye tha ki koi bhi browser ke console se apni admission bana
+   sakta tha jisme `courseFee: 1` likha ho, aur `createPaymentLink` usi 1 ko
+   sach maan leta tha: ₹1 ka asli link, ₹1 dete hi poora course chalu, batch
+   ke saath. `totalFee` bhi hamesha ke liye 1 darj ho jaata.
+
+   Ab rakam kabhi bhi us document se nahi padhi jaati. Course ki id se yahan
+   se aati hai — aur ye table sirf deploy se badalti hai.
+
+   Course id table me na ho to 0 nahi lautate: 0 ka matlab hota "koi bakaya
+   nahi", yaani course muft. Wahan hum saaf mana kar dete hain.
+   -------------------------------------------------------------------------- */
+function courseFeeOf(courseId) {
+  const c = COURSES[String(courseId || "").trim()];
+  if (!c) return null;
+  return rupees(c.fee) + rupees(c.admissionFee);
+}
 
 /* Admission ke waqt kam se kam itna hissa — baaki kisten ban jaati hain. */
 const MIN_SHARE = 0.10;
@@ -398,6 +423,24 @@ async function pickBatch(courseId, pref) {
    Na mile to wahi "Record nahi mila" jaata hai jo galat id par jaata hai —
    taaki ye bhi pata na chale ki record maujood hai ya nahi.
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   Admin hai, aur ABHI BHI admin hai?
+
+   Rules aur Storage me `status == 'blocked'` ka pehra pehle se tha, par
+   yahan nahi. Block karna Firestore ka ek field hai, Firebase Auth ka login
+   nahi — nikale hue admin ka token zinda rehta hai. Yaani wo browser se
+   seedhe `attachPayment` bula kar kisi ka bhi payment kisi par bhi chipka
+   sakta tha, aur har student ka bakaya padh sakta tha. "Admin block karein"
+   wala button aadha hi kaam karta tha.
+
+   Rules wali shart hi yahan bhi: role admin ho AUR status 'active'. Purane
+   record me status likha hi na ho to use 'active' maana jaata hai — wahi
+   rules bhi karte hain (`get('status','active')`).
+   -------------------------------------------------------------------------- */
+function isLiveAdmin(u) {
+  return !!u && u.role === "admin" && String(u.status || "active") === "active";
+}
+
 async function assertMayPay(req, kind, id, rec) {
   const askedEmail = String(req.data?.email || "").trim().toLowerCase();
   const recEmail = String(rec.email || "").trim().toLowerCase();
@@ -410,7 +453,7 @@ async function assertMayPay(req, kind, id, rec) {
   const uid = req.auth?.uid;
   if (uid) {
     const u = (await db.collection("users").doc(uid).get()).data() || {};
-    if (u.role === "admin") return;                       // admin kisi ke liye bhi
+    if (isLiveAdmin(u)) return;                           // admin kisi ke liye bhi
     if (kind === "student" && u.studentId === id) return; // student sirf apne liye
     /* Admission ke waqt user ke paas abhi studentId hoti hi nahi, isliye
        login se admission ka koi raasta nahi — wahan email hi sabooti hai. */
@@ -477,14 +520,41 @@ exports.createPaymentLink = onCall(
     let feeKind = kind;
     if (kind === "admission" && rec.studentId) {
       const sSnap = await db.collection("students").doc(rec.studentId).get();
-      if (sSnap.exists) { feeRec = sSnap.data(); feeKind = "student"; }
+      if (sSnap.exists) {
+        feeRec = sSnap.data();
+        feeKind = "student";
+
+        /* IJAAZAT DOBARA — AUR IS BAAR USI RECORD KI JISKA HISAAB HO RAHA HAI.
+
+           Upar wali jaanch ADMISSION ke record par hui thi. Yahan hisaab
+           kisi DOOSRE record (student) se hone laga hai. Beech me ye khaai
+           reh gayi thi: nakli admission me kisi aur ka `studentId` likh kar
+           link maanga ja sakta tha — jaanch apne email par pass ho jaati
+           aur jawab me us student ka theek-theek bakaya wapas aa jaata.
+           Student ID ginti me chalte hain, yaani ek-ek karke poore institute
+           ka hisaab padha ja sakta tha. Paisa de dene par wo bhi unhi ke
+           khaate me chadhta, receipt bhi unke naam.
+
+           Isliye ab wahi jaanch student ke record par dobara hoti hai. Asli
+           student ke liye kuchh nahi badalta — claimStudentId dono jagah ek
+           hi email likhta hai. */
+        await assertMayPay(req, "student", rec.studentId, feeRec);
+      }
     }
 
     /* Asli rakam yahin tay hoti hai. Client jo bheje, uski hadd hum lagate
        hain — warna ₹10,000 ki fees ₹1 me bhar li jaati. */
+    /* Admission par rakam course ki id se aati hai, us document me likhe
+       number se NAHI — wo number client ka bheja hua hai. `courseFeeOf` ke
+       upar poori kahani likhi hai. */
     const total = feeKind === "admission"
-      ? rupees((feeRec.courseFee || 0) + (feeRec.admissionFee || 0))
+      ? courseFeeOf(feeRec.courseId)
       : rupees(feeRec.totalFee);
+
+    if (feeKind === "admission" && total === null) {
+      logger.error("payment link — course table me hai hi nahi", { id, courseId: feeRec.courseId });
+      throw new HttpsError("failed-precondition", "Is course ki fees tay nahi hai. Institute se baat karein.");
+    }
     const alreadyPaid = feeKind === "admission" ? 0 : rupees(feeRec.paidFee);
     const due = Math.max(0, total - alreadyPaid);
 
@@ -846,7 +916,18 @@ async function claimStudentId(admissionId) {
   const candidateId = `SSZ${year}${code}${String(seq).padStart(4, "0")}`;
   const batch = await pickBatch(a.courseId, a.batchPref);
 
-  const totalFee = rupees((a.courseFee || 0) + (a.admissionFee || 0));
+  /* Yahan bhi fees admission ke document se nahi — course table se. Wahi
+     document jispar client ka bas chalta hai, `totalFee` bhi tay kar deta
+     tha; ₹1 wali admission ₹1 ka poora course ban jaati thi.
+
+     Course table me na mile to student banate hi nahi. Payment park hua
+     rehta hai aur admin use "Payment jodein" se haath se laga sakta hai —
+     chup-chaap galat fees darj karne se ye kahin behtar hai. */
+  const totalFee = courseFeeOf(a.courseId);
+  if (totalFee === null) {
+    logger.error("claimStudentId — course table me nahi", { admissionId, courseId: a.courseId });
+    throw new Error(`course ${a.courseId} COURSES table me nahi hai`);
+  }
   const feePlan = buildFeePlan(totalFee, course.months);
 
   const studentId = await db.runTransaction(async (tx) => {
@@ -1146,6 +1227,26 @@ exports.gradeMcq = onCall({ cors: true }, async (req) => {
   const correct = Array.isArray(keySnap.data()?.correct) ? keySnap.data().correct : [];
   if (!correct.length) throw new HttpsError("failed-precondition", "Is paper ki answer key abhi nahi bani.");
 
+  /* PEHLE SE NUMBER LAG CHUKA HAI TO DOBARA NAHI GINTE.
+
+     Ye function isliye dobara bulaya ja sakta hai ki submit ke theek baad
+     net kat jaye — jawab chale gaye, marks nahi lage — aur student "Result
+     nikalein" dabaye. Wo halat me `marks` khaali hoti hai, aur ginti chalti
+     hai. Theek hai.
+
+     Par jaanch koi thi hi nahi, isliye ek aur raasta khula tha: aapne kisi
+     ka paper haath se badal diya — grace ke do number de diye, ya nakal
+     pakad kar shunya kiya — aur student console se `gradeMcq` dobara chala
+     kar apne aap lage purane number wapas le aata. Feedback bacha rehta,
+     isliye pata bhi na chalta ki number badla gaya hai.
+
+     Ab jispar number lag chuka hai uska record chhua hi nahi jaata — wahi
+     number wapas bhej diya jaata hai jo Firestore me likha hai. */
+  const pehleSe = sub.marks;
+  if (pehleSe !== null && pehleSe !== undefined && pehleSe !== "") {
+    return { marks: Number(pehleSe) || 0, total: correct.length, already: true };
+  }
+
   const marks = answers.reduce((t, ans, i) => t + (ans === correct[i] ? 1 : 0), 0);
 
   await subRef.set({
@@ -1157,10 +1258,19 @@ exports.gradeMcq = onCall({ cors: true }, async (req) => {
 
   logger.info("mcq grade hua", { assignmentId, studentId, marks, total: correct.length });
 
-  /* Sahi jawab yahan lautaye jaate hain taaki student apna paper dekh sake —
-     par sirf uske apne paper dene ke BAAD, aur sirf ek baar ke jawab me.
-     Firestore me key ab uske liye khuli hui nahi hai. */
-  return { marks, total: correct.length, correct, answers };
+  /* PEHLE YAHAN SE POORI ANSWER KEY WAPAS JAATI THI.
+
+     Soch ye thi ki student apna paper dekh sake. Par jawab browser tak
+     jaata hai — DevTools ke Network me saaf padha ja sakta hai. Yaani ek
+     student jaan-boojh kar galat paper deta, key nikaal kar batch ke group
+     me daal deta, aur baaki sabke 100% aa jaate. Jis taale ke liye hamne
+     `assignmentKeys` ko rules me band kiya tha, ye usi ko bagal se khol
+     deta tha.
+
+     Page is jawab me sirf `marks` istemaal karta hai (student-assignments.js
+     ka resultDialog) — isliye key hatane se dikhne me kuchh nahi badalta.
+     Paper par charcha class me hoti hai, wahi theek jagah hai. */
+  return { marks, total: correct.length };
 });
 
 /* ==========================================================================
@@ -1490,8 +1600,10 @@ exports.attachPayment = onCall({ cors: true, secrets: MAIL_SECRETS }, async (req
   if (!uid) throw new HttpsError("unauthenticated", "Pehle login karein.");
 
   const u = (await db.collection("users").doc(uid).get()).data() || {};
-  if (u.role !== "admin") {
-    logger.warn("attachPayment — admin ke bina koshish", { uid });
+  /* Sirf `role` dekhna kaafi nahi — block kiya hua admin bhi role admin hi
+     rehta hai. Dekhein `isLiveAdmin` ke upar wali tippani. */
+  if (!isLiveAdmin(u)) {
+    logger.warn("attachPayment — admin ke bina koshish", { uid, role: u.role, status: u.status });
     throw new HttpsError("permission-denied", "Sirf admin.");
   }
 

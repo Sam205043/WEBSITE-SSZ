@@ -135,6 +135,12 @@ export function renderAuthState(user) {
     return;
   }
 
+  /* Profile aayi hi nahi to role pata nahi hai — aur bina role ke chip
+     galat jagah le jaayegi (admin ko student wale dashboard par). Aise me
+     kuchh na dikhana hi theek hai: "Login" wala button waisa hi rehne
+     dete hain, aur user page kholte hi asli haal jaan lega. */
+  if (user.profileFailed) return;
+
   guestBtn.style.setProperty("display", "none", "important");
 
   const home = user.role === ROLES.ADMIN ? "adminHome" : "studentHome";

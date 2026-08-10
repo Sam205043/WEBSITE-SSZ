@@ -257,10 +257,18 @@ service cloud.firestore {
       // type na karni pade (SSZ2026ADC0004 vs SSZ2026ADCA0004 wali galti).
       // Sirf apna hi record mil sakta hai: email ki tulna request.auth.token
       // .email se hoti hai, jo login ka apna email hai aur badla nahi ja sakta.
+      // Email ki tulna HAMESHA chhote akshar me. Firebase Auth wahi roop
+      // rakhta hai jo user ne signup me type kiya tha — "Ravi@Gmail.com" —
+      // jabki student ka record hamesha chhote akshar me likha jaata hai.
+      // Seedhi barabari me ye do kabhi mel nahi khaate the, isliye poori
+      // list mana ho jaati thi: Student ID apne aap judti hi nahi, aur
+      // student ko khaali dashboard milta tha — bina kisi galti ke.
+      // (Neeche mayClaimStudentId me ye .lower() pehle se tha; yahan
+      // chhoot gaya tha.)
       allow list: if isAdmin()
         || (isSignedIn() && resource.data.uid == request.auth.uid)
         || (isSignedIn() && request.auth.token.email != null
-            && resource.data.email == request.auth.token.email);
+            && resource.data.get('email', '').lower() == request.auth.token.email.lower());
       allow write: if isAdmin();
     }
 

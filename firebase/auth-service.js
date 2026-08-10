@@ -117,8 +117,23 @@ onAuthStateChanged(auth, async (fbUser) => {
        ka kharcha nahi hai. */
     if (currentUser?.role === ROLES.STUDENT && currentUser.studentId
         && (!currentUser.photoURL || isAutoLetterAvatar(currentUser.photoURL))) {
-      await syncInstitutePhoto(fbUser, currentUser.studentId);
-      currentUser = await loadProfile(fbUser);
+      /* YE HISSA APNI GALTI KHUD SAMBHALTA HAI — AUR YAHI ZAROORI HAI.
+
+         Profile upar theek padhi ja chuki hai. Ye sirf photo ka sudhaar
+         hai. Agar iska dobara padhna gir jaye aur hum use bahar wale catch
+         tak jaane dein, to jo profile SAHI aa chuki thi wo phenk di jaati
+         hai aur user ko "jaankari nahi aa payi" wala parda dikh jaata hai
+         — sirf photo ki wajah se.
+
+         Aur ye halat rozmarra ki hai, kabhi-kabhaar ki nahi: jis student
+         ki koi photo hai hi nahi, uske liye upar wali shart HAR baar sach
+         rehti hai, isliye ye line har page par chalti hai. */
+      try {
+        await syncInstitutePhoto(fbUser, currentUser.studentId);
+        currentUser = (await loadProfile(fbUser)) || currentUser;
+      } catch (err) {
+        console.warn("[auth] photo ka sudhaar nahi ho paya:", err?.message || err);
+      }
     }
   } catch (err) {
     /* YAHAN PEHLE `role: ROLES.STUDENT` LIKHA THA, AUR WO EK ANDAZA THA.
@@ -134,8 +149,20 @@ onAuthStateChanged(auth, async (fbUser) => {
        "dobara koshish karein" kehta hai — kisi galat dashboard par
        dhakelta nahi. */
     console.error("[auth] profile load failed:", err);
+    /* Naam aur photo yahan bhi rakhte hain: navbar jaisi jagah inhe seedhe
+       padhti hai, aur `undefined` wahan "undefined — Dashboard kholein"
+       ban kar screen par aa jaata hai. */
     currentUser = fbUser
-      ? { uid: fbUser.uid, email: fbUser.email, role: null, hasProfile: false, profileFailed: true }
+      ? {
+          uid: fbUser.uid,
+          email: fbUser.email || "",
+          name: fbUser.displayName || (fbUser.email || "").split("@")[0],
+          photoURL: fbUser.photoURL || "",
+          studentId: "",
+          role: null,
+          hasProfile: false,
+          profileFailed: true
+        }
       : null;
   }
   authResolved = true;
@@ -236,8 +263,36 @@ export async function login(email, password, remember = true) {
     throw new Error("Aapka account block kar diya gaya hai. Institute se sampark karein.");
   }
 
-  await updateDoc(doc(db, COLLECTIONS.USERS, cred.user.uid), { lastLoginAt: serverTimestamp() })
-    .catch(() => { /* profile may not exist yet — non-fatal */ });
+  /* PROFILE HAI HI NAHI TO YAHIN BANA DETE HAIN.
+
+     Signup do kadam ka hai: pehle Firebase Auth me account, phir
+     `users/{uid}` ka document. Doosra kadam gir jaye — net ek pal ko kata,
+     bas itna — to account ban chuka hota hai par document nahi. Uske baad
+     student phansa rehta tha, hamesha ke liye: dobara signup karne par
+     "email pehle se registered hai" milta, aur login chal to jaata par
+     har rule `users/{uid}` dekhta hai, isliye dashboard poora khaali
+     rehta. Koi error bhi nahi dikhta — bas kuchh hota hi nahi.
+
+     Google wale raaste me ye sudhaar pehle se tha (`finishGoogleSignIn`),
+     email-password wale me nahi. Ab dono jagah hai. */
+  if (!user.hasProfile) {
+    await setDoc(doc(db, COLLECTIONS.USERS, cred.user.uid), {
+      uid: cred.user.uid,
+      name: cred.user.displayName || (cred.user.email || "").split("@")[0],
+      email: (cred.user.email || "").toLowerCase(),
+      phone: cred.user.phoneNumber || "",
+      role: ROLES.STUDENT,
+      status: USER_STATUS.ACTIVE,
+      studentId: "",
+      photoURL: cred.user.photoURL || "",
+      createdAt: serverTimestamp(),
+      lastLoginAt: serverTimestamp()
+    }).catch((err) => console.warn("[auth] chhoota hua profile nahi ban paya:", err?.code || err));
+    user = await loadProfile(cred.user);
+  } else {
+    await updateDoc(doc(db, COLLECTIONS.USERS, cred.user.uid), { lastLoginAt: serverTimestamp() })
+      .catch(() => { /* non-fatal */ });
+  }
 
   /* Jo student pehle signup kar chuka tha aur baad me uska admission approve
      hua — uska record ab mil jaayega. Isliye har login par ek baar dekhte hain. */

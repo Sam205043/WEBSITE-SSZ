@@ -699,8 +699,23 @@ exports.razorpayWebhook = onRequest(
         return res.status(200).send("parked");
       }
 
-      if (target.kind === "admission") await onAdmissionPaid(target.id, amount, paymentId);
-      else await onStudentPaid(target.id, amount, paymentId);
+      try {
+        if (target.kind === "admission") await onAdmissionPaid(target.id, amount, paymentId);
+        else await onStudentPaid(target.id, amount, paymentId);
+      } catch (err) {
+        /* Kuchh galtiyaan dobara koshish karne se kabhi theek nahi hotin —
+           jaise course ka table me na hona. Un par 500 dena sabse bura
+           jawab hai: Razorpay wahi nakaam koshish baar-baar bhejta rehta
+           hai, aur paisa aakar kahin darj hi nahi hota. Aise payment ko
+           park kar dete hain — poori jaankari ke saath, admin ko khabar
+           ke saath — theek waise hi jaise bina pehchan wale payment ko. */
+        if (err?.sszPark) {
+          logger.error("payment park kiya — aage badhne laayak nahi", { paymentId, why: err.message });
+          await parkUnmatched({ paymentId, amount, payment, link, notes });
+          return res.status(200).send("parked");
+        }
+        throw err;
+      }
 
       return res.status(200).send("ok");
     } catch (err) {
@@ -920,13 +935,21 @@ async function claimStudentId(admissionId) {
      document jispar client ka bas chalta hai, `totalFee` bhi tay kar deta
      tha; ₹1 wali admission ₹1 ka poora course ban jaati thi.
 
-     Course table me na mile to student banate hi nahi. Payment park hua
-     rehta hai aur admin use "Payment jodein" se haath se laga sakta hai —
-     chup-chaap galat fees darj karne se ye kahin behtar hai. */
+     Course table me na mile to student banate hi nahi — par PAISA GIRNE
+     NAHI DENA. Is galti par error par ek nishaani (`sszPark`) lagti hai,
+     jise dekh kar webhook payment ko `unmatchedPayments` me park kar deta
+     hai aur admin ko khabar bhej deta hai. Admin panel se "Payment jodein"
+     dabaakar wo ek click me sahi student par chadh jaata hai.
+
+     Nishaani ke bina ye error 500 ban jaata, Razorpay baar-baar wahi
+     nakaam koshish karta rehta, aur paisa bank me aakar kahin darj hi na
+     hota — na fee record, na receipt, na kisi ko khabar. */
   const totalFee = courseFeeOf(a.courseId);
   if (totalFee === null) {
     logger.error("claimStudentId — course table me nahi", { admissionId, courseId: a.courseId });
-    throw new Error(`course ${a.courseId} COURSES table me nahi hai`);
+    const e = new Error(`course ${a.courseId} COURSES table me nahi hai`);
+    e.sszPark = true;
+    throw e;
   }
   const feePlan = buildFeePlan(totalFee, course.months);
 

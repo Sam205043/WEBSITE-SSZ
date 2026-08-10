@@ -217,7 +217,16 @@ function customValid(step) {
 
   if (step === 1) flag("#genderError", !state.gender);
   if (step === 3) {
-    flag("#courseError", !state.courseId);
+    /* Sirf "kuchh chuna hai ya nahi" dekhna kaafi nahi tha.
+
+       Course id URL se bhi aa sakti hai (`?course=tally`) aur purane draft
+       se bhi. Wo id list me na ho to form aage badh jaata tha aur admission
+       ban jaati thi jisme courseName khaali aur fees shunya hoti. Uske baad
+       na "Fee bharein" ka card banta (fees 0), na admin approve kar paata —
+       aavedak ke haath sirf ek application number rehta aur aage koi
+       raasta nahi. */
+    const known = state.courseId && COURSES.some((c) => c.id === state.courseId);
+    flag("#courseError", !known);
     flag("#batchError", !state.batchPref);
   }
   if (step === 4) {
@@ -497,7 +506,16 @@ function feeCard(appNo, course, email) {
     try {
       const pay = await payMod;
       await pay.openPaymentLink("admission", appNo, amount, email);
-      goBtn.textContent = "Payment ka page khul gaya";
+      /* Button wapas chaalu — band chhodna galat tha.
+
+         Payment ka page khulne ke baad bahut kuchh ho sakta hai: student
+         wo tab band kar de, UPI fail ho jaye, ya wo alag rakam bharna
+         chahe. Button hamesha ke liye band rehne par doosra link maangne
+         ka koi raasta nahi bachta tha — aur page refresh bhi kaam nahi
+         karta, kyunki draft mit chuka hota hai aur application number
+         sirf isi screen par hota hai. */
+      goBtn.disabled = false;
+      goBtn.textContent = "Payment ka page khul gaya — dobara bharna ho to yahan dabayein";
       waitForStudentId(box, appNo, email, payMod);
     } catch (err) {
       const pay = await payMod;

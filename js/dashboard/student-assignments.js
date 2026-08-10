@@ -210,7 +210,19 @@ if (mode === "preview") {
 /* `Promise.all` yahan galat tha: assignments mana ho jaate to submissions ka
    aaya hua jawab bhi phenk diya jaata. `allSettled` se jo mil gaya wo bacha
    rehta hai. */
-  student = await data.getStudent(shell.user).catch(() => null);
+  /* PEHLE YAHAN CHUPCHAAP `null` LAUT AATA THA, AUR WAHI SABSE BURA JAWAB
+     THA. Student ka record na khul paaye to neeche wali list bhi nahi
+     chalti — aur uske saath us list wala sandesh bhi nahi chalta. Natija:
+     page bilkul saada khaali dikhta ("Abhi tak koi class nahi hui"), jaise
+     sach me kuchh hai hi nahi. Jiske paas poora record hai use ye jhooth
+     dikhta tha, bina kisi galti ke.
+
+     Ab is galti ki apni khabar jaati hai. */
+  student = await data.getStudent(shell.user).catch((err) => {
+    console.error("[student] apna record nahi khula:", err);
+    toast.warning("Aapka record abhi nahi khul paya. Thodi der baad dobara kholein — baar-baar ho to institute ko bata dein.", { duration: 9000 });
+    return null;
+  });
   if (student) {
     const settled = await Promise.allSettled([
       data.getAssignments(student), data.getSubmissions(student)

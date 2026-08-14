@@ -22,6 +22,9 @@ import { SEO, INSTITUTE } from "./config/site-data.js";
    beforeinstallprompt aakar chala jata hai aur button kabhi nahi dikhta. */
 import "./core/install.js";
 import { initI18n, loadPack, mountLangPicker } from "./core/i18n.js";
+/* Azadi offer (15–31 Aug). Ye module khud dekh leta hai ki tareekh andar
+   hai ya nahi — bahar hui to na CSS aati hai, na markup, na koi read. */
+import { initAzadi } from "./core/azadi.js";
 
 /* ==========================================================================
    Progressive enhancement flag (css/animations.css uses .no-js)
@@ -147,6 +150,10 @@ onReady(async () => {
     })
     .catch((err) => console.warn("[app] install button skip:", err.message));
   hardenExternalLinks();
+
+  /* Navbar/footer ke DOM me aane ke BAAD — dock body ke aakhir me lagta hai
+     aur footer ko upar khiskata hai, isliye footer pehle hona chahiye. */
+  initAzadi();
 
   observeReveal();
   observeCounters();

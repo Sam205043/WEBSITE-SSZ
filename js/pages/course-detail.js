@@ -10,6 +10,7 @@ import { url, param } from "../core/routes.js";
 import { setPageMeta, injectJsonLd, breadcrumbLd, currentUrl, absolute } from "../core/seo.js";
 import { courseGrid, durationLabel } from "../components/course-card.js";
 import { getCourse, activeCourses, INSTITUTE } from "../config/site-data.js";
+import { azadiOn, AZADI } from "../core/azadi.js";
 
 const LEVEL = { beginner: "Beginner friendly", intermediate: "Intermediate", advanced: "Advanced" };
 
@@ -94,26 +95,43 @@ function renderAside(c) {
     `Namaste! Mujhe "${c.title}" course ke baare me jaankari chahiye.`
   );
 
+  /* Kaata hua daam do shart par hi: course par `mrp` ho AUR offer ki
+     tareekhein chal rahi hon. Isliye 1 September ko ye khud gayab ho
+     jaayega — kisi ko yaad rakhkar hataana nahi padega. */
+  const offer = Boolean(c.mrp) && c.mrp > c.fee && azadiOn();
+
+  const points = [
+    `${durationLabel(c.durationMonths)} ka course`,
+    `${c.modules.length} modules, ${c.modules.reduce((a, m) => a + (m.topics?.length || 0), 0)} topics`,
+    "Installment ki suvidha",
+    "Notes aur assignments dashboard me",
+    "Certificate course complete hone par"
+  ];
+  if (offer) points.unshift(`${AZADI.edition} offer — 31 August tak, sirf ${AZADI.totalSeats} seats`);
+
   render($("#courseAside"),
     el("div", { class: "card-ssz enroll-card" },
       el("div", { class: "card-ssz__body" },
-        el("p", { class: "text-muted-c", style: { fontSize: ".75rem", letterSpacing: "var(--ls-caps)", textTransform: "uppercase", marginBottom: ".4rem" } }, "Course fee"),
-        el("div", { class: "enroll-card__price" }, money(c.fee)),
+        el("p", { class: "text-muted-c", style: { fontSize: ".75rem", letterSpacing: "var(--ls-caps)", textTransform: "uppercase", marginBottom: ".4rem" } },
+          offer ? "Azadi offer price" : "Course fee"),
+        el("div", { class: "enroll-card__price" },
+          offer ? el("span", { class: "enroll-card__mrp" }, money(c.mrp)) : null,
+          money(c.fee)
+        ),
         /* Admission fee alag nahi li jaati. Agar kabhi kisi course par lagayi
-           jaaye to line apne aap wapas aa jaayegi. */
+           jaaye to line apne aap wapas aa jaayegi. Offer wale course par
+           iski jagah classroom ka daam batana zyada kaam ka hai — wahi ek
+           sawaal hai jo har poochhne wala poochhta hai. */
         el("p", { class: "text-muted-c", style: { fontSize: ".8rem", marginTop: ".4rem" } },
-          c.admissionFee
-            ? `+ ${money(c.admissionFee)} admission fee · Total ${money(total)}`
-            : "Koi alag admission fee nahi"),
+          offer
+            ? `Classroom (Ara) ${money(c.feeOffline || c.fee)}` +
+              (c.mrpOffline ? ` — pehle ${money(c.mrpOffline)}` : "")
+            : c.admissionFee
+              ? `+ ${money(c.admissionFee)} admission fee · Total ${money(total)}`
+              : "Koi alag admission fee nahi"),
 
         el("ul", { class: "enroll-card__list" },
-          ...[
-            `${durationLabel(c.durationMonths)} ka course`,
-            `${c.modules.length} modules, ${c.modules.reduce((a, m) => a + (m.topics?.length || 0), 0)} topics`,
-            "Installment ki suvidha",
-            "Notes aur assignments dashboard me",
-            "Certificate course complete hone par"
-          ].map((t) => el("li", {},
+          ...points.map((t) => el("li", {},
             el("span", { html: icon("check", { size: 17 }) }),
             el("span", {}, t)
           ))

@@ -6,6 +6,13 @@
    Fees / durations are editable defaults — update them to your actual rates.
    ========================================================================== */
 
+import { azadiOn } from "../core/azadi.js";
+
+/* Offer chalu hai ya nahi — ye ek hi sawaal poora daam tay karta hai.
+   Iske bina `fee` par 1947 likha rehta aur 1 September ko haath se badalna
+   padta; bhool jaate to Azadi ka daam saal bhar chalta rehta. */
+const AZADI_LIVE = azadiOn();
+
 /* ==========================================================================
    Institute
    ========================================================================== */
@@ -67,13 +74,13 @@ export const INSTITUTE = Object.freeze({
    ========================================================================== */
 export const STATS = Object.freeze([
   { value: 5000, suffix: "+", label: "Students Trained",  icon: "users" },
-  { value: 10,   suffix: "",  label: "Career Courses",    icon: "book" },
+  { value: 11,   suffix: "",  label: "Career Courses",    icon: "book" },
   { value: 95,   suffix: "%", label: "Placement Support", icon: "trending" },
   { value: 9,    suffix: "+", label: "Years of Trust",    icon: "award" }
 ]);
 
 /* ==========================================================================
-   COURSES — 10 programmes
+   COURSES — 11 programmes
    `code` is used inside the generated Student ID (SSZ2026DCA0007)
    ========================================================================== */
 export const COURSES = Object.freeze([
@@ -347,6 +354,74 @@ export const COURSES = Object.freeze([
       { title: "Returns", topics: ["24Q & 26Q", "27Q & 27EQ", "Quarterly filing", "Correction statements"] },
       { title: "TRACES", topics: ["Form 16 / 16A", "Justification report", "Default resolution", "TCS overview"] }
     ]
+  },
+  {
+    /* --------------------------------------------------------------------
+       AI Automation Pro — 15 August 2026 ko juda 11th course.
+
+       `fee` yahan Azadi wala ONLINE daam hai aur `mrp` asli daam. Card aur
+       course page dono kaate hue daam ke saath yahi dikhate hain — par
+       SIRF tab tak jab tak offer chalu hai (js/core/azadi.js se poochha
+       jaata hai). 1 September ko bas `fee` ko 5000 kar dena aur `mrp`
+       hata dena — baaki sab apne aap purane roop me aa jaayega.
+
+       Classroom (Ara) ka daam alag hai: `feeOffline`. Form me sabko online
+       wala daam dikhta hai; classroom wale student ka total admin approve
+       karte waqt badal deta hai — waise hi jaise abhi hota hai.
+       -------------------------------------------------------------------- */
+    id: "ai-automation-pro", code: "AUT", order: 11,
+    title: "AI Automation Pro",
+    shortTitle: "AI Automation",
+    tagline: "Business ko automatic banao — bina coding ke",
+    description:
+      "Bina ek line code likhe apne kaam ko automatic banana seekhein. n8n, Google Sheets, " +
+      "Google Forms, WhatsApp aur AI ko aapas me jodkar aisi machine banayenge jo lead pakde, " +
+      "WhatsApp par jawab de, bill bheje aur har raat daily report bhej de — aap so rahe hon " +
+      "tab bhi. Dukaan, coaching, clinic aur property — sab ke liye asli project banwaya jaata " +
+      "hai, aur aakhir me yahi kaam doosron ko bechkar kamana bhi sikhaya jaata hai.",
+    category: "ai", level: "beginner",
+    /* Daam offer ke hisaab se khud badalta hai. 1 September ko is file me
+       kuch nahi karna — AZADI_LIVE jhootha hote hi asli daam laut aata hai,
+       aur `mrp` bhi tabhi barabar ho jaata hai, isliye kaata hua daam apne
+       aap gayab ho jaata hai. */
+    durationMonths: 3, fee: AZADI_LIVE ? 1947 : 5000, admissionFee: 0,
+    mrp: 5000, feeOffline: AZADI_LIVE ? 3947 : 7500, mrpOffline: 7500,
+    icon: "zap", colorFrom: "#ff9933", colorTo: "#138808",
+    isPopular: true, isNew: true, isActive: true,
+    highlights: [
+      "100% no-code — ek line bhi programming nahi",
+      "n8n, Make, Google Sheets/Forms, WhatsApp API aur AI tools",
+      "5 asli business project — dukaan, coaching, clinic, property, chatbot",
+      "Hinglish Book — chaaron module ki apni Book, ghar par revision ke liye",
+      "Automation service bechkar kamai karna bhi sikhaya jaata hai"
+    ],
+    eligibility: [
+      "Class 10 pass — coding ka koi gyaan zaroori nahi",
+      "Ek smartphone ya laptop aur internet",
+      "Apna business ho to aur behtar — usi par project banega"
+    ],
+    careerOptions: [
+      "Automation Freelancer",
+      "AI Automation Consultant",
+      "n8n Workflow Developer (no-code)",
+      "Business Process Executive",
+      "Apna automation service business"
+    ],
+    modules: [
+      { title: "Automation Ki Basics",
+        topics: ["Automation kya hai", "Trigger–Action–Result", "Google Sheets", "Google Forms",
+                 "AI se dosti", "Prompt ka R-K-F-E tarika", "Pehli automation: Form → Sheet → Email"] },
+      { title: "n8n — Automation Ka Engine",
+        topics: ["n8n free setup", "Node aur connection", "Trigger nodes", "Sheets node",
+                 "Gmail node", "IF / Switch", "Webhook aur HTTP Request", "Error handling"] },
+      { title: "AI + WhatsApp Business Machine",
+        topics: ["AI node lagana", "Message samajhna aur baantna", "Telegram bot",
+                 "WhatsApp Cloud API", "Lead machine", "Follow-up system", "Bill / invoice PDF",
+                 "Daily report"] },
+      { title: "Real Business Projects Aur Earning",
+        topics: ["Coaching institute system", "Dukaan order aur bill", "Clinic appointment",
+                 "Property lead qualification", "Website AI chatbot", "Client ko kaise bechein"] }
+    ]
   }
 ]);
 
@@ -529,7 +604,7 @@ export const ABOUT = Object.freeze({
     "aur wo bhi practical tareeke se.",
   body: [
     "Aaj hum computer fundamentals se lekar Tally, GST, Income Tax, Python aur video editing " +
-    "tak 10 career courses chalate hain. Har course me AI tools shamil hain, kyunki market ab " +
+    "tak 11 career courses chalate hain. Har course me AI tools shamil hain, kyunki market ab " +
     "sirf software janne wale nahi, AI ke saath tez kaam karne wale log maangta hai.",
 
     "Humara tareeka simple hai — chhote batches, roz lab practice, aur har topic par asli " +

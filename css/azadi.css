@@ -1,0 +1,473 @@
+/* ==========================================================================
+   Soft Skill Zone — Azadi (Independence Day) theme
+   --------------------------------------------------------------------------
+   Ye file SIRF tab load hoti hai jab offer chalu ho. js/core/azadi.js khud
+   tay karta hai (IST ki tareekh dekhkar) aur tab <html data-azadi="on">
+   lagakar ye stylesheet head me daal deta hai.
+
+   Isliye offer khatam hote hi site apne aap purane roop me aa jaati hai —
+   kisi file ko haath lagane ki zaroorat nahi. Ek bhi purana token yahan
+   permanently nahi badla gaya; sab kuch [data-azadi="on"] ke andar hai.
+
+   Dark mode bhi utna hi zaroori hai jitna light — dono ke liye alag
+   values neeche hain, warna tiranga kaali screen par chubhne lagta tha.
+   ========================================================================== */
+
+:root {
+  /* Asli tiranga ke rang (BIS ke kareeb), fill ke liye */
+  --az-saffron:      #ff9933;
+  --az-saffron-deep: #e8730c;
+  --az-green:        #138808;
+  --az-green-deep:   #0b5c05;
+  --az-navy:         #000080;
+  --az-cream:        #fff8ef;
+}
+
+/* --------------------------------------------------------------------------
+   1. Brand tokens ka Azadi roop
+   Indigo ki jagah kesari, cyan ki jagah hara. Baaki poori site inhi
+   variables se rangi hai, isliye ek jagah badalne se sab badal jaata hai.
+   -------------------------------------------------------------------------- */
+[data-azadi="on"] {
+  --brand:          var(--az-saffron-deep);
+  --brand-hover:    #c85f06;
+  --brand-solid:    var(--az-saffron-deep);
+  --brand-soft:     #fff4e6;
+  --brand-ink:      #9a4404;
+  --brand-contrast: #ffffff;
+
+  --accent:         var(--az-green);
+  --accent-soft:    #e8f7e6;
+
+  --text-brand:     #9a4404;
+
+  /* --------------------------------------------------------------------
+     Ye gradient poori site par SAFED text ke peeche lagta hai — button,
+     chip, icon, chatbot ka sir, footer ke social button, sab.
+
+     Pehli koshish me isme beech wali safed patti bhi daali thi (asli
+     jhande ki tarah). Screenshot me dikha ki us safed hisse par safed
+     text gayab ho jaata hai — "Admission ke baad aapka apna dashboard"
+     padha hi nahi ja raha tha. Jhanda dikhne ki jagah alag hai (.az-flag
+     aur patli patti); jahan text baithta hai wahan sirf kesari se hara,
+     taaki har akshar saaf padhe.
+     -------------------------------------------------------------------- */
+  --grad-brand: linear-gradient(135deg, var(--az-saffron) 0%, var(--az-saffron-deep) 42%, var(--az-green) 100%);
+  --btn-grad:       linear-gradient(180deg, #ff9f45 0%, var(--az-saffron-deep) 100%);
+  --btn-grad-hover: linear-gradient(180deg, #ffae5f 0%, #d0680a 100%);
+  --shadow-brand:   0 10px 30px rgba(232, 115, 12, .32);
+
+  --bg-hero: linear-gradient(135deg, #fff3e3 0%, #ffffff 48%, #e9f8e6 100%);
+}
+
+[data-azadi="on"][data-theme="dark"] {
+  --brand:          var(--az-saffron);
+  --brand-hover:    #ffb066;
+  --brand-solid:    var(--az-saffron);
+  --brand-soft:     rgba(255, 153, 51, .14);
+  --brand-ink:      #ffc48a;
+  --brand-contrast: #1a0d00;
+
+  --accent:         #3ec42d;
+  --accent-soft:    rgba(19, 136, 8, .18);
+
+  --text-brand:     #ffc48a;
+
+  --grad-brand: linear-gradient(135deg, #ff9933 0%, #e8730c 42%, #1aa30c 100%);
+  --btn-grad:       linear-gradient(180deg, #ffa54d 0%, #ef7d14 100%);
+  --btn-grad-hover: linear-gradient(180deg, #ffb469 0%, #ff8c1f 100%);
+  --shadow-brand:   0 10px 30px rgba(255, 153, 51, .35);
+
+  --bg-hero: linear-gradient(135deg, #251505 0%, #0b1020 50%, #06210a 100%);
+}
+
+/* text-gradient poori site par headings me hai — usse tiranga bana dete hain.
+   Dark me safed beech wali patti chamak jaati hai, isliye wahan halki. */
+[data-azadi="on"] .text-gradient {
+  background: linear-gradient(100deg, var(--az-saffron) 0%, #ffffff 45%, #6ee85c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-azadi="on"][data-theme="light"] .text-gradient {
+  background: linear-gradient(100deg, var(--az-saffron-deep) 0%, #6b7280 46%, var(--az-green) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Navbar ke neeche ek patli tiranga lakeer — sabse saaf ishara, aur
+   layout ka ek pixel bhi nahi hilta. */
+[data-azadi="on"] .ssz-navbar {
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--az-saffron) 0 33.3%, #ffffff 33.3% 66.6%, var(--az-green) 66.6% 100%) 1;
+}
+
+/* ==========================================================================
+   2. Lehraata tiranga (pure CSS + ek SVG chakra)
+   ========================================================================== */
+.az-flag {
+  position: relative;
+  width: clamp(120px, 26vw, 190px);
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(
+    180deg,
+    var(--az-saffron) 0 33.34%,
+    #ffffff 33.34% 66.67%,
+    var(--az-green) 66.67% 100%
+  );
+  animation: az-wave 3.4s ease-in-out infinite;
+  transform-origin: left center;
+  flex-shrink: 0;
+}
+/* Halki chhaya jo baayen se daayen sarakti hai — isi se kapda "lehra" lagta
+   hai. Sirf transform badalne se ye ehsaas nahi aata tha. */
+.az-flag::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, .16) 28%,
+    rgba(255, 255, 255, .22) 50%,
+    rgba(0, 0, 0, .16) 72%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  background-size: 220% 100%;
+  animation: az-shine 3.4s ease-in-out infinite;
+}
+.az-flag__chakra {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  animation: az-spin 9s linear infinite;
+}
+
+@keyframes az-wave {
+  0%, 100% { transform: perspective(400px) rotateY(0deg)   skewY(0deg); }
+  25%      { transform: perspective(400px) rotateY(-6deg)  skewY(1.2deg); }
+  50%      { transform: perspective(400px) rotateY(0deg)   skewY(0deg); }
+  75%      { transform: perspective(400px) rotateY(6deg)   skewY(-1.2deg); }
+}
+@keyframes az-shine {
+  0%, 100% { background-position: 120% 0; }
+  50%      { background-position: -20% 0; }
+}
+@keyframes az-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Jinhone motion band kar rakhi hai unke liye jhanda sthir — dikhta wahi
+   hai, hilta nahi. Accessibility ka niyam offer ke liye nahi tootta. */
+@media (prefers-reduced-motion: reduce) {
+  .az-flag, .az-flag::after, .az-flag__chakra,
+  .az-dock, .az-banner__badge { animation: none !important; }
+}
+
+/* ==========================================================================
+   3. Homepage ka Azadi banner (hero ke theek neeche)
+   ========================================================================== */
+.az-banner {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.75rem, 5vw, 3rem) 0;
+  background:
+    radial-gradient(1100px 320px at 12% 0%, rgba(255, 153, 51, .20), transparent 62%),
+    radial-gradient(1100px 320px at 88% 100%, rgba(19, 136, 8, .20), transparent 62%),
+    var(--bg-surface);
+  border-block: 1px solid var(--border-subtle);
+}
+/* Upar-neeche patli tiranga patti */
+.az-banner::before,
+.az-banner::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--az-saffron) 0 33.3%, #ffffff 33.3% 66.6%, var(--az-green) 66.6% 100%);
+}
+.az-banner::before { top: 0; }
+.az-banner::after  { bottom: 0; }
+
+.az-banner__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  align-items: center;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .az-banner__grid { grid-template-columns: auto 1fr auto; }
+}
+
+.az-banner__flagwrap {
+  display: flex;
+  justify-content: center;
+}
+
+.az-banner__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .8rem;
+  border-radius: var(--radius-full, 999px);
+  background: linear-gradient(90deg, var(--az-saffron), var(--az-green));
+  color: #fff;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: .75rem;
+  animation: az-pulse 2.6s ease-in-out infinite;
+}
+@keyframes az-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 153, 51, .45); }
+  55%      { box-shadow: 0 0 0 10px rgba(255, 153, 51, 0); }
+}
+
+.az-banner__title {
+  margin: 0 0 .5rem;
+  font-family: var(--font-display, inherit);
+  font-size: clamp(1.35rem, 3.6vw, 2.1rem);
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.az-banner__sub {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm, .9rem);
+  max-width: 54ch;
+}
+
+.az-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-bottom: .9rem;
+}
+.az-price__now {
+  font-family: var(--font-display, inherit);
+  font-size: clamp(1.9rem, 5.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--az-green);
+}
+[data-theme="dark"] .az-price__now { color: #4ade5f; }
+.az-price__was {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.az-price__off {
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  background: var(--az-saffron);
+  color: #3a1a00;
+  font-size: .75rem;
+  font-weight: 800;
+}
+.az-price__mode {
+  width: 100%;
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.az-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.1rem;
+}
+.az-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .38rem;
+  padding: .32rem .7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface-2);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.az-chip b { color: var(--text-primary); }
+.az-chip--hot {
+  border-color: transparent;
+  background: var(--danger-soft);
+  color: var(--danger-ink, var(--danger));
+}
+
+.az-banner__cta { display: flex; flex-wrap: wrap; gap: .6rem; }
+
+/* Countdown */
+.az-count {
+  display: flex;
+  gap: .45rem;
+  justify-content: center;
+}
+.az-count__cell {
+  min-width: 58px;
+  padding: .55rem .4rem;
+  border-radius: var(--radius-md, 12px);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  text-align: center;
+}
+.az-count__n {
+  display: block;
+  font-family: var(--font-display, inherit);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.az-count__l {
+  display: block;
+  margin-top: .2rem;
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Seat bar */
+.az-seats { margin-top: .9rem; max-width: 300px; margin-inline: auto; }
+.az-seats__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-surface-3);
+  overflow: hidden;
+}
+.az-seats__fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--az-saffron), var(--az-green));
+  transition: width .6s var(--ease-out, ease);
+}
+.az-seats__txt {
+  margin-top: .4rem;
+  font-size: .74rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ==========================================================================
+   4. Neeche chipka hua offer dock (har page par)
+   --------------------------------------------------------------------------
+   Upar navbar `position: fixed` hai. Uske upar aur kuch chipkane ka matlab
+   tha har page ki hero ki padding dobara ginna — ek bhi page chhoot jaata
+   to content navbar ke peeche chala jaata. Isliye dock NEECHE hai: layout
+   ka ek pixel nahi hilta, aur phone par angootha wahin rehta hai.
+   ========================================================================== */
+.az-dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: var(--z-sticky, 900);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem clamp(.75rem, 3vw, 1.25rem);
+  padding-right: 80px;                       /* FAB ke liye jagah */
+  padding-bottom: calc(.6rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(90deg, #ff9933 0%, #ffb866 18%, #ffffff 50%, #5cc94f 82%, #138808 100%);
+  border-top: 1px solid rgba(0, 0, 0, .12);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, .16);
+  animation: az-dock-in .45s var(--ease-out, cubic-bezier(.16,1,.3,1)) both;
+}
+@keyframes az-dock-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.az-dock__txt {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: .82rem;
+  line-height: 1.35;
+  color: #1a1004;
+  font-weight: 600;
+}
+.az-dock__txt b { font-weight: 800; }
+.az-dock__txt small {
+  display: block;
+  font-size: .7rem;
+  font-weight: 600;
+  color: #4a3410;
+}
+.az-dock__btn {
+  flex-shrink: 0;
+  padding: .5rem .95rem;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.az-dock__btn:hover { background: #000; color: #fff; }
+.az-dock__x {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .12);
+  color: #1a1004;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 1rem;
+}
+.az-dock__x:hover { background: rgba(0, 0, 0, .22); }
+
+@media (max-width: 420px) {
+  .az-dock { padding-right: 72px; gap: .5rem; }
+  .az-dock__txt { font-size: .76rem; }
+  .az-dock__txt small { display: none; }
+  .az-dock__btn { padding: .45rem .75rem; font-size: .75rem; }
+}
+
+/* Dock ke aane se FAB aur footer ko upar khiska dete hain, warna dono
+   uske peeche chale jaate the. */
+[data-azadi-dock="on"] .fab-stack {
+  bottom: calc(clamp(0.85rem, 3vw, 1.5rem) + env(safe-area-inset-bottom, 0px) + 58px);
+}
+[data-azadi-dock="on"] .ssz-footer {
+  padding-bottom: calc(var(--fab-reserve) + env(safe-area-inset-bottom, 0px) + 58px);
+}
+
+/* ==========================================================================
+   5. Course card / enroll card ki offer price
+   ========================================================================== */
+.course-card__mrp,
+.enroll-card__mrp {
+  display: inline-block;
+  margin-right: .4rem;
+  font-size: .85em;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.enroll-card__mrp { font-size: 1rem; margin-right: .5rem; }
+
+/* Naye course ke card par tiranga ribbon */
+.course-card.is-azadi { position: relative; }
+.course-card.is-azadi::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  z-index: 3;
+  background: linear-gradient(90deg, var(--az-saffron) 0 33.3%, #ffffff 33.3% 66.6%, var(--az-green) 66.6% 100%);
+}
+.course-card__flag--azadi {
+  background: linear-gradient(90deg, var(--az-saffron), var(--az-green)) !important;
+  color: #fff !important;
+}

@@ -12,6 +12,15 @@ import { el, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { money } from "../core/utils.js";
 import { url } from "../core/routes.js";
+import { azadiOn } from "../core/azadi.js";
+
+/* Kaata hua daam sirf tab dikhta hai jab course par `mrp` ho AUR offer ki
+   tareekhein chal rahi hon. Dono shart ek saath isliye ki offer khatam hone
+   par kaate hue daam apne aap gayab ho jaayein — kisi ko yaad rakhkar
+   hataana na pade. `mrp` ka style bhi css/azadi.css me hai, jo offer band
+   hote hi load hona band ho jaati hai; isliye markup aur style hamesha
+   saath-saath aate-jaate hain. */
+const showOffer = (c) => Boolean(c.mrp) && c.mrp > c.fee && azadiOn();
 
 const LEVEL_LABEL = {
   beginner: "Beginner friendly",
@@ -32,8 +41,10 @@ export function durationLabel(months) {
  * @returns {HTMLElement}
  */
 export function courseCard(course) {
+  const offer = showOffer(course);
+
   const card = el("a", {
-    class: "course-card",
+    class: `course-card${offer ? " is-azadi" : ""}`,
     href: url("courseDetail", { id: course.id }),
     "aria-label": `${course.title} — details dekhein`
   });
@@ -47,6 +58,7 @@ export function courseCard(course) {
   top.appendChild(el("span", { class: "course-card__icon", html: icon(course.icon, { size: 21 }) }));
 
   const flags = el("div", { class: "course-card__flags" });
+  if (offer) flags.appendChild(el("span", { class: "course-card__flag course-card__flag--azadi" }, "Azadi Offer"));
   if (course.isNew)     flags.appendChild(el("span", { class: "course-card__flag" }, "New"));
   if (course.isPopular) flags.appendChild(el("span", { class: "course-card__flag" }, "Popular"));
   if (flags.children.length) top.appendChild(flags);
@@ -67,8 +79,9 @@ export function courseCard(course) {
 
   const foot = el("div", { class: "course-card__foot" });
   foot.appendChild(el("div", { class: "course-card__fee" },
+    offer ? el("span", { class: "course-card__mrp" }, money(course.mrp)) : null,
     money(course.fee),
-    el("small", {}, "Full course fee")
+    el("small", {}, offer ? "Azadi offer price" : "Full course fee")
   ));
   foot.appendChild(el("span", {
     class: "btn-ssz btn-secondary-ssz btn-sm-ssz",

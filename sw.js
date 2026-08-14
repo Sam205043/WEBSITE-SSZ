@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v107";
+const VERSION = "ssz-v108";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -83,6 +83,10 @@ const PRECACHE = [
      ai.js khud bhi yahan chahiye: chatbot.js use seedhe import karta hai,
      isliye wo na mile to poora chatbot hi load nahi hota. */
   "css/chat.css",
+  /* Azadi ki CSS bhi shell me — offer ke dinon me offline khulne par site
+     bina tirange ke aadhi-adhoori dikhti thi. 1 September ke baad ye file
+     maangi hi nahi jaati, isliye padi rehne se koi nuksaan nahi. */
+  "css/azadi.css",
   "js/chat/chatbot.js",
   "js/chat/knowledge.js",
   "js/chat/ai.js",

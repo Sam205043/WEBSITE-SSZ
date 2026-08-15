@@ -53,6 +53,14 @@ export const AZADI = Object.freeze({
 
   totalSeats: 80,
 
+  /* Seat wali line tabhi dikhti hai jab itni seat bhar chuki hon.
+     Launch ke din "0 / 80 bhar gayin" likha aata tha — jo bechne ke bajaye
+     ulta nuksaan karta hai: naye aane wale ko lagta hai koi juda hi nahi.
+     Khaali ginti chhupa dena jhooth nahi hai; jhooth tab hota jab hum koi
+     banaya hua number likh dete. 5 par pahunchte hi line khud aa jayegi,
+     aur tab wahi ginti bhee ka kaam karegi. */
+  seatBarMin: 5,
+
   /* 80th Independence Day: 1947 pehla, isliye 2026 me 80th. */
   edition: "80th Independence Day"
 });
@@ -277,6 +285,7 @@ async function paintSeats() {
 
   const taken = await seatsTaken();
   if (taken === null) return;                  // ginti pata nahi — chhupa hi rehne do
+  if (taken < AZADI.seatBarMin) return;        // itni kam ginti dikhane se fayda nahi
 
   const left = Math.max(0, AZADI.totalSeats - taken);
   const pct  = Math.min(100, Math.round((taken / AZADI.totalSeats) * 100));

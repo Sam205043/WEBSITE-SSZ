@@ -17,6 +17,7 @@ import {
   INSTITUTE, STATS, COURSES, COURSE_CATEGORIES, FEATURES,
   JOURNEY, TESTIMONIALS, TOOLS, HERO_BADGES, coursesByCategory
 } from "../config/site-data.js";
+import { azadiOn, AZADI } from "../core/azadi.js";
 
 /* ==========================================================================
    Hero
@@ -36,8 +37,35 @@ function renderHeroVisual() {
   const box = $("#heroCourses");
   if (!box) return;
 
-  // Three most popular courses as a glass stack
-  const picks = COURSES.filter((c) => c.isPopular).slice(0, 3);
+  /* --------------------------------------------------------------------
+     Teen course, glass wale stack me — aur offer ke dinon me naya course
+     sabse upar.
+
+     JAGAH YAHI KYUN CHUNI
+
+     Sabse pehla sawaal ye tha ki ₹1,947 wale course ko neeche wali course
+     list me pehle number par rakha jaye. Wo galat hota. Us list ka pehla
+     card poori list ka DAAM KA PAIMANA ban jaata hai — uske theek neeche
+     ADCA ₹10,000 aur B.Com ₹18,000 dekhkar aane wale ko wo mehenge lagne
+     lagte, chahe hain nahi. August admission ka mahina hai aur ADCA/DCA
+     hi asli kamai hain; unhe pehli hi nazar me mehenga dikhana mehenga
+     pad jaata.
+
+     Ye card us museebat se bacha hua hai: isme sirf naam, mahine aur
+     module dikhte hain — DAAM DIKHTA HI NAHI. Isliye sabse upar wali
+     jagah bhi mil jaati hai aur daam ka paimana bhi nahi bigadta.
+
+     Aur ye sirf offer ke dinon me hota hai. 1 September ko azadiOn()
+     jhootha ho jaayega aur ye list apne aap purani (sirf popular waali)
+     ho jaayegi — yahan kuch badalna nahi padega.
+     -------------------------------------------------------------------- */
+  const offerPick = azadiOn()
+    ? COURSES.find((c) => c.id === AZADI.courseId && c.isActive)
+    : null;
+
+  const picks = [offerPick, ...COURSES.filter((c) => c.isPopular && c.id !== offerPick?.id)]
+    .filter(Boolean)
+    .slice(0, 3);
 
   /* Poori line link hai — sirf "Open" wala nishan nahi.
 
@@ -61,7 +89,11 @@ function renderHeroVisual() {
         el("span", { class: "hero-card__title", style: { display: "block" } }, c.title),
         el("span", { class: "hero-card__sub" }, `${c.durationMonths} months · ${c.modules.length} modules`)
       ),
-      el("span", { class: "badge-ssz badge-success", style: { marginLeft: "auto" } }, "Open"),
+      /* Offer wale course par "Open" ki jagah "Offer" — nazar wahin jaati
+         hai, par daam phir bhi kahin nahi likha. */
+      c.id === offerPick?.id
+        ? el("span", { class: "badge-ssz badge-warning", style: { marginLeft: "auto" } }, "Offer")
+        : el("span", { class: "badge-ssz badge-success", style: { marginLeft: "auto" } }, "Open"),
       el("span", { class: "hero-card__go", "aria-hidden": "true", html: icon("chevronRight", { size: 16 }) })
     )
   ));

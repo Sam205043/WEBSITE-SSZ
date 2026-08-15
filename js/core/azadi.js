@@ -1,36 +1,47 @@
 /* ==========================================================================
-   Soft Skill Zone — Azadi offer (15 Aug se 31 Aug)
+   Soft Skill Zone — Azadi offer
    --------------------------------------------------------------------------
-   Ek hi jagah se poora offer chalta hai: tareekh, daam, seat aur dikhawa.
+   DO ALAG KHIDKIYAN, EK HI JAGAH
 
-   KYUN AISE
+   Pehle yahan ek hi khidki thi: 15 se 31 August. Usme daam aur tiranga
+   dono bandhe the — yaani tiranga hataane ka matlab hota daam bhi hataana.
+   Ye galat jodi thi.
 
-   Sabse aasaan raasta hota ki har page ka HTML badal kar tiranga banner
-   chipka dete, aur 1 September ko sab wapas hataate. Wahi galti aksar hoti
-   hai — ek page hataana bhool jaate ho aur September me bhi "Azadi Offer"
-   chamakta rehta hai, ya us din subah 6 baje uthkar site badalni padti hai.
+   Tiranga ek DIN ki cheez hai — 15 August. Poore mahine lehraata rahe to
+   wo saja nahi, wallpaper ban jaata hai. Offer alag baat hai: use poora
+   mahina chalna chahiye, warna promotion ka time hi nahi milta.
 
-   Isliye yahan sirf DO tareekhein hain. Unke beech ho to sab kuch apne aap
-   on, unke bahar sab kuch apne aap off — CSS bhi tabhi download hoti hai.
-   1 September ko koi kaam nahi karna padega.
+   Isliye ab do khidkiyan hain:
+
+     TIRANGA  15 Aug 00:00 se 16 Aug 00:00 tak — sirf dikhawa: rang,
+              jhanda, navbar ki patti, banner ki teen-rangi lakeerein.
+
+     OFFER    15 Aug 00:00 se 1 Sep 00:00 tak  — daam Rs 1,947, neeche wali
+              patti, kaata hua daam, "80 seats", countdown.
+
+   16 August ko site apne aap purane indigo roop me aa jaati hai, par offer
+   waise ka waisa chalta rehta hai — bas apne asli rangon me. 1 September ko
+   wo bhi apne aap band. Dono me se kisi din kuch karna nahi padta.
 
    TAREEKH KA HISAAB IST ME
 
-   Browser ki apni ghadi user ke phone ki timezone par chalti hai. Agar
-   koi student Dubai me baitha ho to uske liye offer aadhi raat se pehle
-   ya baad me shuru hota — Ara ki aadhi raat se nahi. Isliye dono tareekhein
-   +05:30 ke saath likhi hain: offer poori duniya me theek us pal chalu
-   hoga jab Ara me 15 August ki raat 12 bajegi.
+   Browser ki ghadi user ke phone ki timezone par chalti hai. Dubai me baithe
+   student ke liye aadhi raat Ara ki aadhi raat nahi hoti. Isliye saari
+   tareekhein +05:30 ke saath likhi hain — sab kuch theek us pal badlega jab
+   Ara me 12 bajenge.
    ========================================================================== */
 
 import { asset, url } from "./routes.js";
 
 /* ---------------- Offer ki poori jaankari ---------------- */
 export const AZADI = Object.freeze({
-  /* 15 Aug 2026, raat 12:00 IST se */
-  startsAt: new Date("2026-08-15T00:00:00+05:30").getTime(),
-  /* 1 Sep 2026 raat 12:00 IST par band — yaani 31 Aug ki poori raat tak */
-  endsAt:   new Date("2026-09-01T00:00:00+05:30").getTime(),
+  /* Tiranga — sirf 15 August ka din */
+  themeStartsAt: new Date("2026-08-15T00:00:00+05:30").getTime(),
+  themeEndsAt:   new Date("2026-08-16T00:00:00+05:30").getTime(),
+
+  /* Offer — 15 se 31 August (1 Sep ki raat 12 baje band) */
+  offerStartsAt: new Date("2026-08-15T00:00:00+05:30").getTime(),
+  offerEndsAt:   new Date("2026-09-01T00:00:00+05:30").getTime(),
 
   courseId:   "ai-automation-pro",
   courseName: "AI Automation Pro",
@@ -46,18 +57,25 @@ export const AZADI = Object.freeze({
   edition: "80th Independence Day"
 });
 
-/* --------------------------------------------------------------------------
-   Kya offer abhi chal raha hai?
-   Har jagah yahi ek function poochha jaata hai — course card, course page
-   aur banner sab. Isliye teeno kabhi aapas me alag nahi ho sakte.
-   -------------------------------------------------------------------------- */
+/**
+ * Kya OFFER abhi chal raha hai?
+ *
+ * Naam jaan-boojh kar wahi rakha hai jo pehle tha, kyunki site-data.js,
+ * course-card.js aur course-detail.js — teenon DAAM ke liye ise poochhte
+ * hain, aur daam offer se bandha hai, tirange se nahi.
+ */
 export function azadiOn(now = Date.now()) {
-  return now >= AZADI.startsAt && now < AZADI.endsAt;
+  return now >= AZADI.offerStartsAt && now < AZADI.offerEndsAt;
+}
+
+/** Kya TIRANGA (sirf dikhawa) abhi chalu hai? */
+export function tirangaOn(now = Date.now()) {
+  return now >= AZADI.themeStartsAt && now < AZADI.themeEndsAt;
 }
 
 /** Offer khatam hone me kitna time bacha (ms). Chalu na ho to 0. */
 export function azadiLeft(now = Date.now()) {
-  return azadiOn(now) ? AZADI.endsAt - now : 0;
+  return azadiOn(now) ? AZADI.offerEndsAt - now : 0;
 }
 
 /* ==========================================================================
@@ -66,13 +84,13 @@ export function azadiLeft(now = Date.now()) {
    Ye Firestore ke `settings/azadi` document se aati hai — field ka naam
    `seatsTaken` (number). Admin console se badal dena kaafi hai.
 
-   Admissions ki collection se seedha ginti NAHI karte: wo collection
-   public nahi hai (aur honi bhi nahi chahiye — usme students ke phone,
-   pata aur documents hain). `settings` pehle se sabke liye padhne yogya
-   hai, isliye ginti wahin se aati hai.
+   Admissions ki collection se seedha ginti NAHI karte: wo collection public
+   nahi hai (aur honi bhi nahi chahiye — usme students ke phone, pata aur
+   documents hain). `settings` pehle se sabke liye padhne yogya hai, isliye
+   ginti wahin se aati hai.
 
-   Document na ho to seat wali line chhup jaati hai — galat ginti dikhane
-   se behtar hai kuch na dikhana.
+   Document na ho to seat wali line chhup jaati hai — galat ginti dikhane se
+   behtar hai kuch na dikhana.
    -------------------------------------------------------------------------- */
 async function seatsTaken() {
   try {
@@ -123,7 +141,7 @@ function breakUp(ms) {
 /* ==========================================================================
    Homepage ka banner
    ========================================================================== */
-function buildBanner() {
+function buildBanner(tiranga) {
   const off = Math.round((1 - AZADI.priceOnline / AZADI.mrpOnline) * 100);
 
   const sec = document.createElement("section");
@@ -131,12 +149,15 @@ function buildBanner() {
   sec.id = "azadiBanner";
   sec.innerHTML = `
     <div class="ssz-container">
-      <div class="az-banner__grid">
+      <div class="az-banner__grid${tiranga ? "" : " az-banner__grid--noflag"}">
 
-        <div class="az-banner__flagwrap" data-az-flag></div>
+        ${tiranga ? '<div class="az-banner__flagwrap" data-az-flag></div>' : ""}
 
         <div>
-          <span class="az-banner__badge">${AZADI.edition} &middot; 15&ndash;31 August</span>
+          <span class="az-banner__badge">${
+            tiranga ? `${AZADI.edition} &middot; 15&ndash;31 August`
+                    : "Azadi Offer &middot; 31 August tak"
+          }</span>
           <h2 class="az-banner__title">
             Desh aazad hua tha. Ab apne kaam ko bhi <span class="text-gradient">aazad karein</span>.
           </h2>
@@ -182,7 +203,7 @@ function buildBanner() {
       </div>
     </div>`;
 
-  sec.querySelector("[data-az-flag]").appendChild(flagNode());
+  if (tiranga) sec.querySelector("[data-az-flag]").appendChild(flagNode());
   return sec;
 }
 
@@ -195,14 +216,14 @@ function dockDismissed() {
   try { return sessionStorage.getItem(DOCK_DISMISS_KEY) === "1"; } catch { return false; }
 }
 
-function buildDock() {
+function buildDock(tiranga) {
   const bar = document.createElement("div");
   bar.className = "az-dock";
   bar.id = "azadiDock";
   bar.innerHTML = `
     <span class="az-dock__txt">
       <b>Azadi Offer &middot; ${AZADI.courseName} ${money(AZADI.priceOnline)}</b>
-      <small>${AZADI.edition} &middot; sirf ${AZADI.totalSeats} seats &middot; 31 August tak</small>
+      <small>${tiranga ? AZADI.edition + " &middot; " : ""}sirf ${AZADI.totalSeats} seats &middot; 31 August tak</small>
     </span>
     <a class="az-dock__btn" href="${url("courseDetail", { id: AZADI.courseId })}">Dekhein</a>
     <button class="az-dock__x" type="button" aria-label="Ye patti band karein">&times;</button>`;
@@ -283,25 +304,30 @@ function addCss() {
 }
 
 /**
- * app.js har page par ise bulata hai. Offer band ho to ye kuch nahi karta —
- * na CSS, na markup, na Firestore ka ek bhi read.
+ * app.js har page par ise bulata hai.
+ *
+ * Offer band ho to ye kuch nahi karta — na CSS, na markup, na Firestore ka
+ * ek bhi read. Offer chalu par tiranga khatam ho chuka ho to sab kuch dikhta
+ * hai, bas site ke apne indigo rangon me: <html data-azadi="offer">.
  */
 export function initAzadi() {
   if (!azadiOn()) return false;
 
-  document.documentElement.setAttribute("data-azadi", "on");
+  const tiranga = tirangaOn();
+
+  document.documentElement.setAttribute("data-azadi", tiranga ? "on" : "offer");
   addCss();
 
   /* Dock har page par */
   if (!dockDismissed() && !document.getElementById("azadiDock")) {
-    document.body.appendChild(buildDock());
+    document.body.appendChild(buildDock(tiranga));
     document.documentElement.setAttribute("data-azadi-dock", "on");
   }
 
   /* Banner sirf homepage par, hero ke theek neeche */
   const hero = document.querySelector("main#main > .hero");
   if (hero && !document.getElementById("azadiBanner")) {
-    const banner = buildBanner();
+    const banner = buildBanner(tiranga);
     hero.insertAdjacentElement("afterend", banner);
 
     startCountdown(banner.querySelector("#azCount"));

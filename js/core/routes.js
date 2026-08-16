@@ -77,7 +77,13 @@ export const ROUTES = Object.freeze({
   toolFormula:    "pages/tools/formula-explainer.html",
   toolExcelErr:   "pages/tools/excel-errors.html",
   toolExcelData:  "pages/tools/excel-datasets.html",
-  toolMiniExcel:  "pages/tools/mini-excel.html"
+  toolMiniExcel:  "pages/tools/mini-excel.html",
+
+  /* AI Automation Pro ke free tools */
+  toolAiToolkit:  "free-tools/student-toolkit.html",
+  toolWaMessages: "free-tools/whatsapp-message-builder.html",
+  toolAutoCheck:  "free-tools/automation-check.html",
+  toolQuotation:  "free-tools/quotation.html"
 });
 
 /**

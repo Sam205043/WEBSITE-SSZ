@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aapke Business Mein Kya Automatic Ho Sakta Hai? — Soft Skill Zone, Ara</title>
+<style>
+  :root{--navy:#12233F;--navy2:#1B3560;--saf:#E8752A;--grn:#1E7A4C;--wa:#25D366;
+        --ink:#1C2430;--mut:#6B7683;--line:#E2E7EE;--bg:#F4F6FA}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  header{background:var(--navy);color:#fff;padding:18px 0 16px}
+  .hrow{max-width:860px;margin:0 auto;padding:0 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--saf),#F0A150);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#12233F;flex:0 0 auto}
+  .htext h1{font-size:19px;font-weight:700}
+  .htext p{font-size:12.5px;color:#B9C6DC;margin-top:2px}
+  .hcta{margin-left:auto;font-size:12.5px;color:#B9C6DC;text-align:right}
+  .hcta b{color:#fff;display:block;font-size:14px}
+  .hero{background:linear-gradient(135deg,var(--navy2),#0E1B31);color:#fff;padding:30px 14px 32px;text-align:center}
+  .hero h2{font-size:25px;font-weight:800;line-height:1.3;max-width:640px;margin:0 auto}
+  .hero p{color:#C3D0E4;font-size:15px;margin-top:10px;max-width:600px;margin-left:auto;margin-right:auto}
+  .hero .mini{margin-top:14px;font-size:13px;color:#93A6C4}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 14px 60px}
+  .q{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .q h3{font-size:16px;font-weight:700;margin-bottom:12px}
+  .q h3 i{font-style:normal;color:var(--saf);margin-right:7px}
+  .opts{display:grid;gap:8px}
+  .opt{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:11px 13px;cursor:pointer;font-size:14.5px;background:#fff;transition:.12s}
+  .opt:hover{border-color:#B9C6DC;background:#FAFBFD}
+  .opt.on{border-color:var(--navy2);background:#EEF3FB;box-shadow:0 0 0 2px rgba(27,53,96,.10)}
+  .dot{width:17px;height:17px;border-radius:50%;border:2px solid #C7D0DC;flex:0 0 auto}
+  .opt.on .dot{border-color:var(--navy2);background:var(--navy2);box-shadow:inset 0 0 0 3px #fff}
+  .go{width:100%;padding:16px;border:0;border-radius:12px;background:var(--saf);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:6px}
+  .go:disabled{background:#C7D0DC;cursor:not-allowed}
+  .warnq{font-size:13px;color:#B0521C;text-align:center;margin-top:10px}
+  #res{display:none;margin-top:22px}
+  .score{background:linear-gradient(135deg,var(--navy2),#0E1B31);color:#fff;border-radius:14px;padding:24px 18px;text-align:center}
+  .score .big{font-size:52px;font-weight:800;line-height:1;color:#FFB877}
+  .score .lbl{font-size:14px;color:#C3D0E4;margin-top:8px}
+  .score .sub{margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.15);font-size:15px;color:#E3EAF5}
+  .score .sub b{color:#fff;font-size:19px}
+  .sect{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+  .sect h3{font-size:15px;font-weight:700;color:var(--navy2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+  .item{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+  .item:first-of-type{border-top:0;padding-top:0}
+  .num{width:26px;height:26px;border-radius:7px;background:var(--navy);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .item .tx b{font-size:15px}
+  .item .tx p{font-size:13.8px;color:var(--mut);margin-top:3px}
+  .item .tx .sv{font-size:12.5px;color:var(--grn);font-weight:700;margin-top:4px}
+  .cta{background:#fff;border:2px solid var(--saf);border-radius:14px;padding:20px 18px;margin-top:16px;text-align:center}
+  .cta h3{font-size:19px;font-weight:800;color:var(--navy)}
+  .cta p{font-size:14.5px;color:var(--mut);margin-top:8px}
+  .cta .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .btn{border:0;border-radius:10px;padding:13px 22px;font-weight:700;cursor:pointer;font-size:15px;text-decoration:none;display:inline-block;font-family:inherit}
+  .btn-w{background:var(--wa);color:#fff}
+  .btn-c{background:var(--navy);color:#fff}
+  .btn-o{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .price{margin-top:14px;font-size:13.5px;color:var(--mut)}
+  .price b{color:var(--ink)}
+  .again{text-align:center;margin-top:16px}
+  .again button{background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer;font-size:14px;font-family:inherit}
+  .note{font-size:12.5px;color:var(--mut);text-align:center;margin-top:14px}
+  footer{margin-top:30px;padding:18px 14px;background:var(--navy);color:#B9C6DC;font-size:13px;text-align:center}
+  footer b{color:#fff}footer a{color:#F0A150;text-decoration:none}
+  @media(max-width:560px){.hcta{margin-left:0;text-align:left;width:100%}.hero h2{font-size:21px}.score .big{font-size:44px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">SSZ</div>
+    <div class="htext"><h1>Soft Skill Zone</h1><p>Computer &amp; AI Training — Ara, Bihar</p></div>
+    <div class="hcta"><b>6202856897</b>softskillzone.in</div>
+  </div>
+</header>
+
+<div class="hero">
+  <h2>Aapke business mein har mahine kitna time bach sakta hai?</h2>
+  <p>8 small sawaal. 1 minute. Aakhir mein pata chalega ki roz ka kaunsa kaam computer khud kar sakta hai — aur usse kitne ghante bachenge.</p>
+  <div class="mini">Free hai. Koi login nahi. Kuch download nahi.</div>
+</div>
+
+<div class="wrap">
+  <div id="form"></div>
+  <button class="go" id="go" disabled>Result dekhiye</button>
+  <div class="warnq" id="warn"></div>
+
+  <div id="res">
+    <div class="score">
+      <div class="big" id="hrs">0</div>
+      <div class="lbl">ghante har mahine bach sakte hain</div>
+      <div class="sub">Yaani saal mein <b id="yhr">0 ghante</b> — aur agar aapke time ka rate sirf <b id="rate">Rs 150</b> ghanta maane, to <b id="money">Rs 0</b> saal ka.</div>
+    </div>
+
+    <div class="sect">
+      <h3>Sabse pehle ye 5 cheez automatic kariye</h3>
+      <div id="recs"></div>
+    </div>
+
+    <div class="sect">
+      <h3>Abhi aapka system kahan khada hai</h3>
+      <div id="level"></div>
+    </div>
+
+    <div class="cta">
+      <h3>Ye sab aap khud bana sakte hain</h3>
+      <p>Soft Skill Zone ka <b>AI Automation Pro</b> course — 3 mahine, 36 class, bina coding. Isme aap apne hi business ka system banate hain. Class 10 pass se shuru.</p>
+      <div class="row">
+        <a class="btn btn-w" id="wa" target="_blank" href="#">WhatsApp par baat kariye</a>
+        <a class="btn btn-c" target="_blank" href="https://softskillzone.in/pages/contact.html">Free demo book kariye</a>
+        <a class="btn btn-o" href="tel:6202856897">Call — 6202856897</a>
+      </div>
+      <div class="price" id="price">Online batch <b>Rs 5,000</b> &nbsp;|&nbsp; Classroom batch <b>Rs 7,500</b> &nbsp;|&nbsp; Ek demo class free hai.</div>
+    </div>
+
+    <div class="again"><button id="again">Dobara bhariye</button></div>
+    <div class="note">Ye ginti aam business ke hisaab se lagayi gayi hai. Aapke yahan kaam kam-zyada ho sakta hai — sahi ginti demo mein baith kar nikal denge.</div>
+  </div>
+</div>
+
+<footer>
+  <b>Soft Skill Zone</b> — Near Gym Town, Pakri, Ara<br>
+  Call / WhatsApp: <b>6202856897</b> &nbsp;|&nbsp; <a href="https://softskillzone.in">softskillzone.in</a> &nbsp;|&nbsp; info@softskillzone.in
+</footer>
+
+<script>
+const Q=[
+{k:"biz",q:"Aapka business kis tarah ka hai?",o:[
+  {t:"Shop / store",v:0,tag:"shop"},{t:"Coaching / school / institute",v:0,tag:"coaching"},
+  {t:"Clinic / doctor / lab",v:0,tag:"clinic"},{t:"Property / finance / insurance",v:0,tag:"property"},
+  {t:"Service — parlour, repair, gym, catering",v:0,tag:"service"}]},
+{k:"enq",q:"Roz kitni enquiry ya naye customer aate hain?",o:[
+  {t:"5 se kam",v:2},{t:"5 se 15",v:5},{t:"15 se 30",v:9},{t:"30 se zyada",v:14}]},
+{k:"rec",q:"Enquiry aap likhte kahan hain?",o:[
+  {t:"Kahin nahi — yaad rakhta hoon",v:8},{t:"Copy ya register mein",v:6},
+  {t:"WhatsApp mein hi pada rehta hai",v:5},{t:"Excel ya Google Sheet mein",v:2}]},
+{k:"fol",q:"Jo customer aakar chala gaya, uska follow-up kaise hota hai?",o:[
+  {t:"Ho hi nahi paata",v:9},{t:"Jab yaad aata hai tab",v:7},
+  {t:"Kabhi-kabhi list dekh kar",v:4},{t:"Roz fix time par",v:1}]},
+{k:"rem",q:"Reminder (fees, appointment, delivery) kaise bhejte hain?",o:[
+  {t:"Bhejte hi nahi",v:8},{t:"Ek-ek karke WhatsApp par type karta hoon",v:9},
+  {t:"Sabko ek saath broadcast karta hoon",v:4},{t:"Koi tool laga hai",v:1}]},
+{k:"bil",q:"Bill ya receipt kaise banti hai?",o:[
+  {t:"Haath se, copy pe",v:7},{t:"Deta hi nahi",v:5},
+  {t:"Computer se, par har baar type karna padta hai",v:4},{t:"Software se apne aap",v:1}]},
+{k:"rep",q:"Din bhar ka hisaab ya report kaise banti hai?",o:[
+  {t:"Banti hi nahi",v:6},{t:"Raat ko baith kar khud jodta hoon",v:7},
+  {t:"Hafte mein ek baar",v:4},{t:"Apne aap ban jaati hai",v:1}]},
+{k:"stf",q:"Kaam sambhalne wale kitne log hain?",o:[
+  {t:"Sirf main",v:8},{t:"Main aur 1-2 log",v:6},{t:"3 se 5 log",v:4},{t:"5 se zyada",v:3}]}
+];
+
+const REC={
+ lead:{t:"Enquiry apne aap list mein",p:"Website ya form se aayi har enquiry seedha ek Sheet mein chadh jaye — naam, mobile, kya chahiye, date. Kuch likhna nahi padega. Ek bhi customer chhootega nahi.",s:"Bachat: 6-10 ghanta mahina"},
+ ack:{t:"Turant jawab wala message",p:"Enquiry aate hi customer ko apne aap message chala jaye — 'aapki baat mil gayi, hum 24 ghante mein call karenge'. Customer ko lagta hai kaam serious hai.",s:"Bachat: 4-6 ghanta mahina"},
+ fol:{t:"Follow-up ki apne aap yaad",p:"1 din, 3 din aur 7 din baad message khud chala jaye. Jo customer bhool jaate the, unme se kai wapas aate hain.",s:"Bachat: 8-12 ghanta mahina"},
+ rem:{t:"Reminder bina type kiye",p:"Fees ki date, appointment ka time, delivery — sabka message apne aap ek din pehle chala jaye. Ek-ek naam type karne ki zaroorat nahi.",s:"Bachat: 8-14 ghanta mahina"},
+ bil:{t:"Bill aur receipt apne aap",p:"Sheet mein entry kariye — bill ka PDF ban kar customer ke WhatsApp par chala jaye aur Drive mein sambhal bhi jaye.",s:"Bachat: 6-10 ghanta mahina"},
+ rep:{t:"Roz ki report bina jode",p:"Har raat aapke WhatsApp par aaj ka poora hisaab — kitni enquiry, kitni sale, kitna baaki. Baith kar jodna band.",s:"Bachat: 5-8 ghanta mahina"},
+ bot:{t:"Website par jawab dene wala chatbot",p:"Raat ko bhi koi puchhe — rate kya hai, time kya hai, jagah kahan hai — bot jawab de deta hai aur uska number aapke paas aa jata hai.",s:"Bachat: 5-9 ghanta mahina"},
+ rev:{t:"Review aur feedback maangna",p:"Kaam ke 2 din baad apne aap feedback ka message. Achha jawab aaya to Google review ka link chala jaye. Google par naam upar aata hai.",s:"Bachat: 3-5 ghanta mahina"},
+ rec:{t:"Ek hi jagah saara record",p:"Customer, order aur payment — sab ek Sheet mein. Kisi bhi naam ko search kariye, poori kahani samne.",s:"Bachat: 5-8 ghanta mahina"},
+ dup:{t:"Ek hi customer ko do baar nahi",p:"Number check karke duplicate hat jata hai. Ek hi aadmi ko do baar message jaane wali dikkat band.",s:"Bachat: 2-4 ghanta mahina"}
+};
+
+/* Azadi offer 31 August 2026 tak — uske baad apne aap normal rate dikhega */
+if(new Date() <= new Date(2026,7,31,23,59)){
+  document.getElementById('price').innerHTML=
+    'AZADI OFFER (31 August tak): Online <b>Rs 1,947</b> <s style="color:#98A2AE">Rs 5,000</s> &nbsp;|&nbsp; Classroom <b>Rs 3,947</b> <s style="color:#98A2AE">Rs 7,500</s> &nbsp;|&nbsp; Ek demo class free hai.';
+}
+
+let A={};
+const fm=document.getElementById('form');
+Q.forEach((q,qi)=>{
+  const d=document.createElement('div');d.className='q';
+  d.innerHTML='<h3><i>'+(qi+1)+'.</i>'+q.q+'</h3><div class="opts">'+
+    q.o.map((o,oi)=>'<div class="opt" data-q="'+qi+'" data-o="'+oi+'"><div class="dot"></div><div>'+o.t+'</div></div>').join('')+'</div>';
+  fm.appendChild(d);
+});
+document.querySelectorAll('.opt').forEach(el=>el.onclick=()=>{
+  const qi=+el.dataset.q,oi=+el.dataset.o;
+  document.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');A[Q[qi].k]={i:oi,...Q[qi].o[oi]};
+  const done=Object.keys(A).length===Q.length;
+  document.getElementById('go').disabled=!done;
+  document.getElementById('warn').textContent=done?'':(Q.length-Object.keys(A).length)+' sawaal aur baaki hain';
+});
+
+document.getElementById('go').onclick=()=>{
+  let hrs=0;Object.values(A).forEach(a=>hrs+=a.v);
+  hrs=Math.round(hrs*1.4);
+  const yr=hrs*12,rate=150,money=yr*rate;
+  document.getElementById('hrs').textContent=hrs;
+  document.getElementById('yhr').textContent=yr+' ghante';
+  document.getElementById('money').textContent='Rs '+money.toLocaleString('en-IN');
+
+  const biz=A.biz.tag;
+  let pick=[];
+  if(A.rec.i<=2) pick.push('lead');
+  if(A.fol.i<=1) pick.push('fol');
+  if(A.rem.i<=1) pick.push('rem');
+  if(A.bil.i<=1) pick.push('bil');
+  if(A.rep.i<=1) pick.push('rep');
+  if(A.enq.i>=2) pick.push('ack');
+  if(biz==='coaching') pick.push('rem','rep');
+  if(biz==='shop') pick.push('bil','rev');
+  if(biz==='clinic') pick.push('rem','bot');
+  if(biz==='property') pick.push('fol','rec');
+  if(biz==='service') pick.push('rev','bot');
+  pick.push('lead','ack','fol','rem','bot','rep','rev','rec','bil','dup');
+  const seen=new Set(),five=[];
+  pick.forEach(k=>{if(!seen.has(k)&&five.length<5){seen.add(k);five.push(k)}});
+  document.getElementById('recs').innerHTML=five.map((k,i)=>{
+    const r=REC[k];
+    return '<div class="item"><div class="num">'+(i+1)+'</div><div class="tx"><b>'+r.t+'</b><p>'+r.p+'</p><div class="sv">'+r.s+'</div></div></div>';
+  }).join('');
+
+  let lv;
+  if(hrs>=70) lv={t:"Sab kaam haath se ho raha hai",p:"Aapka business chal raha hai aapki mehnat par, kisi system par nahi. Achhi baat ye hai ki sudhaar sabse zyada yahin dikhta hai — pehla automation lagte hi farak saaf pata chalega."};
+  else if(hrs>=45) lv={t:"Aadha haath se, aadha kaam-chalau",p:"Kuch cheez aap sambhal lete hain, par wo aapke yaad rakhne par tiki hai. Jis din aap busy, us din wo kaam ruk jata hai. Do-teen automation isko pakka kar denge."};
+  else if(hrs>=25) lv={t:"System banna shuru ho gaya hai",p:"Aap already list aur sheet use kar rahe hain — ye achhi shuruaat hai. Ab in sheets ko aapas mein jodna baaki hai, taaki ek jagah entry ho aur baaki sab khud ho jaye."};
+  else lv={t:"Kaafi kuch pehle se theek hai",p:"Aapka basic system tayyar hai. Aapke liye real faayda AI wale hisse mein hai — jawab dene wala bot, apne aap banti report, aur data se nikalti samajh."};
+  document.getElementById('level').innerHTML='<div class="item"><div class="num">i</div><div class="tx"><b>'+lv.t+'</b><p>'+lv.p+'</p></div></div>';
+
+  const txt="Namaste, maine website par automation check kiya. Result aaya "+hrs+" ghanta har mahine. Mujhe AI Automation Pro course ki jaankari chahiye.";
+  document.getElementById('wa').href="https://wa.me/916202856897?text="+encodeURIComponent(txt);
+
+  document.getElementById('res').style.display='block';
+  document.getElementById('res').scrollIntoView({behavior:'smooth'});
+};
+
+document.getElementById('again').onclick=()=>{
+  A={};document.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));
+  document.getElementById('res').style.display='none';
+  document.getElementById('go').disabled=true;
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+</script>
+</body>
+</html>

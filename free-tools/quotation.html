@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kamai Kit — Rate aur Quotation Banaiye | Soft Skill Zone</title>
+<style>
+  :root{--navy:#12233F;--navy2:#1B3560;--saf:#E8752A;--grn:#1E7A4C;--wa:#25D366;
+        --ink:#1C2430;--mut:#6B7683;--line:#E2E7EE;--bg:#F4F6FA}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  header{background:var(--navy);color:#fff;padding:18px 0 16px}
+  .hrow{max-width:1000px;margin:0 auto;padding:0 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--saf),#F0A150);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#12233F;flex:0 0 auto}
+  .htext h1{font-size:19px;font-weight:700}
+  .htext p{font-size:12.5px;color:#B9C6DC;margin-top:2px}
+  .hcta{margin-left:auto;font-size:12.5px;color:#B9C6DC;text-align:right}
+  .hcta b{color:#fff;display:block;font-size:14px}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px 14px 60px}
+  .intro{background:#fff;border:1px solid var(--line);border-left:4px solid var(--saf);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--mut);margin-bottom:16px}
+  .intro b{color:var(--ink)}
+  .box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .box h2{font-size:15px;font-weight:700;color:var(--navy2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+  .frow{display:flex;gap:12px;flex-wrap:wrap}
+  .fld{flex:1 1 190px}
+  .fld label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin-bottom:5px}
+  .fld input,.fld select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;font-size:15px;outline:none}
+  .fld input:focus,.fld select:focus{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(27,53,96,.10)}
+  .srv{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:9px;flex-wrap:wrap}
+  .srv.on{border-color:var(--grn);background:#F4FBF6}
+  .srv .ck{width:20px;height:20px;flex:0 0 auto;margin-top:2px;accent-color:#1E7A4C}
+  .srv .t{flex:1 1 260px;min-width:0}
+  .srv .t b{font-size:15px}
+  .srv .t p{font-size:13.3px;color:var(--mut);margin-top:3px}
+  .srv .t .hint{font-size:12.3px;color:var(--grn);font-weight:600;margin-top:4px}
+  .srv select{flex:0 0 168px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;background:#fff}
+  .cat{font-size:12.5px;font-weight:700;color:var(--saf);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 8px}
+  .cat:first-of-type{margin-top:0}
+  .tot{position:sticky;bottom:0;background:var(--navy);color:#fff;border-radius:12px;padding:15px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px;box-shadow:0 -2px 20px rgba(0,0,0,.15)}
+  .tot .l{flex:1 1 200px}
+  .tot .l .n{font-size:12.5px;color:#B9C6DC}
+  .tot .l .v{font-size:26px;font-weight:800;color:#FFB877;line-height:1.2}
+  .tot .l .m{font-size:12.5px;color:#B9C6DC;margin-top:2px}
+  .btn{border:0;border-radius:9px;padding:12px 20px;font-weight:700;cursor:pointer;font-size:15px;font-family:inherit;text-decoration:none;display:inline-block}
+  .btn-s{background:var(--saf);color:#fff}
+  .btn-c{background:var(--navy);color:#fff}
+  .btn-w{background:var(--wa);color:#fff}
+  .btn-o{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.done{background:var(--grn)!important;color:#fff}
+  /* ---- QUOTATION ---- */
+  #quo{display:none;margin-top:22px}
+  .paper{background:#fff;border:1px solid var(--line);border-radius:12px;padding:30px}
+  .qh{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--navy);padding-bottom:14px}
+  .qh .a{font-size:22px;font-weight:800;color:var(--navy)}
+  .qh .b{font-size:13.5px;color:var(--mut);margin-top:4px;white-space:pre-line}
+  .qh .r{text-align:right;font-size:13.5px;color:var(--mut)}
+  .qh .r b{color:var(--ink)}
+  .qto{margin:18px 0 6px;font-size:13.5px;color:var(--mut)}
+  .qto b{font-size:16px;color:var(--ink);display:block;margin-bottom:2px}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+  th{background:#EEF2F8;text-align:left;padding:10px;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--navy2);border-bottom:1px solid var(--line)}
+  td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+  td.r,th.r{text-align:right;white-space:nowrap}
+  td .d{font-size:12.7px;color:var(--mut);margin-top:2px}
+  tr.sum td{font-weight:800;font-size:16px;background:#FAFBFD}
+  .terms{margin-top:18px;font-size:13.3px;color:var(--mut)}
+  .terms b{color:var(--ink);display:block;margin-bottom:6px;font-size:13.5px}
+  .terms li{margin-left:18px;margin-bottom:3px}
+  .sign{margin-top:26px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13.3px;color:var(--mut)}
+  .sign .s{border-top:1px solid var(--line);padding-top:6px;min-width:180px}
+  .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .tip{background:#FFF8E1;border:1px solid #F0DCA0;border-radius:9px;padding:12px 14px;font-size:13.5px;color:#6B5514;margin-top:16px}
+  .tip b{display:block;margin-bottom:4px;color:#4E3E0F}
+  footer{margin-top:30px;padding:18px 14px;background:var(--navy);color:#B9C6DC;font-size:13px;text-align:center}
+  footer b{color:#fff}footer a{color:#F0A150;text-decoration:none}
+  @media(max-width:560px){.hcta{margin-left:0;text-align:left;width:100%}.srv select{flex:1 1 100%}.paper{padding:18px}}
+  @media print{
+    header,footer,.intro,.box,.tot,.acts,.tip,.wrap>h2{display:none!important}
+    body{background:#fff}.wrap{padding:0;max-width:100%}
+    #quo{display:block!important;margin:0}
+    .paper{border:0;border-radius:0;padding:0}
+    @page{margin:14mm}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">SSZ</div>
+    <div class="htext"><h1>Kamai Kit — Rate aur Quotation</h1><p>AI Automation Pro — Soft Skill Zone, Ara</p></div>
+    <div class="hcta"><b>6202856897</b>softskillzone.in</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="intro"><b>Kaam:</b> Client ko kya banakar denge — wo select kariye. Sahi rate apne aap lag jayega aur ek ready quotation ban jayega, aapke naam se. Print dabakar PDF bana lijiye aur client ko WhatsApp kar dijiye. Rate Bihar ke small city ke hisaab se rakhe gaye hain.</div>
+
+  <div class="box">
+    <h2>1. Aapki detail (jo kaam karega)</h2>
+    <div class="frow">
+      <div class="fld"><label>Aapka naam</label><input id="mname" value="Ravi Kumar"></div>
+      <div class="fld"><label>Mobile</label><input id="mmob" value="9876543210"></div>
+      <div class="fld"><label>Email (na ho to khali chhod dijiye)</label><input id="mmail" value=""></div>
+      <div class="fld"><label>City</label><input id="mcity" value="Ara, Bihar"></div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>2. Client ki detail</h2>
+    <div class="frow">
+      <div class="fld"><label>Client ka naam</label><input id="cname" value="Gupta ji"></div>
+      <div class="fld"><label>Business ka naam</label><input id="cbiz" value="Gupta Kirana Store"></div>
+      <div class="fld"><label>Client ka mobile</label><input id="cmob" value=""></div>
+      <div class="fld"><label>Quotation number</label><input id="qno" value="Q-001"></div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>3. Kya-kya banakar denge</h2>
+    <div id="list"></div>
+  </div>
+
+  <div class="tot">
+    <div class="l">
+      <div class="n">Ek baar ka total</div>
+      <div class="v" id="tv">Rs 0</div>
+      <div class="m" id="tm">Mahine ka kuch nahi</div>
+    </div>
+    <button class="btn btn-s" id="make">Quotation Banaiye</button>
+  </div>
+
+  <div id="quo">
+    <div class="paper" id="paper"></div>
+    <div class="acts">
+      <button class="btn btn-c" id="prt">Print / PDF banao</button>
+      <button class="btn btn-o" id="cpq">Short summary copy karo</button>
+      <a class="btn btn-w" id="waq" target="_blank" href="#">WhatsApp mein kholo</a>
+    </div>
+    <div class="tip"><b>Client ko rate batane ka tarika</b>
+      Pehle rate mat boliye. Pehle poochhiye — "roz kitna time is kaam mein jaata hai?" Wo khud bata dega. Phir uska mahine ka time loss joddiye, uske baad apna rate rakhiye. Rate hamesha small lagta hai jab loss pehle dikh jaye.</div>
+  </div>
+</div>
+
+<footer>
+  <b>Soft Skill Zone</b> — Near Gym Town, Pakri, Ara<br>
+  Call / WhatsApp: <b>6202856897</b> &nbsp;|&nbsp; <a href="https://softskillzone.in">softskillzone.in</a> &nbsp;|&nbsp; info@softskillzone.in<br>
+  AI Automation Pro course ke students ke liye — free.
+</footer>
+
+<script>
+const S=[
+{c:"Shuruaat ka setup",i:[
+ {k:"gform",n:"Enquiry form + Sheet setup",d:"Google Form banana, Sheet se jodna, column set karna.",p:[1000,1800,2500],t:["Simple form","Poora setup","Setup + branding"]},
+ {k:"sheet",n:"Poora record system (Sheet)",d:"Customer, order aur payment — sab ek jagah, search aur filter ke saath.",p:[1500,3000,5000],t:["1 sheet","3 sheet + view","Poora dashboard"]},
+ {k:"wa",n:"WhatsApp business setup",d:"WhatsApp Business API jodna aur template approve karana.",p:[2500,4000,6000],t:["Basic","Template ke saath","Poora + testing"]}
+]},
+{c:"Roz ka kaam automatic",i:[
+ {k:"lead",n:"Enquiry apne aap list mein",d:"Website ya form se aayi enquiry seedha Sheet mein — bina kuch likhe.",p:[2000,3000,4500],t:["Ek source","Do source","Teen se zyada source"]},
+ {k:"ack",n:"Turant jawab wala message",d:"Enquiry aate hi customer ko apne aap WhatsApp message.",p:[1500,2500,3500],t:["Ek message","Message + mail","Alag-alag business ke liye alag"]},
+ {k:"fol",n:"Follow-up apne aap",d:"1 din, 3 din aur 7 din baad message khud chala jaye. Jawab aate hi ruk jaye.",p:[3000,4500,6500],t:["3 message","5 message","Poora + report"]},
+ {k:"rem",n:"Reminder (fees / appointment / delivery)",d:"Date se ek din pehle sabko apne aap message.",p:[3000,4500,6500],t:["Ek tarah ka","Do tarah ka","Poora system"]},
+ {k:"bill",n:"Bill / receipt apne aap",d:"Sheet mein entry, bill ka PDF ban kar customer ke WhatsApp par.",p:[4000,6000,9000],t:["Simple PDF","PDF + WhatsApp","PDF + WhatsApp + Drive"]},
+ {k:"rep",n:"Roz ki report WhatsApp par",d:"Har raat aaj ka poora hisaab — enquiry, sale, baaki paisa.",p:[2500,3500,5000],t:["Ek report","Do report","Report + chart"]}
+]},
+{c:"AI wala kaam",i:[
+ {k:"bot",n:"Website ka chatbot",d:"Raat mein bhi jawab deta hai, aur customer ka number aapke paas bhej deta hai.",p:[5000,8000,12000],t:["Simple jawab","Sheet se jawab","Poora AI + lead"]},
+ {k:"sort",n:"Message ko category mein daalna",d:"AI padh kar batata hai — enquiry, complaint ya payment.",p:[2500,4000,6000],t:["3 category","5 category","Category + naraz customer alert"]},
+ {k:"ocr",n:"Photo se data nikalna",d:"Bill ya form ki photo se naam, number aur amount apne aap nikal jaye.",p:[4000,6500,9000],t:["Ek tarah ka form","Do tarah ka","Poora + checking"]},
+ {k:"rev",n:"Feedback aur Google review",d:"Kaam ke baad apne aap feedback, achha jawab aane par review ka link.",p:[1500,2500,3500],t:["Sirf feedback","Feedback + review","Poora + report"]}
+]},
+{c:"Baad ka kaam",i:[
+ {k:"train",n:"Staff ko sikhana",d:"Client ke aadmi ko system chalana sikhana — 1 se 2 session.",p:[1500,2500,4000],t:["1 session","2 session","Video ke saath"]},
+ {k:"doc",n:"Small guide banakar dena",d:"Screenshot ke saath simple guide, taaki wo khud chala sakein.",p:[1000,1800,3000],t:["1 page","Poori guide","Guide + video"]}
+]},
+{c:"Har mahine ka (AMC)",m:true,i:[
+ {k:"amc",n:"Dekh-rekh aur sudhaar",d:"Har mahine check, small badlav, aur kuch atke to theek karna.",p:[500,1000,2000],t:["Basic","Normal","Poora"]},
+ {k:"host",n:"Server aur tool ka monthly cost",d:"n8n hosting ya tool ka mahine wala cost, jo client bharega.",p:[400,800,1500],t:["Small","Normal","Bada"]}
+]}
+];
+
+const L=document.getElementById('list');
+S.forEach(g=>{
+  const h=document.createElement('div');h.className='cat';h.textContent=g.c+(g.m?' — har mahine':'');L.appendChild(h);
+  g.i.forEach(it=>{
+    const d=document.createElement('div');d.className='srv';d.dataset.k=it.k;
+    d.innerHTML='<input type="checkbox" class="ck" id="c_'+it.k+'">'+
+      '<div class="t"><b>'+it.n+'</b><p>'+it.d+'</p><div class="hint">Rate: Rs '+it.p[0].toLocaleString('en-IN')+' se Rs '+it.p[2].toLocaleString('en-IN')+(g.m?' / mahina':'')+'</div></div>'+
+      '<select id="s_'+it.k+'">'+it.t.map((t,i)=>'<option value="'+i+'"'+(i===1?' selected':'')+'>'+t+' — Rs '+it.p[i].toLocaleString('en-IN')+'</option>').join('')+'</select>';
+    L.appendChild(d);
+  });
+});
+
+function ALL(){const a=[];S.forEach(g=>g.i.forEach(it=>a.push({...it,m:!!g.m})));return a}
+function picked(){
+  return ALL().filter(it=>document.getElementById('c_'+it.k).checked)
+    .map(it=>{const i=+document.getElementById('s_'+it.k).value;return{...it,tier:it.t[i],amt:it.p[i]}});
+}
+function money(n){return 'Rs '+n.toLocaleString('en-IN')}
+function upd(){
+  const p=picked();
+  const one=p.filter(x=>!x.m).reduce((s,x)=>s+x.amt,0);
+  const mon=p.filter(x=>x.m).reduce((s,x)=>s+x.amt,0);
+  document.getElementById('tv').textContent=money(one);
+  document.getElementById('tm').textContent=mon?('Aur har mahine '+money(mon)):'Mahine ka kuch nahi';
+  ALL().forEach(it=>{
+    document.querySelector('.srv[data-k="'+it.k+'"]').classList.toggle('on',document.getElementById('c_'+it.k).checked);
+  });
+}
+document.querySelectorAll('.ck,.srv select').forEach(e=>e.addEventListener('change',upd));
+['lead','ack','rem'].forEach(k=>document.getElementById('c_'+k).checked=true);
+upd();
+
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function v(id){return document.getElementById(id).value.trim()}
+function today(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear()}
+function plus(n){const d=new Date();d.setDate(d.getDate()+n);return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear()}
+
+let SUM='';
+document.getElementById('make').onclick=()=>{
+  const p=picked();
+  if(!p.length){alert('Pehle kam se kam ek kaam select kariye.');return;}
+  const one=p.filter(x=>!x.m),mon=p.filter(x=>x.m);
+  const oneT=one.reduce((s,x)=>s+x.amt,0),monT=mon.reduce((s,x)=>s+x.amt,0);
+  const days=Math.max(5,Math.min(30,one.length*3+2));
+  const adv=Math.round(oneT*0.5/100)*100;
+
+  let h='<div class="qh"><div><div class="a">QUOTATION</div><div class="b">'+esc(v('mname'))+'\n'+esc(v('mcity'))+'\nMobile: '+esc(v('mmob'))+(v('mmail')?'\n'+esc(v('mmail')):'')+'</div></div>'+
+    '<div class="r"><b>No: '+esc(v('qno'))+'</b><br>Date: '+today()+'<br>Ye rate '+plus(15)+' tak</div></div>';
+  h+='<div class="qto"><b>'+esc(v('cbiz'))+'</b>'+esc(v('cname'))+(v('cmob')?' | '+esc(v('cmob')):'')+'</div>';
+  h+='<table><tr><th style="width:34px">#</th><th>Kaam</th><th>Kis level ka</th><th class="r">Rate</th></tr>';
+  one.forEach((x,i)=>{h+='<tr><td>'+(i+1)+'</td><td><b>'+esc(x.n)+'</b><div class="d">'+esc(x.d)+'</div></td><td>'+esc(x.tier)+'</td><td class="r">'+money(x.amt)+'</td></tr>'});
+  h+='<tr class="sum"><td></td><td>Ek baar ka total</td><td></td><td class="r">'+money(oneT)+'</td></tr>';
+  if(mon.length){
+    mon.forEach((x,i)=>{h+='<tr><td>'+(one.length+i+1)+'</td><td><b>'+esc(x.n)+'</b><div class="d">'+esc(x.d)+' (har mahine)</div></td><td>'+esc(x.tier)+'</td><td class="r">'+money(x.amt)+' / mahina</td></tr>'});
+    h+='<tr class="sum"><td></td><td>Har mahine ka total</td><td></td><td class="r">'+money(monT)+' / mahina</td></tr>';
+  }
+  h+='</table>';
+  h+='<div class="terms"><b>Terms</b><ul>'+
+    '<li>Kaam poora hone mein lagbhag '+days+' din lagenge, kaam shuru hone ki date se.</li>'+
+    '<li>Aadha paisa (Rs '+adv.toLocaleString('en-IN')+') shuru mein, baaki kaam poora hone par.</li>'+
+    '<li>Client ko apna Google account, WhatsApp number aur zaroori login dena hoga.</li>'+
+    '<li>Kaam poora hone ke baad 30 din tak small dikkat free mein theek ki jayegi.</li>'+
+    '<li>Naya kaam ya badlav is list se bahar ho to uska rate alag se lagega.</li>'+
+    '<li>Tool ya server ka mahine wala cost (agar ho) client ka rahega.</li>'+
+    '<li>Ye rate '+plus(15)+' tak hai.</li></ul></div>';
+  h+='<div class="sign"><div class="s">'+esc(v('mname'))+' — kaam karne wala</div><div class="s">'+esc(v('cname'))+' — client ka sign</div></div>';
+  document.getElementById('paper').innerHTML=h;
+
+  SUM=v('cname')+' ji, namaste.\n\n'+v('cbiz')+' ke liye quotation:\n\n'+
+    one.map((x,i)=>(i+1)+'. '+x.n+' — Rs '+x.amt.toLocaleString('en-IN')).join('\n')+
+    '\n\nTotal: Rs '+oneT.toLocaleString('en-IN')+
+    (monT?'\nHar mahine dekh-rekh: Rs '+monT.toLocaleString('en-IN'):'')+
+    '\n\nKaam poora hone mein lagbhag '+days+' din. Aadha paisa shuru mein.\nYe rate '+plus(15)+' tak hai.\n\n'+
+    v('mname')+'\n'+v('mmob');
+
+  const num=v('cmob').replace(/[^0-9]/g,'').slice(-10);
+  const w=document.getElementById('waq');
+  if(num.length===10){w.style.display='inline-block';w.href='https://wa.me/91'+num+'?text='+encodeURIComponent(SUM)}
+  else w.style.display='none';
+
+  document.getElementById('quo').style.display='block';
+  document.getElementById('quo').scrollIntoView({behavior:'smooth'});
+};
+document.getElementById('prt').onclick=()=>window.print();
+document.getElementById('cpq').onclick=(e)=>{
+  const ta=document.createElement('textarea');ta.value=SUM;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy')}catch(x){}
+  document.body.removeChild(ta);
+  const b=e.target;b.textContent='Copy ho gaya';b.classList.add('done');
+  setTimeout(()=>{b.textContent='Short summary copy karo';b.classList.remove('done')},1500);
+};
+</script>
+</body>
+</html>

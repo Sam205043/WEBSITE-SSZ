@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Toolkit — AI Automation Pro | Soft Skill Zone</title>
+<style>
+  :root{
+    --navy:#12233F; --navy2:#1B3560; --saf:#E8752A; --grn:#1E7A4C;
+    --ink:#1C2430; --mut:#6B7683; --line:#E2E7EE; --bg:#F4F6FA; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:980px;margin:0 auto;padding:0 14px 60px}
+  header{background:var(--navy);color:#fff;padding:18px 0 16px}
+  .hrow{max-width:980px;margin:0 auto;padding:0 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--saf),#F0A150);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#12233F;flex:0 0 auto}
+  .htext h1{font-size:19px;font-weight:700;letter-spacing:.2px}
+  .htext p{font-size:12.5px;color:#B9C6DC;margin-top:2px}
+  .hcta{margin-left:auto;font-size:12.5px;color:#B9C6DC;text-align:right}
+  .hcta b{color:#fff;display:block;font-size:14px}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px;-webkit-overflow-scrolling:touch}
+  .tab{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--mut);padding:9px 16px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .panel{display:none;margin-top:12px}
+  .panel.on{display:block}
+  .intro{background:#fff;border:1px solid var(--line);border-left:4px solid var(--saf);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--mut);margin-bottom:14px}
+  .intro b{color:var(--ink)}
+  input,select,textarea,button{font-family:inherit;font-size:15px}
+  .search{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+  .search:focus{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(27,53,96,.10)}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--mut);padding:6px 13px;border-radius:999px;font-size:13px;cursor:pointer}
+  .chip.on{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .card h3{font-size:15.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .badge{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:3px 8px;border-radius:5px;background:#EEF2F8;color:var(--navy2);text-transform:uppercase}
+  .card p{font-size:14px;color:var(--ink);margin-top:7px}
+  .card .eg{font-size:13px;color:var(--mut);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  .card .eg b{color:var(--grn)}
+  .count{font-size:13px;color:var(--mut);margin:4px 0 10px}
+  code{font-family:"Courier New",monospace;background:#F0F3F8;padding:2px 6px;border-radius:5px;font-size:13.5px;color:#0F3B6B;word-break:break-all}
+  .exrow{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .exrow .l{flex:1 1 260px;min-width:0}
+  .exrow .l .d{font-size:13.5px;color:var(--mut);margin-top:5px}
+  .btn{border:0;border-radius:8px;padding:9px 15px;font-weight:600;cursor:pointer;font-size:14px}
+  .btn-c{background:var(--navy);color:#fff}
+  .btn-c:hover{background:var(--navy2)}
+  .btn-o{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn-g{background:var(--grn);color:#fff}
+  .btn-s{background:var(--saf);color:#fff}
+  .btn.done{background:var(--grn)!important;color:#fff}
+  .frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+  .fld{flex:1 1 160px}
+  .fld label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin-bottom:5px}
+  .fld select,.fld input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff}
+  .tblwrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th{background:#EEF2F8;text-align:left;padding:10px 12px;font-weight:700;color:var(--navy2);white-space:nowrap}
+  td{padding:9px 12px;border-top:1px solid var(--line);white-space:nowrap}
+  tr:nth-child(even) td{background:#FAFBFD}
+  .note{font-size:13px;color:var(--mut);margin-top:10px}
+  footer{margin-top:30px;padding:18px 14px;background:var(--navy);color:#B9C6DC;font-size:13px;text-align:center}
+  footer b{color:#fff}
+  footer a{color:#F0A150;text-decoration:none}
+  .empty{background:#fff;border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--mut);font-size:14px}
+  @media(max-width:560px){.hcta{margin-left:0;text-align:left;width:100%}.htext h1{font-size:17px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="logo">SSZ</div>
+    <div class="htext">
+      <h1>Student Toolkit</h1>
+      <p>AI Automation Pro — Soft Skill Zone, Ara</p>
+    </div>
+    <div class="hcta"><b>6202856897</b>softskillzone.in</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" data-t="d">n8n Node Dictionary</button>
+    <button class="tab" data-t="e">Expression Cheatsheet</button>
+    <button class="tab" data-t="p">Practice Data Banao</button>
+  </div>
+
+  <!-- ================= DICTIONARY ================= -->
+  <section class="panel on" id="p-d">
+    <div class="intro"><b>Kaam:</b> n8n mein jo node samajh na aaye, uska naam yahan search kariye. Simple meaning aur ek example mil jayega. Class ke time ye page khula rakhiye.</div>
+    <input class="search" id="q" placeholder="Node ka naam likhiye — jaise Webhook, IF, Gmail, Sheets...">
+    <div class="chips" id="cats"></div>
+    <div class="count" id="cnt"></div>
+    <div class="grid" id="list"></div>
+    <div class="empty" id="none" style="display:none">Is naam ka node list mein nahi mila. Spelling check kariye, ya category chip pe click karke poori list dekhiye.</div>
+  </section>
+
+  <!-- ================= EXPRESSIONS ================= -->
+  <section class="panel" id="p-e">
+    <div class="intro"><b>Kaam:</b> n8n ke field mein jo <code>{{ }}</code> likhna padta hai, wo sab yahan ready hai. Copy button dabaiye aur node mein paste kar dijiye.</div>
+    <input class="search" id="qe" placeholder="Search — jaise date, name, mobile, today...">
+    <div class="count" id="cnte"></div>
+    <div id="exlist"></div>
+    <div class="empty" id="nonee" style="display:none">Kuch nahi mila. Doosra word try kariye.</div>
+  </section>
+
+  <!-- ================= PRACTICE DATA ================= -->
+  <section class="panel" id="p-p">
+    <div class="intro"><b>Kaam:</b> Practice ke liye nakli data chahiye? Yahan se banaiye. CSV download karke Google Sheet mein import kar lijiye — phir uspe workflow practice kariye. Kisi real customer ka data use karne ki need nahi.</div>
+    <div class="frow">
+      <div class="fld">
+        <label>Kis business ka data</label>
+        <select id="dtype">
+          <option value="coaching">Coaching — student list</option>
+          <option value="shop">Shop — customer aur bill</option>
+          <option value="clinic">Clinic — patient appointment</option>
+          <option value="property">Property — lead list</option>
+          <option value="lead">General — website enquiry</option>
+        </select>
+      </div>
+      <div class="fld" style="flex:0 0 110px">
+        <label>Kitni row</label>
+        <select id="rows"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
+      </div>
+      <div class="fld" style="flex:0 0 auto"><button class="btn btn-c" id="gen">Data Banao</button></div>
+      <div class="fld" style="flex:0 0 auto"><button class="btn btn-g" id="csv">CSV Download</button></div>
+      <div class="fld" style="flex:0 0 auto"><button class="btn btn-o" id="cpy">Copy (Sheet ke liye)</button></div>
+    </div>
+    <div class="tblwrap"><table id="tbl"></table></div>
+    <p class="note">Sheet mein paste karne ka tarika: <b>Copy (Sheet ke liye)</b> dabaiye → Google Sheet kholiye → cell A1 pe click → Ctrl+V. Column apne aap alag ho jayenge.</p>
+  </section>
+</div>
+
+<footer>
+  <b>Soft Skill Zone</b> — Near Gym Town, Pakri, Ara<br>
+  Call / WhatsApp: <b>6202856897</b> &nbsp;|&nbsp; <a href="https://softskillzone.in">softskillzone.in</a> &nbsp;|&nbsp; info@softskillzone.in<br>
+  AI Automation Pro course ke students ke liye — free.
+</footer>
+
+<script>
+/* ---------------- NODE DICTIONARY DATA ---------------- */
+const NODES=[
+{n:"Manual Trigger",c:"Trigger",d:"Workflow tab chalta hai jab aap khud 'Test workflow' button dabate hain.",e:"Banate waqt test karne ke liye. Har naye workflow mein sabse pehle yahi lagta hai."},
+{n:"Schedule Trigger",c:"Trigger",d:"Time set kar dijiye, workflow apne aap us time pe chalega — roz, hafte mein ek baar, ya har ghante.",e:"Roz subah 9 baje sab students ko class ka reminder chala jaye."},
+{n:"Webhook",c:"Trigger",d:"Ek link deta hai. Us link pe koi data bheje, workflow turant chalu ho jata hai.",e:"Website ka form bhara — usi second workflow chal gaya aur WhatsApp chala gaya."},
+{n:"Form Trigger",c:"Trigger",d:"n8n ka apna form banata hai. Form bharte hi workflow chalu.",e:"Small enquiry form jo aap kisi ko bhi bhej sakte hain."},
+{n:"Gmail Trigger",c:"Trigger",d:"Naya mail aate hi workflow chalu ho jata hai.",e:"Order ka mail aaya to seedha Sheet mein row ban jaye."},
+{n:"Google Sheets Trigger",c:"Trigger",d:"Sheet mein nayi row aate hi workflow chalu.",e:"Google Form ka jawab Sheet mein giraa, workflow ne WhatsApp bhej diya."},
+{n:"Chat Trigger",c:"Trigger",d:"Chat window deta hai. Koi message likhe to workflow chale.",e:"Website ka chatbot banane mein."},
+{n:"Error Trigger",c:"Trigger",d:"Koi doosra workflow fail ho jaye to ye chalu hota hai.",e:"Fail hote hi aapke WhatsApp pe alert aa jaye."},
+{n:"Google Sheets",c:"Data",d:"Sheet mein row jodna, padhna, badalna ya hatana.",e:"Nayi enquiry ko 'Leads' sheet mein add karna."},
+{n:"Google Drive",c:"Data",d:"File upload, download, folder banana, sharing set karna.",e:"Bill ka PDF apne aap Drive folder mein chala jaye."},
+{n:"Google Docs",c:"Data",d:"Document banana aur usme text likhna.",e:"Har student ka certificate ek Doc se ban jaye."},
+{n:"Airtable",c:"Data",d:"Sheet jaisa hi, par thoda taakatwar — record jodna aur nikalna.",e:"Bade client ke liye jab Sheet small pad jaye."},
+{n:"MySQL / Postgres",c:"Data",d:"Database se data nikalna aur daalna.",e:"Bade shop ke purane bill nikalne ke liye."},
+{n:"Baserow / NocoDB",c:"Data",d:"Free database jo dikhta Sheet jaisa hai.",e:"Jab client ko sirf apna data apne server pe chahiye."},
+{n:"Gmail",c:"Message",d:"Mail bhejna, padhna, label lagana, reply karna.",e:"Enquiry aate hi 'dhanyavaad' wala mail chala jaye."},
+{n:"Send Email",c:"Message",d:"Kisi bhi email account se mail bhejta hai (SMTP se).",e:"Jab Gmail nahi, business ka apna mail ho."},
+{n:"WhatsApp Business Cloud",c:"Message",d:"WhatsApp par message bhejna — text, image ya template.",e:"Fees due wala reminder bhejna."},
+{n:"Telegram",c:"Message",d:"Telegram par message bhejna aur lena. Test ke liye sabse aasan.",e:"Practice ke liye — WhatsApp approval se pehle."},
+{n:"Slack",c:"Message",d:"Team ke channel mein message daalna.",e:"Nayi enquiry aate hi team ke group mein alert."},
+{n:"Twilio",c:"Message",d:"SMS aur call ke liye.",e:"Jab customer ke paas WhatsApp na ho."},
+{n:"OpenAI (ChatGPT)",c:"AI",d:"AI se jawab, summary, reply ya text banwana.",e:"Customer ke message ko padhkar polite reply banana."},
+{n:"Google Gemini",c:"AI",d:"Google ka AI — text aur image dono samajh leta hai.",e:"Bill ki photo se amount nikalna."},
+{n:"AI Agent",c:"AI",d:"AI ko tools de dijiye, wo khud sochkar kaam karta hai.",e:"Chatbot jo khud Sheet mein dekhkar fees bata de."},
+{n:"Basic LLM Chain",c:"AI",d:"Ek prompt, ek jawab. Sabse simple AI node.",e:"Message ka short summary banana."},
+{n:"Text Classifier",c:"AI",d:"Message ko category mein daal deta hai.",e:"'Enquiry', 'Complaint', 'Payment' — apne aap alag."},
+{n:"Information Extractor",c:"AI",d:"Lambe text se kaam ki cheez nikaal leta hai.",e:"Message se naam aur mobile number nikalna."},
+{n:"Sentiment Analysis",c:"AI",d:"Message khush hai ya naraz — ye batata hai.",e:"Naraz customer ka message turant aapke paas aa jaye."},
+{n:"Memory (Window Buffer)",c:"AI",d:"Chatbot ko purani baat yaad rakhne deta hai.",e:"Customer ne pehle naam bataya, bot dobara na pooche."},
+{n:"IF",c:"Logic",d:"Do raste — shart sahi hui to ek taraf, galat hui to doosri taraf.",e:"Fees jama hai? Haan — dhanyavaad. Nahi — reminder."},
+{n:"Switch",c:"Logic",d:"IF jaisa, par 3-4 raste ek saath.",e:"Shop / Coaching / Clinic — sabka alag message."},
+{n:"Filter",c:"Logic",d:"Sirf wahi data aage jaane deta hai jo shart pe khara utre.",e:"Sirf un students ko bhejo jinki fees baaki hai."},
+{n:"Merge",c:"Logic",d:"Do alag raste ka data jodkar ek kar deta hai.",e:"Sheet ka data aur AI ka jawab ek saath."},
+{n:"Loop Over Items (Split in Batches)",c:"Logic",d:"Ek-ek karke sabpe kaam karta hai.",e:"100 students ko ek-ek karke message bhejna."},
+{n:"Wait",c:"Logic",d:"Beech mein rukta hai — kuch second, ghante ya din.",e:"2 din baad follow-up message bhejna."},
+{n:"Stop and Error",c:"Logic",d:"Kaam rok deta hai aur galti dikhata hai.",e:"Mobile number galat hai to aage mat badho."},
+{n:"No Operation",c:"Logic",d:"Kuch nahi karta. Sirf line saaf dikhane ke liye.",e:"IF ke ek raste ko khali chhodne ke liye."},
+{n:"Edit Fields (Set)",c:"Data Kaam",d:"Naya field banata hai ya purane ka naam badalta hai.",e:"'nam' ko 'Name' banana, ya 'Status = Naya' jodna."},
+{n:"Code",c:"Data Kaam",d:"Thoda JavaScript likhne ke liye. Course mein zaroorat nahi, par jaan lijiye.",e:"Ginti karna ya list ulti karna."},
+{n:"Date & Time",c:"Data Kaam",d:"Date ka roop badalta hai, jodta-ghatata hai.",e:"Aaj se 7 din baad ki date nikalna."},
+{n:"Remove Duplicates",c:"Data Kaam",d:"Ek hi cheez do baar aa gayi to ek hata deta hai.",e:"Ek mobile number ko do baar message na jaye."},
+{n:"Sort",c:"Data Kaam",d:"Data ko order mein lagata hai.",e:"Sabse nayi enquiry sabse upar."},
+{n:"Limit",c:"Data Kaam",d:"Sirf pehli kuch row aage bhejta hai.",e:"Test ke liye sirf 3 row."},
+{n:"Aggregate",c:"Data Kaam",d:"Bahut saari row ko ek mein samet deta hai.",e:"Din bhar ki enquiry ki ek list banana."},
+{n:"Summarize",c:"Data Kaam",d:"Total, ginti, average nikalta hai.",e:"Aaj ki total sale kitni hui."},
+{n:"Split Out",c:"Data Kaam",d:"Ek row ke andar ki list ko alag-alag row bana deta hai.",e:"Ek bill ke 5 saaman ko 5 row mein todna."},
+{n:"HTML",c:"Data Kaam",d:"Page se text nikalta hai ya HTML banata hai.",e:"Mail ka sundar format banana."},
+{n:"Markdown",c:"Data Kaam",d:"Markdown ko HTML mein badalta hai.",e:"AI ke jawab ko mail mein saaf dikhana."},
+{n:"Convert to File",c:"File",d:"Data ko CSV, PDF ya file bana deta hai.",e:"Report ki CSV file banakar mail karna."},
+{n:"Extract from File",c:"File",d:"File ke andar ka data nikaalta hai.",e:"Client ki Excel se list padhna."},
+{n:"Read/Write Files",c:"File",d:"Computer ya server pe file rakhna aur padhna.",e:"Backup file banana."},
+{n:"HTTP Request",c:"Connect",d:"Kisi bhi app se baat karne wala node. Jab uska apna node na ho, ye kaam aata hai.",e:"WhatsApp ya kisi naye app ka API chalana."},
+{n:"Respond to Webhook",c:"Connect",d:"Webhook pe aaye request ka jawab wapas bhejta hai.",e:"Website ke chatbot ko jawab lautana."},
+{n:"Execute Workflow",c:"Connect",d:"Ek workflow ke andar se doosra workflow chalata hai.",e:"'Message bhejo' wala hissa alag rakhkar sab jagah use karna."},
+{n:"Google Calendar",c:"Connect",d:"Meeting banana, dekhna, hatana.",e:"Appointment book hote hi calendar mein chadh jaye."},
+{n:"Google Forms",c:"Connect",d:"Form ke jawab uthata hai.",e:"Enquiry form ka jawab Sheet aur WhatsApp dono mein."},
+{n:"RSS Read",c:"Connect",d:"News ya blog ki nayi post uthata hai.",e:"Roz ki news apne Telegram pe."},
+{n:"Credentials",c:"Setup",d:"Node nahi hai — ye wo jagah hai jahan app ka login n8n mein save hota hai. Ek baar bhariye, sab workflow mein chalega.",e:"Google account ek baar jodiye, phir Sheets aur Drive dono chalenge."},
+{n:"Executions",c:"Setup",d:"Node nahi hai — yahan dikhta hai workflow kab-kab chala aur kahan atka.",e:"Message nahi gaya? Sabse pehle yahi dekhiye."},
+{n:"Pinned Data",c:"Setup",d:"Test ka data node pe chipka deta hai, taaki baar-baar chalana na pade.",e:"Webhook ka data pin karke aage ka kaam banate rahiye."},
+{n:"Sticky Note",c:"Setup",d:"Workflow ke upar chipkane wala note.",e:"Client ko samjhane ke liye 'Yahan fees check hoti hai' likh dijiye."}
+];
+
+/* ---------------- EXPRESSION DATA ---------------- */
+const EXPR=[
+{t:"Pichhle node ka koi field lena",c:"{{ $json.Name }}",d:"Name ki jagah apne column ka naam likhiye. Yahi sabse zyada use hota hai."},
+{t:"Naam ke beech ka space wala column",c:'{{ $json["Student Name"] }}',d:"Column ke naam mein space ho to seedhe brackets aur quotes lagaiye."},
+{t:"Kisi bhi purane node se field lena",c:'{{ $(\'Google Sheets\').item.json.Mobile }}',d:"Node ka naam bilkul waisa hi likhiye jaisa canvas pe dikh raha hai."},
+{t:"Aaj ki date",c:"{{ $now.format('dd-MM-yyyy') }}",d:"Message mein aaj ki date lagane ke liye."},
+{t:"Aaj ka time",c:"{{ $now.format('hh:mm a') }}",d:"Jaise 05:30 PM."},
+{t:"Kal ki date",c:"{{ $now.plus(1,'days').format('dd-MM-yyyy') }}",d:"Kal ke appointment ka reminder."},
+{t:"7 din baad ki date",c:"{{ $now.plus(7,'days').format('dd-MM-yyyy') }}",d:"Follow-up ki date set karne mein."},
+{t:"Kitne din pehle ki baat hai",c:"{{ $now.diff($json.Date,'days').days }}",d:"Lead kitni purani hai — ye ginti."},
+{t:"Mahine ka naam",c:"{{ $now.toFormat('MMMM') }}",d:"Report ke title mein — jaise August."},
+{t:"Naam ka pehla akshar bada",c:"{{ $json.name.trim().toLowerCase().replace(/^./, c => c.toUpperCase()) }}",d:"'rAVI ' ko 'Ravi' bana deta hai."},
+{t:"Aage-peechhe ki khali jagah hatana",c:"{{ $json.mobile.trim() }}",d:"Form se aaye number mein aksar space rehta hai."},
+{t:"Sirf number rakhna",c:"{{ $json.mobile.replace(/[^0-9]/g,'') }}",d:"+91, dash aur space sab hat jayega."},
+{t:"Mobile ke aage 91 lagana",c:"{{ '91' + $json.mobile.replace(/[^0-9]/g,'').slice(-10) }}",d:"WhatsApp ko number isi roop mein chahiye."},
+{t:"Number 10 ka hai ya nahi",c:"{{ $json.mobile.replace(/[^0-9]/g,'').length === 10 }}",d:"IF node mein galat number rokne ke liye."},
+{t:"Small akshar mein badalna",c:"{{ $json.email.toLowerCase() }}",d:"Email hamesha small letter mein rakhiye."},
+{t:"Do cheez jodna",c:"{{ $json.first + ' ' + $json.last }}",d:"Pehla aur aakhri naam ek saath."},
+{t:"Field khali hai to doosra lagana",c:"{{ $json.name || 'Customer' }}",d:"Naam nahi mila to 'Customer' likh do."},
+{t:"Field hai ya nahi — safe tarika",c:"{{ $json.name?.trim() || '' }}",d:"Field na hone pe workflow fail nahi hoga."},
+{t:"Text ke andar koi word hai kya",c:"{{ $json.message.toLowerCase().includes('fees') }}",d:"Message ko category mein daalne ke liye."},
+{t:"Haan / Nahi wala jawab",c:"{{ $json.paid === 'Yes' ? 'Dhanyavaad' : 'Fees baaki hai' }}",d:"Ek hi line mein do tarah ka message."},
+{t:"Paisa saaf dikhana",c:"{{ 'Rs ' + Number($json.amount).toLocaleString('en-IN') }}",d:"50000 ko Rs 50,000 bana deta hai."},
+{t:"Total nikalna",c:"{{ $json.qty * $json.rate }}",d:"Bill banane mein."},
+{t:"Row ki ginti",c:"{{ $items().length }}",d:"Report mein — 'aaj 14 enquiry aayi'."},
+{t:"Har item ka number",c:"{{ $itemIndex + 1 }}",d:"List mein 1, 2, 3 lagane ke liye."},
+{t:"WhatsApp bhejne ka link",c:"{{ 'https://wa.me/91' + $json.mobile.slice(-10) }}",d:"Sheet mein click karne layak link."},
+{t:"Workflow ka naam",c:"{{ $workflow.name }}",d:"Error wale message mein — kaunsa workflow atka."},
+{t:"Poora data ek jagah dekhna",c:"{{ JSON.stringify($json) }}",d:"Kuch samajh na aaye to ye laga ke dekh lijiye ki data aa kya raha hai."},
+{t:"Message mein nayi line",c:"{{ $json.name + '\\n' + $json.mobile }}",d:"\\n se agli line shuru hoti hai."},
+{t:"Nakli order number banana",c:"{{ 'SSZ-' + $now.toFormat('yyyyMMdd') + '-' + ($itemIndex+1) }}",d:"Har bill ka apna number."},
+{t:"Din ka naam",c:"{{ $now.toFormat('cccc') }}",d:"Sunday ko message rokne ke liye IF mein."}
+];
+
+/* ---------------- TABS ---------------- */
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); document.getElementById('p-'+b.dataset.t).classList.add('on');
+});
+
+/* ---------------- DICTIONARY RENDER ---------------- */
+const cats=['Sab',...[...new Set(NODES.map(n=>n.c))]];
+let curCat='Sab';
+const catBox=document.getElementById('cats');
+cats.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c==='Sab'?' on':'');b.textContent=c;
+  b.onclick=()=>{curCat=c;document.querySelectorAll('#cats .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');draw();};
+  catBox.appendChild(b);});
+const q=document.getElementById('q');q.oninput=draw;
+function draw(){
+  const s=q.value.trim().toLowerCase();
+  const out=NODES.filter(n=>(curCat==='Sab'||n.c===curCat)&&(!s||n.n.toLowerCase().includes(s)||n.d.toLowerCase().includes(s)||n.e.toLowerCase().includes(s)));
+  document.getElementById('cnt').textContent=out.length+' node mile (kul '+NODES.length+')';
+  document.getElementById('none').style.display=out.length?'none':'block';
+  document.getElementById('list').innerHTML=out.map(n=>
+    '<div class="card"><h3>'+esc(n.n)+' <span class="badge">'+esc(n.c)+'</span></h3><p>'+esc(n.d)+'</p><div class="eg"><b>Example:</b> '+esc(n.e)+'</div></div>').join('');
+}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+draw();
+
+/* ---------------- EXPRESSIONS RENDER ---------------- */
+const qe=document.getElementById('qe');qe.oninput=drawE;
+function drawE(){
+  const s=qe.value.trim().toLowerCase();
+  const out=EXPR.filter(x=>!s||x.t.toLowerCase().includes(s)||x.d.toLowerCase().includes(s)||x.c.toLowerCase().includes(s));
+  document.getElementById('cnte').textContent=out.length+' expression mile (kul '+EXPR.length+')';
+  document.getElementById('nonee').style.display=out.length?'none':'block';
+  document.getElementById('exlist').innerHTML=out.map((x,i)=>
+    '<div class="exrow"><div class="l"><b>'+esc(x.t)+'</b><div style="margin-top:6px"><code>'+esc(x.c)+'</code></div><div class="d">'+esc(x.d)+'</div></div>'+
+    '<button class="btn btn-c cp" data-c="'+x.c.replace(/"/g,'&quot;')+'">Copy</button></div>').join('');
+  document.querySelectorAll('.cp').forEach(b=>b.onclick=()=>copy(b.dataset.c,b));
+}
+function copy(t,b){
+  const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy')}catch(e){}
+  document.body.removeChild(ta);
+  const o=b.textContent;b.textContent='Copy ho gaya';b.classList.add('done');
+  setTimeout(()=>{b.textContent=o;b.classList.remove('done')},1400);
+}
+drawE();
+
+/* ---------------- PRACTICE DATA ---------------- */
+const FIRST=["Ravi","Amit","Sunil","Priya","Neha","Rahul","Anita","Manoj","Pooja","Vikash","Sanjay","Kavita","Deepak","Rekha","Ajay","Suman","Ramesh","Nisha","Alok","Seema","Gaurav","Meena","Rohit","Sarita","Praveen","Anjali","Naveen","Kiran","Sachin","Jyoti"];
+const LAST=["Kumar","Singh","Sharma","Verma","Gupta","Yadav","Prasad","Mishra","Pandey","Jha","Rai","Thakur","Sinha","Ojha","Choudhary"];
+const AREA=["Pakri","Gopali Chowk","Maulabag","Nawada","Shishu Park","Ramna","Katira","Jail Road","Babu Bazar","Anaith Road"];
+const COURSE=["Class 10","Class 12","BCA","Computer Basic","Tally","AI Automation Pro","Spoken English","DCA"];
+const ITEM=["Mobile Cover","Charger","Earphone","Screen Guard","Power Bank","Data Cable","Memory Card","Bluetooth Speaker"];
+const DOCT=["Dr. Verma","Dr. Singh","Dr. Anand","Dr. Kumari"];
+const PROB=["Bukhar","Body pain","Checkup","Sugar test","Dawa dobara"];
+const PTYPE=["2 BHK Flat","Plot 1500 sqft","Shop","3 BHK House","Godown"];
+const SRC=["Website","WhatsApp","Walk-in","Facebook","Reference"];
+const STAT=["Naya","Baat hui","Follow-up","Admission","Band"];
+let DATA=[];
+function rnd(a){return a[Math.floor(Math.random()*a.length)]}
+function mob(){return "9"+Math.floor(100000000+Math.random()*899999999)}
+function dt(back){const d=new Date();d.setDate(d.getDate()-Math.floor(Math.random()*back));
+  return String(d.getDate()).padStart(2,'0')+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+d.getFullYear();}
+function fut(n){const d=new Date();d.setDate(d.getDate()+Math.floor(Math.random()*n));
+  return String(d.getDate()).padStart(2,'0')+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+d.getFullYear();}
+function build(){
+  const t=document.getElementById('dtype').value,n=+document.getElementById('rows').value;
+  const rows=[];
+  for(let i=1;i<=n;i++){
+    const nm=rnd(FIRST)+" "+rnd(LAST);
+    if(t==='coaching') rows.push({"Roll":"R"+(100+i),"Student Name":nm,"Mobile":mob(),"Course":rnd(COURSE),"Fees":[1500,2000,2500,3947,5000][i%5],"Paid":i%3?"Yes":"No","Due Date":fut(20)});
+    else if(t==='shop') rows.push({"Bill No":"B"+(1000+i),"Customer":nm,"Mobile":mob(),"Item":rnd(ITEM),"Qty":1+i%4,"Amount":[199,349,499,899,1299,2499][i%6],"Date":dt(30)});
+    else if(t==='clinic') rows.push({"Token":i,"Patient":nm,"Mobile":mob(),"Doctor":rnd(DOCT),"Problem":rnd(PROB),"Appointment":fut(10),"Time":["10:00 AM","11:30 AM","01:00 PM","05:00 PM","06:30 PM"][i%5]});
+    else if(t==='property') rows.push({"Lead ID":"P"+(500+i),"Name":nm,"Mobile":mob(),"Area":rnd(AREA),"Looking For":rnd(PTYPE),"Budget":[800000,1500000,2500000,4000000][i%4],"Status":rnd(STAT)});
+    else rows.push({"S.No":i,"Name":nm,"Mobile":mob(),"Email":nm.split(" ")[0].toLowerCase()+i+"@gmail.com","Message":"Course ki jaankari chahiye","Source":rnd(SRC),"Date":dt(15),"Status":rnd(STAT)});
+  }
+  DATA=rows;show();
+}
+function show(){
+  const t=document.getElementById('tbl');
+  if(!DATA.length){t.innerHTML='';return;}
+  const h=Object.keys(DATA[0]);
+  t.innerHTML='<tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+
+    DATA.map(r=>'<tr>'+h.map(x=>'<td>'+r[x]+'</td>').join('')+'</tr>').join('');
+}
+function toText(sep){
+  const h=Object.keys(DATA[0]);
+  return h.join(sep)+"\n"+DATA.map(r=>h.map(x=>r[x]).join(sep)).join("\n");
+}
+document.getElementById('gen').onclick=build;
+document.getElementById('csv').onclick=()=>{
+  if(!DATA.length)build();
+  const blob=new Blob([toText(",")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download="practice-data-"+document.getElementById('dtype').value+".csv";a.click();
+};
+document.getElementById('cpy').onclick=(e)=>{if(!DATA.length)build();copy(toText("\t"),e.target);};
+build();
+</script>
+</body>
+</html>

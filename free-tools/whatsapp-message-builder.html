@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsApp Message Builder — Soft Skill Zone</title>
+<style>
+  :root{--navy:#12233F;--navy2:#1B3560;--saf:#E8752A;--grn:#1E7A4C;--wa:#25D366;
+        --ink:#1C2430;--mut:#6B7683;--line:#E2E7EE;--bg:#F4F6FA}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  header{background:var(--navy);color:#fff;padding:18px 0 16px}
+  .hrow{max-width:1080px;margin:0 auto;padding:0 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--saf),#F0A150);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#12233F;flex:0 0 auto}
+  .htext h1{font-size:19px;font-weight:700}
+  .htext p{font-size:12.5px;color:#B9C6DC;margin-top:2px}
+  .hcta{margin-left:auto;font-size:12.5px;color:#B9C6DC;text-align:right}
+  .hcta b{color:#fff;display:block;font-size:14px}
+  .wrap{max-width:1080px;margin:0 auto;padding:16px 14px 60px}
+  .intro{background:#fff;border:1px solid var(--line);border-left:4px solid var(--saf);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--mut);margin-bottom:16px}
+  .intro b{color:var(--ink)}
+  .box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .box h2{font-size:15px;font-weight:700;color:var(--navy2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+  .frow{display:flex;gap:12px;flex-wrap:wrap}
+  .fld{flex:1 1 190px}
+  .fld label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin-bottom:5px}
+  .fld input,.fld select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;font-size:15px;outline:none}
+  .fld input:focus,.fld select:focus{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(27,53,96,.10)}
+  .hint{font-size:12px;color:var(--mut);margin-top:6px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--mut);padding:7px 14px;border-radius:999px;font-size:13.5px;cursor:pointer;font-family:inherit}
+  .chip.on{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .msg{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .msg .t{padding:11px 14px;background:#EEF2F8;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:700;color:var(--navy2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .msg .t span{font-size:10.5px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--mut);padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+  .bubble{margin:14px;background:#DCF8C6;border-radius:10px 10px 10px 3px;padding:11px 13px;font-size:14.2px;white-space:pre-wrap;color:#111;flex:1;line-height:1.5}
+  .acts{display:flex;gap:8px;padding:0 14px 14px;flex-wrap:wrap}
+  .btn{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:13.5px;font-family:inherit;text-decoration:none;display:inline-block}
+  .btn-c{background:var(--navy);color:#fff}
+  .btn-w{background:var(--wa);color:#fff}
+  .btn.done{background:var(--grn)!important}
+  .cnt{font-size:13px;color:var(--mut);margin:2px 0 12px}
+  .warn{background:#FFF8E1;border:1px solid #F0DCA0;border-radius:9px;padding:11px 13px;font-size:13.5px;color:#6B5514;margin-top:12px}
+  footer{margin-top:30px;padding:18px 14px;background:var(--navy);color:#B9C6DC;font-size:13px;text-align:center}
+  footer b{color:#fff}footer a{color:#F0A150;text-decoration:none}
+  @media(max-width:560px){.hcta{margin-left:0;text-align:left;width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">SSZ</div>
+    <div class="htext"><h1>WhatsApp Message Builder</h1><p>AI Automation Pro — Soft Skill Zone, Ara</p></div>
+    <div class="hcta"><b>6202856897</b>softskillzone.in</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="intro"><b>Kaam:</b> Neeche detail bhariye. Har tarah ka ready WhatsApp message apne aap ban jayega — copy karke bhej dijiye, ya seedha WhatsApp mein kholiye. Yehi message aap n8n ke WhatsApp node mein bhi paste kar sakte hain.</div>
+
+  <div class="box">
+    <h2>1. Business ki detail</h2>
+    <div class="frow">
+      <div class="fld"><label>Business kis tarah ka hai</label>
+        <select id="biz">
+          <option value="coaching">Coaching / Institute</option>
+          <option value="shop">Shop / Store</option>
+          <option value="clinic">Clinic / Doctor</option>
+          <option value="property">Property Dealer</option>
+          <option value="service">Service (parlour, repair, gym waghairah)</option>
+        </select></div>
+      <div class="fld"><label>Business ka naam</label><input id="bname" value="Soft Skill Zone"></div>
+      <div class="fld"><label>Aapka naam</label><input id="yname" value="Pankaj"></div>
+      <div class="fld"><label>Aapka mobile</label><input id="ymob" value="6202856897"></div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>2. Customer ki detail</h2>
+    <div class="frow">
+      <div class="fld"><label>Customer ka naam</label><input id="cname" value="Ravi"></div>
+      <div class="fld"><label>Customer ka mobile (10 digit)</label><input id="cmob" value="" placeholder="9876543210"><div class="hint">Ye bhara ho to "WhatsApp mein kholo" button chalega.</div></div>
+      <div class="fld"><label>Kaam / cheez ka naam</label><input id="item" value="AI Automation Pro"></div>
+      <div class="fld"><label>Paisa (Rs)</label><input id="amt" value="1947"></div>
+      <div class="fld"><label>Date</label><input id="date" value="20-08-2026"></div>
+      <div class="fld"><label>Time</label><input id="time" value="05:00 PM"></div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>3. Kis tarah ka message chahiye</h2>
+    <div class="chips" id="cats"></div>
+  </div>
+
+  <div class="cnt" id="cnt"></div>
+  <div class="cards" id="out"></div>
+
+  <div class="warn"><b>Yaad rakhiye:</b> WhatsApp API se pehla message sirf approved template se hi jaata hai. Customer ne jawab de diya, tab 24 ghante tak koi bhi message bhej sakte hain. Aur jise message nahi chahiye — uska naam list se turant hata dijiye.</div>
+</div>
+
+<footer>
+  <b>Soft Skill Zone</b> — Near Gym Town, Pakri, Ara<br>
+  Call / WhatsApp: <b>6202856897</b> &nbsp;|&nbsp; <a href="https://softskillzone.in">softskillzone.in</a> &nbsp;|&nbsp; info@softskillzone.in<br>
+  AI Automation Pro course ke students ke liye — free.
+</footer>
+
+<script>
+const F=()=>({
+  b:v('bname'),y:v('yname'),ym:v('ymob'),c:v('cname'),cm:v('cmob'),
+  it:v('item'),am:v('amt'),dt:v('date'),tm:v('time'),biz:v('biz')
+});
+function v(id){return document.getElementById(id).value.trim()}
+const WORD={
+  coaching:{who:"student",thing:"course",place:"class",pay:"fees"},
+  shop:{who:"customer",thing:"saaman",place:"shop",pay:"payment"},
+  clinic:{who:"patient",thing:"appointment",place:"clinic",pay:"payment"},
+  property:{who:"client",thing:"property",place:"office",pay:"token"},
+  service:{who:"customer",thing:"service",place:"shop",pay:"payment"}
+};
+
+const CATS=[
+ {k:"welcome",n:"Welcome / Dhanyavaad"},
+ {k:"followup",n:"Enquiry ke baad follow-up"},
+ {k:"reminder",n:"Reminder (class / appointment)"},
+ {k:"pay",n:"Paisa maangna"},
+ {k:"paid",n:"Paisa mil gaya"},
+ {k:"offer",n:"Naya offer / launch"},
+ {k:"feedback",n:"Feedback maangna"},
+ {k:"wish",n:"Wish (birthday / festival)"},
+ {k:"notice",n:"Notice (chhutti / time change)"}
+];
+let cur="welcome";
+
+const T=[
+/* ---- WELCOME ---- */
+{c:"welcome",t:"Naya customer — pehla message",tag:"Sabse pehle",f:f=>
+`Namaste ${f.c} ji,
+
+${f.b} mein aapka swagat hai.
+
+Aapka ${WORD[f.biz].thing} — *${f.it}* — book ho gaya hai.
+
+Koi bhi baat ho to seedha yahi message kar dijiye.
+
+${f.y}
+${f.b}
+${f.ym}`},
+{c:"welcome",t:"Short dhanyavaad",tag:"Short",f:f=>
+`${f.c} ji, dhanyavaad. Aapka kaam note ho gaya hai. Kuch bhi puchhna ho to bata dijiye.
+— ${f.b}, ${f.ym}`},
+
+/* ---- FOLLOW UP ---- */
+{c:"followup",t:"Enquiry ke 1 din baad",tag:"Day 1",f:f=>
+`Namaste ${f.c} ji,
+
+Kal aapne *${f.it}* ke baare mein poochha tha.
+
+Ek small si baat — abhi seat khali hai, aur jo detail aapne maangi thi wo main bhej deta hoon.
+
+Kab baat kar sakte hain? Main call kar loonga.
+
+${f.y}
+${f.b}`},
+{c:"followup",t:"3 din baad — halka reminder",tag:"Day 3",f:f=>
+`${f.c} ji, namaste.
+
+*${f.it}* wali baat par aapne kya socha?
+
+Agar koi doubt hai to poochh lijiye — main clear kar deta hoon. Aur agar abhi time nahi hai to bata dijiye, main baad mein message karoonga.
+
+${f.y} | ${f.ym}`},
+{c:"followup",t:"Last try — 7 din baad",tag:"Day 7",f:f=>
+`${f.c} ji,
+
+Main ${f.b} se ${f.y} bol raha hoon. Aakhri baar poochh raha hoon — *${f.it}* ke liye aap ready hain?
+
+"Haan" ya "Nahi" — bas ek word likh dijiye. Nahi likhenge to main aapko aage message nahi karoonga.
+
+Dhanyavaad.`},
+
+/* ---- REMINDER ---- */
+{c:"reminder",t:"Kal ka reminder",tag:"1 din pehle",f:f=>
+`Namaste ${f.c} ji,
+
+Yaad dila raha hoon — aapka *${f.it}* kal ${f.dt} ko ${f.tm} baje hai.
+
+Jagah: ${f.b}
+
+Aa nahi paayenge to bata dijiye, time badal dete hain.
+
+${f.ym}`},
+{c:"reminder",t:"Aaj ka reminder — subah wala",tag:"Same day",f:f=>
+`${f.c} ji, aaj ${f.tm} baje aapka *${f.it}* hai. ${f.b} mein milte hain.
+${f.ym}`},
+{c:"reminder",t:"Do baar nahi aaye — dhyan dilana",tag:"Absent",f:f=>
+`${f.c} ji, namaste.
+
+Aap pichhle do baar nahi aa paaye. Sab theek to hai?
+
+Koi dikkat ho to bata dijiye — hum aapke liye time badal sakte hain. Aapka aana zaroori hai.
+
+${f.y}, ${f.b}`},
+
+/* ---- PAY ---- */
+{c:"pay",t:"Paisa due — pehla message",tag:"Polite",f:f=>
+`Namaste ${f.c} ji,
+
+Aapka *Rs ${f.am}* baaki hai. Last date ${f.dt} hai.
+
+Aap online bhej sakte hain ya ${f.b} aakar de sakte hain. Jama ho gaya ho to is message ko chhod dijiye.
+
+Dhanyavaad
+${f.b} | ${f.ym}`},
+{c:"pay",t:"Last date ke din",tag:"Last day",f:f=>
+`${f.c} ji, aaj *Rs ${f.am}* jama karne ki last date hai (${f.dt}).
+
+Aaj shaam tak jama kar dijiye to achha rahega. Koi dikkat ho to call kar lijiye — ${f.ym}
+
+${f.b}`},
+{c:"pay",t:"Date nikal gayi",tag:"Late",f:f=>
+`Namaste ${f.c} ji,
+
+*Rs ${f.am}* ki date ${f.dt} ko nikal chuki hai.
+
+Ho sakta hai bhool gaye hon. Ek baar dekh lijiye aur jama kar dijiye. Kisi wajah se der ho rahi hai to bata dijiye — hum rasta nikal lenge.
+
+${f.y}, ${f.b}
+${f.ym}`},
+
+/* ---- PAID ---- */
+{c:"paid",t:"Paisa mila — receipt wala",tag:"Receipt",f:f=>
+`Namaste ${f.c} ji,
+
+Aapka *Rs ${f.am}* mil gaya. Dhanyavaad.
+
+Date: ${f.dt}
+Kis liye: ${f.it}
+
+Ye message hi aapki receipt hai. Sambhaal kar rakh lijiye.
+
+${f.b} | ${f.ym}`},
+{c:"paid",t:"Short receipt",tag:"Short",f:f=>
+`Rs ${f.am} mil gaya, dhanyavaad ${f.c} ji. (${f.dt}) — ${f.b}`},
+
+/* ---- OFFER ---- */
+{c:"offer",t:"Naya offer — sabko bhejne wala",tag:"Broadcast",f:f=>
+`Namaste ${f.c} ji,
+
+${f.b} mein naya offer chalu hai.
+
+*${f.it}* — ab sirf *Rs ${f.am}*
+
+Ye daam ${f.dt} tak hai. Uske baad puraana rate lagega.
+
+Chahiye to bas "Haan" likh dijiye, main aage ka bata deta hoon.
+
+${f.y} | ${f.ym}`},
+{c:"offer",t:"Purane customer ko special",tag:"Purane log",f:f=>
+`${f.c} ji, namaste.
+
+Aap hamare purane ${WORD[f.biz].who} hain, isliye ye baat aapko pehle bata raha hoon.
+
+*${f.it}* par ab Rs ${f.am} ka rate hai — aur pehle aane walon ko hi milega.
+
+Seat rakhwani ho to reply kar dijiye.
+
+${f.b}`},
+{c:"offer",t:"Status / broadcast ke liye short",tag:"Status",f:f=>
+`${f.it}
+Ab sirf Rs ${f.am}
+${f.dt} tak
+${f.b} — ${f.ym}`},
+
+/* ---- FEEDBACK ---- */
+{c:"feedback",t:"Feedback maangna",tag:"Simple",f:f=>
+`Namaste ${f.c} ji,
+
+${f.b} ka kaam aapko kaisa laga?
+
+1 se 5 mein se ek number likh dijiye. Kuch kami lagi ho to wo bhi bata dijiye — hum sudhaar lenge.
+
+Aapki ek line hamare liye badi baat hai.
+
+${f.y}`},
+{c:"feedback",t:"Google review maangna",tag:"Review",f:f=>
+`${f.c} ji, dhanyavaad.
+
+Agar kaam achha laga ho to Google par 2 line likh dijiye — isse naye log hum tak pahunchte hain. Bas 1 minute lagega.
+
+Link: (yahan apna Google review link daaliye)
+
+${f.b} | ${f.ym}`},
+
+/* ---- WISH ---- */
+{c:"wish",t:"Birthday",tag:"Birthday",f:f=>
+`Happy Birthday, ${f.c} ji.
+
+Aapka saal khushiyon se bhara rahe.
+
+— ${f.y} aur poori ${f.b} team`},
+{c:"wish",t:"Festival",tag:"Festival",f:f=>
+`Namaste ${f.c} ji,
+
+${f.b} ki taraf se aapko aur aapke poore family ko is festival ki bahut-bahut wish.
+
+${f.y} | ${f.ym}`},
+{c:"wish",t:"Naya saal",tag:"New Year",f:f=>
+`${f.c} ji, Happy New Year.
+
+Is saal aapka kaam khoob badhe. Hum hamesha ki tarah aapke saath hain.
+
+— ${f.b}`},
+
+/* ---- NOTICE ---- */
+{c:"notice",t:"Chhutti ka notice",tag:"Holiday",f:f=>
+`Sabhi ${WORD[f.biz].who} ke liye —
+
+${f.dt} ko ${f.b} band rahega.
+
+Agle din se sab normal chalega. Zaroori kaam ho to ${f.ym} par message kar dijiye.
+
+${f.y}`},
+{c:"notice",t:"Time badal gaya",tag:"Time change",f:f=>
+`Namaste ${f.c} ji,
+
+${f.dt} se *${f.it}* ka time badal kar *${f.tm}* ho raha hai.
+
+Naya time note kar lijiye. Dikkat ho to bata dijiye.
+
+${f.b} | ${f.ym}`},
+{c:"notice",t:"Kaam ho gaya / ready hai",tag:"Ready",f:f=>
+`Namaste ${f.c} ji,
+
+Aapka *${f.it}* taiyaar hai. ${f.dt} ke baad kabhi bhi le jaaiye.
+
+Aane se pehle ek message kar dijiye to main rakh kar rakhoonga.
+
+${f.y}, ${f.b}
+${f.ym}`}
+];
+
+const cb=document.getElementById('cats');
+CATS.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c.k===cur?' on':'');b.textContent=c.n;
+  b.onclick=()=>{cur=c.k;document.querySelectorAll('#cats .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');draw();};
+  cb.appendChild(b);});
+
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',draw));
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function draw(){
+  const f=F();
+  const list=T.filter(x=>x.c===cur);
+  document.getElementById('cnt').textContent=list.length+' ready message';
+  document.getElementById('out').innerHTML=list.map((x,i)=>{
+    const txt=x.f(f);
+    const num=f.cm.replace(/[^0-9]/g,'').slice(-10);
+    const wa=num.length===10?'<a class="btn btn-w" target="_blank" href="https://wa.me/91'+num+'?text='+encodeURIComponent(txt)+'">WhatsApp mein kholo</a>':'';
+    return '<div class="msg"><div class="t">'+esc(x.t)+'<span>'+esc(x.tag)+'</span></div>'+
+      '<div class="bubble" id="m'+i+'">'+esc(txt)+'</div>'+
+      '<div class="acts"><button class="btn btn-c" data-i="'+i+'">Copy</button>'+wa+'</div></div>';
+  }).join('');
+  document.querySelectorAll('.acts .btn-c').forEach(b=>b.onclick=()=>{
+    const t=document.getElementById('m'+b.dataset.i).textContent;
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy')}catch(e){}
+    document.body.removeChild(ta);
+    b.textContent='Copy ho gaya';b.classList.add('done');
+    setTimeout(()=>{b.textContent='Copy';b.classList.remove('done')},1400);
+  });
+}
+draw();
+</script>
+</body>
+</html>

@@ -490,7 +490,11 @@ export const TOOLS = Object.freeze([
   { id: "formula-explainer",    route: "toolFormula",    title: "Formula Explainer",     desc: "Koi bhi Excel formula Hinglish me samjhein", icon: "book",   color: "#4f46e5" },
   { id: "excel-errors",         route: "toolExcelErr",   title: "Excel Error Decoder",   desc: "#N/A, #REF!, #VALUE! ka matlab aur ilaaj",   icon: "alert",  color: "#e11d48" },
   { id: "excel-datasets",       route: "toolExcelData",  title: "Excel Practice Data",   desc: "Asli jaisa data .xlsx me — kaam ki list ke saath", icon: "grid", color: "#059669" },
-  { id: "mini-excel",           route: "toolMiniExcel",  title: "Mini Excel",            desc: "Browser me hi asli formula practice — 5 lesson", icon: "calculator", color: "#0891b2" }
+  { id: "mini-excel",           route: "toolMiniExcel",  title: "Mini Excel",            desc: "Browser me hi asli formula practice — 5 lesson", icon: "calculator", color: "#0891b2" },
+  { id: "automation-check",     route: "toolAutoCheck",  title: "Automation Check",      desc: "8 sawaal — business me har mahine kitne ghante bachenge", icon: "trending", color: "#e11d48" },
+  { id: "whatsapp-messages",    route: "toolWaMessages", title: "WhatsApp Message Maker",desc: "Reminder, follow-up, offer — ready message turant", icon: "users",    color: "#059669" },
+  { id: "n8n-toolkit",          route: "toolAiToolkit",  title: "n8n Student Toolkit",   desc: "60 node ka matlab, 30 expression, practice data",  icon: "book",     color: "#4f46e5" },
+  { id: "quotation-maker",      route: "toolQuotation",  title: "Quotation Maker",       desc: "Automation ka rate lagayein aur quotation print karein", icon: "receipt", color: "#7c3aed" }
 ]);
 
 /* ==========================================================================

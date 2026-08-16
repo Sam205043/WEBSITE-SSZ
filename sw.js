@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v111";
+const VERSION = "ssz-v112";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -52,6 +52,16 @@ const TOOL_DATA = [
   "js/config/excel-lessons.js"
 ];
 
+/* AI Automation Pro ke free tools — ye ek-ek single file hain, isliye
+   seedha naam se precache hote hain. */
+const AI_TOOLS = [
+  "free-tools/index.html",
+  "free-tools/student-toolkit.html",
+  "free-tools/whatsapp-message-builder.html",
+  "free-tools/automation-check.html",
+  "free-tools/quotation.html"
+];
+
 const PRECACHE = [
   "index.html",
   "offline.html",
@@ -67,6 +77,7 @@ const PRECACHE = [
   ...TOOLS.map((t) => `pages/tools/${t}.html`),
   ...TOOLS.map((t) => `js/tools/${t}.js`),
   ...TOOL_DATA,
+  ...AI_TOOLS,
   "css/tokens.css",
   "css/base.css",
   "css/layout.css",

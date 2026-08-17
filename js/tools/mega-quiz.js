@@ -13,6 +13,7 @@ import { icon } from "../core/icons.js";
 import { url } from "../core/routes.js";
 import { store } from "../core/utils.js";
 import { QUESTION_BANK, BANK_MODULES, bankCounts } from "../config/question-bank.js";
+import { loadPack } from "../core/i18n.js";
 
 const KEYS = ["A", "B", "C", "D"];
 const BEST_KEY = "ssz.megaquiz.best";
@@ -190,6 +191,17 @@ function finish() {
 /* ---------------- Boot ---------------- */
 onReady(() => {
   paintSetup();
+
+  /* Sawaalon ka anuvaad alag file me rehta hai (lang/en.quiz.json) aur sirf
+     yahin mangwaya jaata hai. Wajah size hai: 755 sawaal ka anuvaad 120 KB ka
+     hai — wo har page par bhejna bekaar hai, homepage khol rahe student ko
+     quiz ka anuvaad nahi chahiye.
+
+     Await nahi kar rahe, aur na hi paint rok rahe hain. Pack aate hi i18n
+     poore page ka text khud badal deta hai, isliye pehle Hinglish dikhega
+     aur ek pal baad apni bhasha me badal jayega. Hinglish par ye line kuch
+     karti hi nahi — wahan dictionary hoti hi nahi. */
+  loadPack("quiz");
 
   on($("#mqBody"), "click", "#mqCount button", (e, btn) => {
     picked.count = Number(btn.dataset.n);

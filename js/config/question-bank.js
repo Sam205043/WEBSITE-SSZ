@@ -1,7 +1,7 @@
 /* ==========================================================================
    Soft Skill Zone — Sawaalon ka bank (MCQ assignments ke liye)
    --------------------------------------------------------------------------
-   480 sawaal, aath module me bante hue. Ye wahi bank hai jo free practice
+   660 sawaal, baarah module me bante hue. Ye wahi bank hai jo free practice
    quiz me chalta hai — isliye iske jawab public hain.
 
    MATLAB SAAF SAMAJH LEIN:

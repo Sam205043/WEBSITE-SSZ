@@ -87,6 +87,7 @@ const db = admin.firestore();
    hai, taaki har read-write ka safar chhota rahe. */
 setGlobalOptions({ region: "asia-south1", maxInstances: 5 });
 
+const GOOGLE_TTS_KEY = defineSecret("GOOGLE_TTS_KEY");
 const RZP_KEY_ID = defineSecret("RZP_KEY_ID");
 const RZP_KEY_SECRET = defineSecret("RZP_KEY_SECRET");
 const RZP_WEBHOOK_SECRET = defineSecret("RZP_WEBHOOK_SECRET");
@@ -1813,4 +1814,128 @@ exports.countAzadiSeat = onDocumentCreated("students/{studentId}", async (event)
        likhte hain, phenkte nahi. */
     logger.error("azadi seat ginti nahi badh payi", { studentId: event.params.studentId, err: e.message });
   }
+});
+
+
+/* ==========================================================================
+   Nova ki awaaz — Google Text-to-Speech
+   --------------------------------------------------------------------------
+   Chatbot ka jawab yahan bhejo, MP3 waapas milta hai.
+
+   YAHAN KYUN, BROWSER ME KYUN NAHI
+
+   Browser ki apni `speechSynthesis` muft hai, par uski awaaz har phone par
+   alag hoti hai aur saste Android me hi-IN voice hoti hi nahi — wahan wo
+   Hindi ko angrezi lehje me padhta hai, jo sunne me bura lagta hai. Google
+   ki awaaz har phone par ek jaisi aur saaf hai.
+
+   API key yahan isliye rakhi hai ki browser me rakhne ka matlab hota use
+   duniya ko de dena — koi bhi uthaakar apna kaam chalata, bill aapka aata.
+
+   TEEN ROKEIN — kyunki ye function bina login ke bhi chalta hai (website
+   par aane wale ko login nahi karwana hai):
+
+     1. Ek baar me 600 akshar se zyada nahi. Lamba jawab pura bolne se koi
+        nahi sunta, aur kharcha aksharon se hi ginta hai.
+     2. Din bhar ki hadd — settings/novaVoice ka `dailyCap`. Hadd paar hote
+        hi ye khaali haath lautta hai aur browser apni awaaz se kaam chala
+        leta hai. Awaaz band ho jaana theek hai; bill khula chhodna nahi.
+     3. Google ka apna muft hissa (Neural2 par har mahine 10 lakh akshar)
+        in dono ke andar aaram se rehta hai.
+
+   VOICE KA NAAM CODE ME KYUN NAHI
+
+   Google apni voice ke naam badalta rehta hai. Naam yahan likh dete to jis
+   din wo naam hata, us din awaaz bandh ho jaati. Isliye default me sirf
+   bhasha maangi jaati hai — Google khud apni sabse achhi Hindi voice deta
+   hai. Kisi khaas voice par jaana ho to settings/novaVoice me `voice` likh
+   dijiye; deploy dobara nahi karna padega. Kaun-kaun si mil sakti hain,
+   ye jaanne ke liye is function ko { list: true } bhejiye.
+   ========================================================================== */
+const TTS_MAX_CHARS = 600;
+const TTS_DEFAULT_DAILY_CAP = 40000;      // ~130 jawab roz
+const TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize";
+const TTS_VOICES_URL = "https://texttospeech.googleapis.com/v1/voices";
+
+/** Bolne layak text — nishaan hataakar, chhota karke. */
+function speakable(raw) {
+  let t = String(raw || "")
+    .replace(/\*\*/g, "")                 // **bold** ke taare
+    .replace(/https?:\/\/\S+/g, "link")   // URL bolna bekaar hai
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (t.length <= TTS_MAX_CHARS) return t;
+
+  /* Beech-vaakya kaatne se jawab adhoora lagta hai. Isliye hadd se pehle ka
+     aakhri poornviram dhoondh kar wahin rok dete hain. */
+  const cut = t.slice(0, TTS_MAX_CHARS);
+  const stop = Math.max(cut.lastIndexOf("। "), cut.lastIndexOf(". "), cut.lastIndexOf("? "));
+  return (stop > 200 ? cut.slice(0, stop + 1) : cut).trim();
+}
+
+exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req) => {
+  const key = GOOGLE_TTS_KEY.value();
+  if (!key) throw new HttpsError("failed-precondition", "Voice ki key set nahi hai.");
+
+  const cfgRef = db.collection("settings").doc("novaVoice");
+  const cfg = (await cfgRef.get()).data() || {};
+
+  /* Kaun si awaazein mil sakti hain — sirf dekhne ke liye. */
+  if (req.data?.list) {
+    const r = await fetch(`${TTS_VOICES_URL}?languageCode=hi-IN&key=${encodeURIComponent(key)}`);
+    const j = await r.json();
+    return { voices: (j.voices || []).map((v) => ({ name: v.name, gender: v.ssmlGender })) };
+  }
+
+  const text = speakable(req.data?.text);
+  if (!text) throw new HttpsError("invalid-argument", "Bolne ke liye kuchh nahi mila.");
+
+  /* ---- Din bhar ki hadd ---- */
+  const today = dateStr(new Date());
+  const cap = Number(cfg.dailyCap) > 0 ? Number(cfg.dailyCap) : TTS_DEFAULT_DAILY_CAP;
+  const usedToday = cfg.day === today ? Number(cfg.chars) || 0 : 0;
+
+  if (usedToday + text.length > cap) {
+    logger.warn("nova voice — aaj ki hadd poori", { usedToday, cap });
+    return { capped: true };            // client apni awaaz se bol lega
+  }
+
+  /* ---- Awaaz banwao ---- */
+  const voice = { languageCode: "hi-IN" };
+  if (cfg.voice) voice.name = String(cfg.voice);
+  else voice.ssmlGender = "FEMALE";
+
+  const res = await fetch(`${TTS_URL}?key=${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      input: { text },
+      voice,
+      audioConfig: { audioEncoding: "MP3", speakingRate: 1.0, pitch: 0 }
+    })
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    logger.error("nova voice — Google ne mana kiya", { status: res.status, body: body.slice(0, 300) });
+    /* Phenkte nahi — client chup-chaap apni awaaz par chala jaata hai.
+       Jawab likha hua to dikh hi raha hai; awaaz na aane par chat rukni
+       nahi chahiye. */
+    return { failed: true };
+  }
+
+  const { audioContent } = await res.json();
+  if (!audioContent) return { failed: true };
+
+  /* Ginti baad me — paisa kharch hone ke BAAD. Pehle ginte to nakaam
+     koshishein bhi hadd kha jaatin. */
+  await cfgRef.set(
+    cfg.day === today
+      ? { chars: admin.firestore.FieldValue.increment(text.length) }
+      : { day: today, chars: text.length },
+    { merge: true }
+  ).catch((e) => logger.error("nova voice ginti nahi likhi", { err: e.message }));
+
+  return { audio: audioContent, mime: "audio/mpeg", chars: text.length };
 });

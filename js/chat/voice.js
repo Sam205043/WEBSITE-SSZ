@@ -1,12 +1,12 @@
 /* ==========================================================================
-   Nova ki awaaz — bolkar poochhna, bolkar jawab sunna
+   Sahayak ki awaaz — bolkar poochhna, bolkar jawab sunna
    --------------------------------------------------------------------------
    Do alag kaam ek hi file me:
 
      SUNNA  (student bole)  — browser ka apna SpeechRecognition. Iska koi
                               paisa nahi lagta aur ye offline nahi bhi ho to
                               Google ke server se hi chalta hai.
-     BOLNA  (Nova bole)     — Cloud Function `novaSpeak`, jo Google Text-to-
+     BOLNA  (sahayak bole)  — Cloud Function `novaSpeak`, jo Google Text-to-
                               Speech se Hindi awaaz banwaakar MP3 laut'ta hai.
 
    BROWSER KI APNI AWAAZ SE KYUN NAHI
@@ -114,7 +114,7 @@ export function stopListening() {
 export function isListening() { return !!rec; }
 
 /* ==========================================================================
-   BOLNA — Nova ka jawab
+   BOLNA — sahayak ka jawab
    ========================================================================== */
 let audio = null;                 // abhi baj raha MP3
 const memo = new Map();           // text -> base64 (is page ke liye)
@@ -159,7 +159,7 @@ function playFallback(text) {
 }
 
 /**
- * Nova se ye text bulwao.
+ * Sahayak se ye text bulwao.
  *
  * Kabhi throw nahi karta — awaaz na aane par chat rukni nahi chahiye, jawab
  * to likha hua saamne hai hi.

@@ -13,7 +13,7 @@
 
    AWAAZ (js/chat/voice.js)
 
-   Student mic dabakar bol sakta hai, aur Nova bolkar jawab de sakti hai.
+   Student mic dabakar bol sakta hai, aur sahayak bolkar jawab de sakta hai.
    Wo poora hissa alag file me hai aur tabhi utarta hai jab student mic ya
    speaker dabaye — jise likhkar poochhna hai uske data me se ek byte bhi
    nahi jaata.

@@ -483,7 +483,7 @@ export const TOOLS = Object.freeze([
   { id: "resume-builder",       route: "toolResume",     title: "Resume Builder",        desc: "Professional resume PDF banayein",        icon: "fileText",   color: "#4f46e5" },
   { id: "typing-test",          route: "toolTyping",     title: "Typing Test",           desc: "WPM aur accuracy check karein",           icon: "keyboard",   color: "#0891b2" },
   { id: "qr-generator",         route: "toolQr",         title: "QR Code Generator",     desc: "Text ya link ka QR banayein",             icon: "qrcode",     color: "#7c3aed" },
-  { id: "mega-quiz",            route: "toolMegaQuiz",   title: "Mega Quiz",             desc: "660 sawaal — 12 module se practice",      icon: "clipboard",  color: "#4f46e5" },
+  { id: "mega-quiz",            route: "toolMegaQuiz",   title: "Mega Quiz",             desc: "755 sawaal — 12 module se practice",      icon: "clipboard",  color: "#4f46e5" },
   { id: "shortcut-trainer",     route: "toolShortcuts",  title: "Shortcut Trainer",      desc: "110 shortcuts flashcard se yaad karein",  icon: "keyboard",   color: "#0891b2" },
   { id: "excel-practice",       route: "toolExcel",      title: "Excel Formula Practice",desc: "SUM se PMT tak — formula likh kar check", icon: "calculator", color: "#059669" },
   { id: "interview-qa",         route: "toolInterview",  title: "Interview Q&A Practice",desc: "480 interview aur viva sawaal",           icon: "users",      color: "#7c3aed" },

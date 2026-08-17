@@ -1840,20 +1840,39 @@ exports.countAzadiSeat = onDocumentCreated("students/{studentId}", async (event)
      2. Din bhar ki hadd — settings/novaVoice ka `dailyCap`. Hadd paar hote
         hi ye khaali haath lautta hai aur browser apni awaaz se kaam chala
         leta hai. Awaaz band ho jaana theek hai; bill khula chhodna nahi.
-     3. Google ka apna muft hissa (Neural2 par har mahine 10 lakh akshar)
-        in dono ke andar aaram se rehta hai.
 
-   VOICE KA NAAM CODE ME KYUN NAHI
+   HADD 30,000 HI KYUN
 
-   Google apni voice ke naam badalta rehta hai. Naam yahan likh dete to jis
-   din wo naam hata, us din awaaz bandh ho jaati. Isliye default me sirf
-   bhasha maangi jaati hai — Google khud apni sabse achhi Hindi voice deta
-   hai. Kisi khaas voice par jaana ho to settings/novaVoice me `voice` likh
-   dijiye; deploy dobara nahi karna padega. Kaun-kaun si mil sakti hain,
-   ye jaanne ke liye is function ko { list: true } bhejiye.
+   Chirp 3: HD par Google har mahine 10 lakh akshar muft deta hai, uske baad
+   $30 per 10 lakh. 30,000 x 31 din = 9.3 lakh — yaani sabse bure mahine me
+   bhi bill sifar rehta hai. 40,000 rakhte to 12.4 lakh ho jaata aur mahina
+   khatam hone se pehle paise lagne lagte. 30,000 akshar matlab roz kareeb
+   100 jawab; abhi ki bheed se kai guna zyada hai.
+
+   VOICE KA NAAM
+
+   Default `hi-IN-Chirp3-HD-Umbriel` hai — Chirp 3: HD, yaani Google ki
+   sabse naye dhang ki Hindi awaaz, sunne me sabse kam robot jaisi. Sirf
+   `languageCode` bhejne par Google purani Standard awaaz deta hai, jo
+   bhadde lehje me padhti hai, isliye naam dena hi behtar hai.
+
+   MARD KI AWAAZ HI KYUN — Nova apne baare me "sahayak hoon", "deta hoon"
+   kehta hai (js/chat/knowledge.js). Awaaz aurat ki lagti to likhe hue aur
+   sune hue me mel nahi baithta. Naam chunte waqt ye dekh lena zaroori hai.
+
+   Naam kabhi hataya ja sakta hai, isliye do raaste khule rakhe hain aur
+   dono bina deploy ke: settings/novaVoice me `voice` likh dijiye, ya ek
+   baar ke liye request me hi `voice` bhej dijiye (sirf hi-IN wali chalti
+   hain, taaki koi mehengi bhasha na chun le). Kaun-kaun si mil sakti hain
+   ye dekhne ke liye is function ko { list: true } bhejiye.
+
+   Chirp wali awaazein `pitch` nahi maanti — Google us request ko hi mana
+   kar deta hai — isliye pitch sirf purani (Neural2/Wavenet/Standard) ke
+   saath bheja jaata hai.
    ========================================================================== */
 const TTS_MAX_CHARS = 600;
-const TTS_DEFAULT_DAILY_CAP = 40000;      // ~130 jawab roz
+const TTS_DEFAULT_VOICE = "hi-IN-Chirp3-HD-Umbriel";
+const TTS_DEFAULT_DAILY_CAP = 30000;      // ~100 jawab roz, muft hisse ke andar
 const TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize";
 const TTS_VOICES_URL = "https://texttospeech.googleapis.com/v1/voices";
 
@@ -1902,17 +1921,19 @@ exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req
   }
 
   /* ---- Awaaz banwao ---- */
-  const voice = { languageCode: "hi-IN" };
-  if (cfg.voice) voice.name = String(cfg.voice);
-  else voice.ssmlGender = "FEMALE";
+  const asked = String(req.data?.voice || "");
+  const name = /^hi-IN-[\w-]+$/.test(asked) ? asked : String(cfg.voice || TTS_DEFAULT_VOICE);
+
+  const audioConfig = { audioEncoding: "MP3", speakingRate: 1.0 };
+  if (!/Chirp/i.test(name)) audioConfig.pitch = 0;
 
   const res = await fetch(`${TTS_URL}?key=${encodeURIComponent(key)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       input: { text },
-      voice,
-      audioConfig: { audioEncoding: "MP3", speakingRate: 1.0, pitch: 0 }
+      voice: { languageCode: "hi-IN", name },
+      audioConfig
     })
   });
 
@@ -1937,5 +1958,5 @@ exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req
     { merge: true }
   ).catch((e) => logger.error("nova voice ginti nahi likhi", { err: e.message }));
 
-  return { audio: audioContent, mime: "audio/mpeg", chars: text.length };
+  return { audio: audioContent, mime: "audio/mpeg", chars: text.length, voice: name };
 });

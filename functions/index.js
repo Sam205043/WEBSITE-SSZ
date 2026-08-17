@@ -1835,8 +1835,10 @@ exports.countAzadiSeat = onDocumentCreated("students/{studentId}", async (event)
    TEEN ROKEIN — kyunki ye function bina login ke bhi chalta hai (website
    par aane wale ko login nahi karwana hai):
 
-     1. Ek baar me 600 akshar se zyada nahi. Lamba jawab pura bolne se koi
-        nahi sunta, aur kharcha aksharon se hi ginta hai.
+     1. Ek baar me 420 akshar se zyada nahi. Lamba jawab ek hi request me
+        bhejne par Google mana kar deta hai (neeche "NAKAAM HONE PAR" wala
+        hissa dekhein), aur kharcha aksharon se hi ginta hai. Poora lamba
+        jawab bolwana ho to client use tukdon me todkar bhejta hai.
      2. Din bhar ki hadd — settings/novaVoice ka `dailyCap`. Hadd paar hote
         hi ye khaali haath lautta hai aur browser apni awaaz se kaam chala
         leta hai. Awaaz band ho jaana theek hai; bill khula chhodna nahi.
@@ -1870,27 +1872,27 @@ exports.countAzadiSeat = onDocumentCreated("students/{studentId}", async (event)
    kar deta hai — isliye pitch sirf purani (Neural2/Wavenet/Standard) ke
    saath bheja jaata hai.
    ========================================================================== */
-const TTS_MAX_CHARS = 600;
+const TTS_MAX_CHARS = 420;
 const TTS_DEFAULT_VOICE = "hi-IN-Chirp3-HD-Umbriel";
 const TTS_DEFAULT_DAILY_CAP = 30000;      // ~100 jawab roz, muft hisse ke andar
 const TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize";
 const TTS_VOICES_URL = "https://texttospeech.googleapis.com/v1/voices";
 
 /** Bolne layak text — nishaan hataakar, chhota karke. */
-function speakable(raw) {
+function speakable(raw, limit = TTS_MAX_CHARS) {
   let t = String(raw || "")
     .replace(/\*\*/g, "")                 // **bold** ke taare
     .replace(/https?:\/\/\S+/g, "link")   // URL bolna bekaar hai
     .replace(/\s+/g, " ")
     .trim();
 
-  if (t.length <= TTS_MAX_CHARS) return t;
+  if (t.length <= limit) return t;
 
   /* Beech-vaakya kaatne se jawab adhoora lagta hai. Isliye hadd se pehle ka
      aakhri poornviram dhoondh kar wahin rok dete hain. */
-  const cut = t.slice(0, TTS_MAX_CHARS);
+  const cut = t.slice(0, limit);
   const stop = Math.max(cut.lastIndexOf("। "), cut.lastIndexOf(". "), cut.lastIndexOf("? "));
-  return (stop > 200 ? cut.slice(0, stop + 1) : cut).trim();
+  return (stop > limit * 0.4 ? cut.slice(0, stop + 1) : cut).trim();
 }
 
 exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req) => {
@@ -1927,22 +1929,52 @@ exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req
   const audioConfig = { audioEncoding: "MP3", speakingRate: 1.0 };
   if (!/Chirp/i.test(name)) audioConfig.pitch = 0;
 
-  const res = await fetch(`${TTS_URL}?key=${encodeURIComponent(key)}`, {
+  const ask = (t) => fetch(`${TTS_URL}?key=${encodeURIComponent(key)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      input: { text },
+      input: { text: t },
       voice: { languageCode: "hi-IN", name },
       audioConfig
     })
   });
 
+  let spoken = text;
+  let res = await ask(spoken);
+
+  /* -------------------------------------------------------------------
+     NAKAAM HONE PAR EK BAAR CHHOTA KARKE DOBARA
+
+     Chirp 3: HD ki hadd akshar ginkar nahi lagti. Google pehle text ko
+     bolne layak roop me kholta hai — "1,947" ban jaata hai "ek hazaar nau
+     sau saintalis" — aur hadd USI khule hue roop par lagti hai. Isliye
+     course-list jaise jawab, jinme daam hi daam hote hain, 550 akshar par
+     bhi mana ho jaate the, jabki bina number wala 590 akshar ka jawab
+     aaram se ban jaata tha.
+
+     Sirf hadd ghata dena kaafi nahi — number kitne honge ye pehle se pata
+     nahi. Isliye mana hote hi aadha karke ek baar aur poochhte hain. Do
+     koshish me lagbhag har jawab nikal jaata hai, aur kabhi na nikle to
+     chup rehna hi theek hai (jawab likha hua saamne hai).
+     ------------------------------------------------------------------- */
+  if (!res.ok) {
+    const first = await res.text();
+    const shorter = speakable(spoken, Math.floor(spoken.length / 2));
+    logger.warn("nova voice — pehli koshish mana hui, chhota karke dobara", {
+      status: res.status, chars: spoken.length, ab: shorter.length,
+      body: first.slice(0, 300)
+    });
+    if (shorter && shorter.length < spoken.length) {
+      spoken = shorter;
+      res = await ask(spoken);
+    }
+  }
+
   if (!res.ok) {
     const body = await res.text();
-    logger.error("nova voice — Google ne mana kiya", { status: res.status, body: body.slice(0, 300) });
-    /* Phenkte nahi — client chup-chaap apni awaaz par chala jaata hai.
-       Jawab likha hua to dikh hi raha hai; awaaz na aane par chat rukni
-       nahi chahiye. */
+    logger.error("nova voice — Google ne mana kiya", { status: res.status, chars: spoken.length, body: body.slice(0, 300) });
+    /* Phenkte nahi — client chup ho jaata hai. Jawab likha hua to dikh hi
+       raha hai; awaaz na aane par chat rukni nahi chahiye. */
     return { failed: true };
   }
 
@@ -1950,13 +1982,15 @@ exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req
   if (!audioContent) return { failed: true };
 
   /* Ginti baad me — paisa kharch hone ke BAAD. Pehle ginte to nakaam
-     koshishein bhi hadd kha jaatin. */
+     koshishein bhi hadd kha jaatin. Ginti `spoken` ki, `text` ki nahi:
+     nakaam pehli koshish ka bhi paisa nahi lagta, aur chhote kiye hue
+     text ka utna hi lagta hai jitna wo hai. */
   await cfgRef.set(
     cfg.day === today
-      ? { chars: admin.firestore.FieldValue.increment(text.length) }
-      : { day: today, chars: text.length },
+      ? { chars: admin.firestore.FieldValue.increment(spoken.length) }
+      : { day: today, chars: spoken.length },
     { merge: true }
   ).catch((e) => logger.error("nova voice ginti nahi likhi", { err: e.message }));
 
-  return { audio: audioContent, mime: "audio/mpeg", chars: text.length, voice: name };
+  return { audio: audioContent, mime: "audio/mpeg", chars: spoken.length, voice: name };
 });

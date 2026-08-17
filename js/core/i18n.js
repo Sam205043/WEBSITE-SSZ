@@ -276,12 +276,23 @@ export async function loadPack(name) {
    Dictionary me aisa likha jata hai:
      "Sawaal {n} / {n}" : "Sawaal {n} / {n}"
    Number अपनी jagah par lautt aate hain, isliye kram badalne ki zaroorat
-   nahi padti. */
+   nahi padti.
+
+   EK BAAT DHYAN SE — ginti ka kram dono taraf ek jaisa rakhein. Number apne
+   number ki jagah nahi, apni BAARI ki jagah baithta hai. "₹10,000 par 9%" ka
+   anuvaad "9% on ₹10,000" likhne par 9 aur 10,000 aapas me badal jaate hain.
+   Sahi tarika: "₹10,000 at 9%".
+
+   Bharat me ginti do-do ank me alag hoti hai — 1,50,000. Isliye comma wala
+   hissa ek se zyada baar bhi aa sakta hai (`*`, `?` nahi); warna 1,50,000
+   "{n},{n}" ban jaata tha aur us line ka anuvaad kabhi milta hi nahi. */
+const NUM_RE = /\d+(?:[.,]\d+)*/g;
+
 function lookupWithNumbers(key) {
   if (dict[key] !== undefined) return dict[key];
   if (!/\d/.test(key)) return undefined;
-  const nums = key.match(/\d+(?:[.,]\d+)?/g) || [];
-  const shape = key.replace(/\d+(?:[.,]\d+)?/g, "{n}");
+  const nums = key.match(NUM_RE) || [];
+  const shape = key.replace(NUM_RE, "{n}");
   const hit = dict[shape];
   if (hit === undefined) return undefined;
   let i = 0;

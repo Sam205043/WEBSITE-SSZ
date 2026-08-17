@@ -14,7 +14,7 @@
 /* Bump this on every JS/CSS change. The activate handler deletes every cache
    whose name does not start with the current VERSION, so a bump is what
    actually pushes updated code to people who already visited the site. */
-const VERSION = "ssz-v119";
+const VERSION = "ssz-v120";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -29,7 +29,8 @@ const TOOLS = [
   "age-calculator", "percentage-calculator", "emi-calculator",
   "resume-builder", "typing-test", "qr-generator",
   "mega-quiz", "shortcut-trainer", "excel-practice", "interview-qa",
-  "formula-explainer", "excel-errors", "excel-datasets", "mini-excel"
+  "formula-explainer", "excel-errors", "excel-datasets", "mini-excel",
+  "journal-practice"
 ];
 
 /* Practice tools ka data alag files me hai — inke bina tool khulega to sahi
@@ -42,6 +43,7 @@ const TOOL_DATA = [
   "js/config/interview-bank.js",
   "js/config/excel-function-bank.js",
   "js/config/excel-error-bank.js",
+  "js/config/journal-bank.js",
   "js/config/sample-datasets.js",
   /* Ye do kisi tool ke naam se mel nahi khaate, isliye alag se likhne
      padte hain: parser Formula Explainer ka dil hai, aur xlsx-writer ke

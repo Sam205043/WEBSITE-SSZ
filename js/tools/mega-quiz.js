@@ -1,7 +1,7 @@
 /* ==========================================================================
    Soft Skill Zone — MS Office Mega Quiz
    --------------------------------------------------------------------------
-   Wahi 660 sawaal ka bank jo assignments me chalta hai, yahan practice ke
+   Wahi 755 sawaal ka bank jo assignments me chalta hai, yahan practice ke
    liye khula hai. Module chuniye, kitne sawaal chahiye chuniye, aur khelein.
 
    Har baar sawaal naye kram me aate hain aur options bhi shuffle hote hain —

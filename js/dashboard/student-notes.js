@@ -121,7 +121,7 @@ function empty(q) {
 }
 
 /* Kis module ke sawaal sach me maujood hain. Ek baar gin liya, har paint
-   par dobara 480 sawaal ginne ki zaroorat nahi. */
+   par dobara poora bank ginne ki zaroorat nahi. */
 const BANK_COUNTS = bankCounts();
 
 /** Ek module ka poora hissa — heading, uske notes, aur test ka link. */

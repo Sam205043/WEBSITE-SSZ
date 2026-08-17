@@ -109,7 +109,7 @@ function asgForm() {
         <div class="card-ssz__body" style="padding:1rem 1.15rem">
           <strong style="font-size:.9rem;display:block;margin-bottom:.2rem">Bank se sawaal uthayein</strong>
           <p style="font-size:.76rem;color:var(--text-muted);margin:0 0 .75rem">
-            480 sawaal pehle se maujood hain. Har baar alag sawaal nikalte hain, isliye
+            ${QUESTION_BANK.length} sawaal pehle se maujood hain. Har baar alag sawaal nikalte hain, isliye
             do batch ko ek jaisa paper nahi milega. <strong>Ye bank practice quiz me bhi
             chalta hai, isliye iske jawab public hain</strong> — haftawaar revision ke liye
             theek hai, asli imtihaan ke liye naye sawaal khud likhein.

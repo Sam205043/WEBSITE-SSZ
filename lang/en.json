@@ -574,7 +574,6 @@
   "Loan EMI aur total interest": "Loan EMI and total interest",
   "WPM aur accuracy check karein": "Check your WPM and accuracy",
   "Text ya link ka QR banayein": "Make a QR for text or a link",
-  "480 sawaal — module chunkar practice": "480 questions — practise module by module",
   "110 shortcuts flashcard se yaad karein": "Memorise 110 shortcuts with flashcards",
   "SUM se PMT tak — formula likh kar check": "From SUM to PMT — write a formula and check it",
   "480 interview aur viva sawaal": "480 interview and viva questions",
@@ -751,5 +750,9 @@
   "Sahi: {n} · lagatar {n}": "Correct: {n} · streak {n}",
   "Entry {n} / {n}": "Entry {n} / {n}",
   "Sabse lambi lagatar sahi: {n}": "Longest correct streak: {n}",
-  "aapne chuna:": "you chose:"
+  "aapne chuna:": "you chose:",
+  "Mega Quiz": "Mega Quiz",
+  "660 sawaal — 12 module se practice": "660 questions — practise across 12 modules",
+  "660 sawaal ka bank — MS Office se lekar AI Automation tak. Module chuniye, har baar naye sawaal, turant score.": "A bank of 660 questions — from MS Office to AI Automation. Pick a module, get fresh questions every time, and see your score at once.",
+  "Course": "Course"
 }

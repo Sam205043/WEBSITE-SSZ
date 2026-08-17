@@ -494,7 +494,8 @@ export const TOOLS = Object.freeze([
   { id: "automation-check",     route: "toolAutoCheck",  title: "Automation Check",      desc: "8 sawaal — business me har mahine kitne ghante bachenge", icon: "trending", color: "#e11d48" },
   { id: "whatsapp-messages",    route: "toolWaMessages", title: "WhatsApp Message Maker",desc: "Reminder, follow-up, offer — ready message turant", icon: "users",    color: "#059669" },
   { id: "n8n-toolkit",          route: "toolAiToolkit",  title: "n8n Student Toolkit",   desc: "60 node ka matlab, 30 expression, practice data",  icon: "book",     color: "#4f46e5" },
-  { id: "quotation-maker",      route: "toolQuotation",  title: "Quotation Maker",       desc: "Automation ka rate lagayein aur quotation print karein", icon: "receipt", color: "#7c3aed" }
+  { id: "quotation-maker",      route: "toolQuotation",  title: "Quotation Maker",       desc: "Automation ka rate lagayein aur quotation print karein", icon: "receipt", color: "#7c3aed" },
+  { id: "journal-practice",     route: "toolJournal",    title: "Journal Entry Practice",desc: "Dr/Cr khud chunein — asli sawaal, turant jaanch",  icon: "book",     color: "#e11d48" }
 ]);
 
 /* ==========================================================================

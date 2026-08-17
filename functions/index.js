@@ -102,7 +102,30 @@ const COURSES = {
   "bcom":             { code: "BCM", months: 36, fee: 18000, admissionFee: 0 },
   "gst-2":            { code: "GST", months: 2,  fee: 4500,  admissionFee: 0 },
   "income-tax-2025":  { code: "ITX", months: 2,  fee: 4500,  admissionFee: 0 },
-  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500,  admissionFee: 0 }
+  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500,  admissionFee: 0 },
+  "ai-automation-pro":{ code: "AUT", months: 3,  fee: 5000,  admissionFee: 0 }
+};
+
+/* --------------------------------------------------------------------------
+   Azadi offer — thodi der ke liye alag daam
+
+   AI Automation Pro 15 August ko Rs 1,947 me launch hua, aur 31 August ki
+   raat 12 baje se uska asli daam Rs 5,000 ho jaata hai. Upar wali table
+   sthir hai, isliye offer ka daam yahan alag rakha gaya hai.
+
+   Ye do tareekhein website ki js/core/azadi.js se HUBAHU milni chahiye —
+   wahan bhi thik yahi do pal hain. Alag ho gaye to student ko site par ek
+   daam dikhega aur payment page par doosra, aur bharosa ek hi baar me
+   tootta hai.
+
+   1 September ke baad yahan kuchh nahi karna: shart apne aap jhoothi ho
+   jaayegi aur table wala Rs 5,000 laut aayega.
+   -------------------------------------------------------------------------- */
+const AZADI = {
+  courseId: "ai-automation-pro",
+  startsAt: Date.parse("2026-08-15T00:00:00+05:30"),
+  endsAt:   Date.parse("2026-09-01T00:00:00+05:30"),
+  fee: 1947
 };
 
 /* --------------------------------------------------------------------------
@@ -124,9 +147,15 @@ const COURSES = {
    Course id table me na ho to 0 nahi lautate: 0 ka matlab hota "koi bakaya
    nahi", yaani course muft. Wahan hum saaf mana kar dete hain.
    -------------------------------------------------------------------------- */
-function courseFeeOf(courseId) {
-  const c = COURSES[String(courseId || "").trim()];
+function courseFeeOf(courseId, now = Date.now()) {
+  const id = String(courseId || "").trim();
+  const c = COURSES[id];
   if (!c) return null;
+
+  /* Offer chalu ho to usi ka daam — warna table wala. */
+  if (id === AZADI.courseId && now >= AZADI.startsAt && now < AZADI.endsAt) {
+    return rupees(AZADI.fee) + rupees(c.admissionFee);
+  }
   return rupees(c.fee) + rupees(c.admissionFee);
 }
 

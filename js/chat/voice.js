@@ -16,9 +16,10 @@
    install hi nahi rehti). Institute ka sahayak har student ko ek hi awaaz me
    milna chahiye. Isliye asli awaaz server se aati hai.
 
-   Par muft wali ko pheka bhi nahi gaya: agar server mana kar de (din ki hadd
-   poori, ya Google ki galti), to browser apni awaaz se bol deta hai. Student
-   ko chup-chaap kuch na milne se ye behtar hai.
+   Aur agar server mana kar de (din ki hadd poori, ya Google ki galti) to ye
+   CHUP ho jaata hai — browser wali muft awaaz jaan-boojh kar nahi lagayi.
+   Ek hi jawab beech me doosri, bhaddi awaaz me badal jaana chup rehne se
+   kahin bura lagta hai. Jawab likha hua saamne hai hi.
 
    PAISA
 
@@ -117,13 +118,14 @@ export function isListening() { return !!rec; }
    BOLNA — sahayak ka jawab
    ========================================================================== */
 let audio = null;                 // abhi baj raha MP3
-const memo = new Map();           // text -> base64 (is page ke liye)
-const MEMO_MAX = 12;
+let turn = 0;                     // har nayi baat ka apna number — purani ruk jaati hai
+const memo = new Map();           // tukda -> base64 (is page ke liye)
+const MEMO_MAX = 16;
 
 /** Server se aayi awaaz bajao. Jab tak baje, promise rukta hai. */
 function playBase64(b64) {
   return new Promise((resolve) => {
-    stopSpeaking();
+    if (audio) { try { audio.pause(); } catch { /* — */ } }
     audio = new Audio(`data:audio/mpeg;base64,${b64}`);
     audio.onended = () => { audio = null; resolve(); };
     audio.onerror = () => { audio = null; resolve(); };
@@ -131,72 +133,101 @@ function playBase64(b64) {
   });
 }
 
-/* Browser ki apni awaaz — sirf tab jab server se kuch na mile. */
-function playFallback(text) {
-  return new Promise((resolve) => {
-    const synth = window.speechSynthesis;
-    if (!synth) return resolve();
-    try {
-      synth.cancel();
-      /* Server wali safai yahan dobara — warna browser "star star" aur poora
-         URL padhkar sunata hai. */
-      const clean = String(text)
-        .replace(/\*\*/g, "")
-        .replace(/https?:\/\/\S+/g, "link")
-        .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, 600);
-      const u = new SpeechSynthesisUtterance(clean);
-      u.lang = "hi-IN";
-      u.rate = 0.98;
-      const hi = synth.getVoices().find((v) => /^hi/i.test(v.lang));
-      if (hi) u.voice = hi;
-      u.onend = resolve;
-      u.onerror = resolve;
-      synth.speak(u);
-    } catch { resolve(); }
-  });
+/* --------------------------------------------------------------------------
+   Lambe jawab ko tukdon me todna
+
+   KYUN — Google ki Chirp awaaz ek request me utna hi text leti hai jitna
+   bolne ke baad "khulkar" chhota rahe. Course wali list me har line me daam
+   hai, aur "1,947" bolte waqt "ek hazaar nau sau saintalis" ban jaata hai.
+   Isliye 550 akshar ka wo jawab mana ho jaata tha, jabki bina number wala
+   590 akshar ka jawab aaram se ban jaata tha.
+
+   Pehle mana hote hi browser apni awaaz par chala jaata tha — aur wahi sabse
+   bura tha: beech jawab me awaaz badal jaati thi, aur wo bhaddi awaaz Hindi
+   ko angrezi lehje me padhti thi. Ab jawab pehle hi chhote tukdon me tootta
+   hai aur har tukda alag laakar, ek ke baad ek bajta hai. Ek hi awaaz, poora
+   jawab.
+   -------------------------------------------------------------------------- */
+const CHUNK = 380;      // ek request me itne se zyada nahi
+const MAX_CHUNKS = 4;   // ~1500 akshar; usse lamba jawab koi sunta nahi
+
+function chunks(text) {
+  const out = [];
+  let rest = text;
+
+  while (rest && out.length < MAX_CHUNKS) {
+    if (rest.length <= CHUNK) { out.push(rest); break; }
+
+    /* Vaakya ke aakhir par todo. Wahan na mile to aakhri space par —
+       shabd ke beech kaatne se awaaz atak-atak kar aati hai. */
+    const head = rest.slice(0, CHUNK);
+    let at = Math.max(head.lastIndexOf("। "), head.lastIndexOf(". "),
+                      head.lastIndexOf("? "), head.lastIndexOf("! "));
+    if (at < CHUNK * 0.4) at = head.lastIndexOf(" ");
+    if (at < CHUNK * 0.4) at = CHUNK - 1;
+
+    out.push(rest.slice(0, at + 1).trim());
+    rest = rest.slice(at + 1).trim();
+  }
+  return out.filter(Boolean);
 }
 
 /**
  * Sahayak se ye text bulwao.
  *
  * Kabhi throw nahi karta — awaaz na aane par chat rukni nahi chahiye, jawab
- * to likha hua saamne hai hi.
+ * to likha hua saamne hai hi. Aur awaaz na aane par CHUP rehta hai: browser
+ * ki apni awaaz jaan-boojh kar nahi lagayi, kyunki ek hi jawab do alag
+ * awaazon me sunna toote hue system jaisa lagta hai.
  *
  * @param {string} text
  * @returns {Promise<void>}
  */
 export async function speak(text) {
-  const t = String(text || "").trim();
-  if (!t) return;
+  /* Safai yahin, tukde karne se PEHLE — warna `**` aur nayi line bhi naap me
+     gin jaate hain aur tukde asal me bade nikal aate hain. Server dobara
+     saaf karta hai; do baar saaf karne se kuch bigadta nahi. */
+  const whole = String(text || "")
+    .replace(/\*\*/g, "")
+    .replace(/https?:\/\/\S+/g, "link")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!whole) return;
 
-  if (memo.has(t)) return playBase64(memo.get(t));
+  const parts = chunks(whole);
+  stopSpeaking();
+  const mine = ++turn;                 // is baar ka token
 
-  try {
-    const fn = await novaSpeakFn();
-    const { data } = await fn({ text: t });
+  for (const part of parts) {
+    if (mine !== turn) return;         // beech me koi aur bol pada / rok diya
 
-    if (data?.audio) {
-      if (memo.size >= MEMO_MAX) memo.delete(memo.keys().next().value);
-      memo.set(t, data.audio);
-      return playBase64(data.audio);
+    let b64 = memo.get(part);
+    if (!b64) {
+      try {
+        const fn = await novaSpeakFn();
+        const { data } = await fn({ text: part });
+        if (!data?.audio) return;      // capped ya failed — chup
+        b64 = data.audio;
+        if (memo.size >= MEMO_MAX) memo.delete(memo.keys().next().value);
+        memo.set(part, b64);
+      } catch (err) {
+        console.warn("[voice]", err?.message || err);
+        return;
+      }
     }
-    /* capped / failed — muft wali awaaz par chale jao */
-    return playFallback(t);
-  } catch (err) {
-    console.warn("[voice]", err?.message || err);
-    return playFallback(t);
+
+    if (mine !== turn) return;
+    await playBase64(b64);
   }
 }
 
 export function stopSpeaking() {
+  turn++;                              // chal rahi kadi ko bhi rok deta hai
   if (audio) { try { audio.pause(); } catch { /* — */ } audio = null; }
-  try { window.speechSynthesis?.cancel(); } catch { /* — */ }
 }
 
 export function isSpeaking() {
-  return !!audio || !!window.speechSynthesis?.speaking;
+  return !!audio;
 }
 
 export default { canListen, startListening, stopListening, isListening, speak, stopSpeaking, isSpeaking };

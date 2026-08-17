@@ -42,7 +42,25 @@ export const LANGS = Object.freeze([
   { code: "en",       label: "English",  native: "English",  htmlLang: "en" }
 ]);
 
-const DEFAULT_LANG = "hinglish";
+/* --------------------------------------------------------------------------
+   DO ALAG BAATEIN — inhe gaddmadd na karein
+
+   SOURCE_LANG  jis bhasha me page ka HTML likha hai. Yahi wo ek bhasha hai
+                jiske liye koi dictionary nahi chahiye — text pehle se wahi
+                hai. Ye kabhi nahi badlegi jab tak poori site dobara na
+                likhi jaye.
+
+   DEFAULT_LANG naye aane wale ko pehli baar kaun si bhasha dikhe. Isse
+                badalna surakshit hai.
+
+   Pehle dono ek hi cheez the ("hinglish"), aur isi wajah se ye code jagah-
+   jagah SOURCE_LANG ka matlab lekar DEFAULT_LANG likhta tha. Ab default ko
+   "en" karna hai (website par aane wale ko pehle English mile), isliye
+   dono ko alag kar diya gaya — warna site English chunkar bhi Hinglish hi
+   dikhati, kyunki wo dictionary hi nahi maangti.
+   -------------------------------------------------------------------------- */
+const SOURCE_LANG = "hinglish";
+const DEFAULT_LANG = "en";
 const LS_KEY = "ssz.lang";
 
 /* Devanagari Manrope me hai hi nahi — Hindi chunne par ek Devanagari body
@@ -88,7 +106,7 @@ export function setLang(code) {
 /* ------------------------------------------------------------ dictionary */
 
 async function loadDict(code) {
-  if (code === DEFAULT_LANG) return null;
+  if (code === SOURCE_LANG) return null;
   /* Depth se raasta: student portal 2 folder andar hai, root ke page 0 par.
      data-depth body par pehle se lagta hai, wahi se gin lete hain. */
   const depth = Number(document.body?.dataset?.depth || 0);
@@ -149,7 +167,7 @@ export async function initI18n() {
   document.documentElement.setAttribute("lang", meta?.htmlLang || "en");
   blockBrowserTranslate();
 
-  if (lang !== DEFAULT_LANG) {
+  if (lang !== SOURCE_LANG) {
     if (lang === "hi") addHindiFont();
     dict = await loadDict(lang);
   }
@@ -231,7 +249,7 @@ export function mountLangPicker(node) {
  *   await loadPack("quiz")   →   lang/hi.quiz.json
  */
 export async function loadPack(name) {
-  if (lang === DEFAULT_LANG || !name) return false;
+  if (lang === SOURCE_LANG || !name) return false;
   const depth = Number(document.body?.dataset?.depth || 0);
   const up = "../".repeat(depth);
   try {

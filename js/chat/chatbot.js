@@ -11,6 +11,13 @@
    Yahi kram jaanbujh kar hai: fees aur tareekh jaise sawaal kabhi AI ke
    bharose nahi chhode jaate — wo hamesha asli data se aate hain.
 
+   AWAAZ (js/chat/voice.js)
+
+   Student mic dabakar bol sakta hai, aur Nova bolkar jawab de sakti hai.
+   Wo poora hissa alag file me hai aur tabhi utarta hai jab student mic ya
+   speaker dabaye — jise likhkar poochhna hai uske data me se ek byte bhi
+   nahi jaata.
+
    Boot: js/app.js (public pages) aur js/dashboard/shell.js (student).
    ========================================================================== */
 
@@ -32,10 +39,23 @@ const state = {
   loggedIn: false,
   user: null,
   ctx: {},          // student, attendance, classes... zaroorat par bharta hai
-  history: []       // { role: "user" | "bot", text }
+  history: [],      // { role: "user" | "bot", text }
+
+  /* Awaaz
+     speakOn  — student ne speaker chalu rakha hai (agli baar bhi yaad rahega)
+     viaVoice — abhi wala sawaal mic se aaya tha, isliye jawab bolna hai */
+  speakOn: false,
+  viaVoice: false
 };
 
 let nodes = {};
+
+/* Awaaz wali file — sirf pehli baar mangwaate hain. */
+let voicePromise = null;
+const voice = () => (voicePromise ||= import("./voice.js"));
+
+/* Mic hai ya nahi, ye poochhne ke liye file utaarne ki zaroorat nahi. */
+const MIC_OK = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
 /* ==========================================================================
    Chhota markup — **bold** aur nayi line, aur kuch nahi
@@ -90,6 +110,39 @@ function pushBot(text, extras = {}) {
   state.history.push({ role: "bot", text });
   if (extras.chips) renderChips(extras.chips);
   scrollDown();
+
+  /* Bolna sirf do haalat me: speaker chalu hai, ya sawaal hi bolkar poochha
+     gaya tha. Bina maange awaaz nikalna — khaas kar class ya office me —
+     bharosa todta hai, isliye khamoshi hi default hai. */
+  if (state.speakOn || state.viaVoice) sayIt(text);
+}
+
+/* Jawab bolwana. Nakaam ho to chup — likha hua jawab saamne hai hi. */
+async function sayIt(text) {
+  try {
+    const v = await voice();
+    setSpeakingUI(true);
+    await v.speak(text);
+  } catch (err) {
+    console.warn("[chat] awaaz nahi aayi", err);
+  } finally {
+    setSpeakingUI(false);
+  }
+}
+
+function setMicUI(on) {
+  nodes.mic?.classList.toggle("is-live", on);
+  nodes.mic?.setAttribute("aria-label", on ? "Sunna band karein" : "Bolkar poochhein");
+}
+
+function setSpeakingUI(on) {
+  nodes.speaker?.classList.toggle("is-live", on);
+  if (nodes.speaker) {
+    nodes.speaker.setAttribute(
+      "aria-label",
+      on ? "Bolna rokein" : state.speakOn ? "Awaaz band karein" : "Awaaz chalu karein"
+    );
+  }
 }
 
 function pushUser(text) {
@@ -182,6 +235,7 @@ async function respond(question) {
     pushBot("Kuch gadbad ho gayi. Ek baar phir se poochh kar dekhiye, ya seedhe WhatsApp kar lijiye.", { whatsapp: true });
   } finally {
     state.busy = false;
+    state.viaVoice = false;     // agla sawaal likha hua ho sakta hai
   }
 }
 
@@ -209,6 +263,13 @@ function openPanel() {
 function closePanel() {
   if (!state.open) return;
   state.open = false;
+
+  /* Panel band hote hi chup ho jao — warna student page chhodkar aage badh
+     jaata hai aur awaaz peechhe bajti rehti hai. */
+  voicePromise?.then((v) => { v.stopSpeaking(); v.stopListening(); }).catch(() => {});
+  setMicUI(false);
+  setSpeakingUI(false);
+
   nodes.panel.classList.remove("is-open");
   nodes.fab.setAttribute("aria-expanded", "false");
   nodes.fab.classList.remove("is-open");
@@ -271,10 +332,25 @@ function build() {
     placeholder: "Apna sawaal likhiye…", "aria-label": "Sawaal likhiye"
   });
 
+  /* Mic sirf wahan jahan chalta hai. Na chalne wale browser me dabaane par
+     "kuch nahi hua" dikhna, button hi na hone se zyada bura hai. */
+  const mic = MIC_OK ? el("button", {
+    class: "chat-mic", type: "button", "aria-label": "Bolkar poochhein",
+    html: icon("mic", { size: 18 })
+  }) : null;
+
   const form = el("form", { class: "chat-form", autocomplete: "off" },
     input,
+    mic,
     el("button", { class: "chat-send", type: "submit", "aria-label": "Bhejein", html: icon("arrowRight", { size: 18 }) })
   );
+
+  state.speakOn = store.get("ssz.chat.voice", false) === true;
+  const speaker = el("button", {
+    class: `chat-head__btn${state.speakOn ? " is-on" : ""}`, type: "button",
+    "aria-label": state.speakOn ? "Awaaz band karein" : "Awaaz chalu karein",
+    html: icon(state.speakOn ? "volume" : "volumeOff", { size: 17 })
+  });
 
   const panel = el("div", {
     class: "chat-panel", id: "sszChat", hidden: true,
@@ -286,6 +362,7 @@ function build() {
         el("strong", {}, BOT_NAME),
         el("span", {}, `${INSTITUTE.shortName} ka sahayak · turant jawab`)
       ),
+      speaker,
       el("button", { class: "chat-head__close", type: "button", "aria-label": "Band karein", html: icon("close", { size: 18 }) })
     ),
     body,
@@ -303,7 +380,7 @@ function build() {
   }
   document.body.appendChild(panel);
 
-  nodes = { fab, panel, body, chips, input, form, dot };
+  nodes = { fab, panel, body, chips, input, form, dot, mic, speaker };
 
   /* Taar jodna */
   fab.addEventListener("click", () => (state.open ? closePanel() : openPanel()));
@@ -322,6 +399,63 @@ function build() {
     const q = this.dataset.chip;
     pushUser(q);
     respond(q);
+  });
+
+  /* ---- Awaaz ka speaker ----
+     Bolte waqt dabaya to pehle rokna hai, chalu/band karna nahi — student
+     ka pehla iraada hamesha "chup ho jao" hota hai. */
+  speaker.addEventListener("click", async () => {
+    const v = await voice().catch(() => null);
+    if (v?.isSpeaking()) { v.stopSpeaking(); setSpeakingUI(false); return; }
+
+    state.speakOn = !state.speakOn;
+    store.set("ssz.chat.voice", state.speakOn);
+    speaker.classList.toggle("is-on", state.speakOn);
+    speaker.innerHTML = icon(state.speakOn ? "volume" : "volumeOff", { size: 17 });
+    setSpeakingUI(false);
+
+    /* Chalu karte hi aakhri jawab bol do — warna student ko pata hi nahi
+       chalta ki awaaz kaisi hai, aur ye click hi wo ijaazat hai jiska
+       browser autoplay ke liye intezaar karta hai. */
+    if (state.speakOn) {
+      const last = [...state.history].reverse().find((m) => m.role === "bot");
+      if (last) sayIt(last.text);
+    }
+  });
+
+  /* ---- Mic ---- */
+  mic?.addEventListener("click", async () => {
+    const v = await voice().catch(() => null);
+    if (!v) return;
+
+    if (v.isListening()) { v.stopListening(); return; }
+
+    v.stopSpeaking();          // apni hi awaaz sunkar mic uljhta hai
+    setSpeakingUI(false);
+
+    const before = input.placeholder;
+    setMicUI(true);
+    input.placeholder = "Suno raha hoon… boliye";
+
+    v.startListening({
+      onPartial: (t) => { input.value = t; },
+      onFinal: (q) => {
+        input.value = "";
+        state.viaVoice = true;   // is jawab ko bolkar dena hai
+        pushUser(q);
+        respond(q);
+      },
+      onError: (e) => {
+        input.placeholder = e === "not-allowed"
+          ? "Mic ki ijaazat nahi mili — browser settings me dein"
+          : e === "no-speech" ? "Kuch sunai nahi diya — dobara boliye"
+          : "Mic nahi chala — likhkar poochh lijiye";
+      },
+      onEnd: () => {
+        setMicUI(false);
+        setTimeout(() => { if (!v.isListening()) input.placeholder = before; }, 2600);
+      }
+    });
   });
 
   document.addEventListener("keydown", (e) => {

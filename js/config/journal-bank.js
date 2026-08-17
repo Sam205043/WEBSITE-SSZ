@@ -554,7 +554,7 @@ export const JOURNAL = Object.freeze([
   { ch: "asset", q: "Gaadi ki marammat par ₹6,000 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
   { ch: "asset", q: "Building ki marammat par ₹1,800 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
   { ch: "asset", q: "Generator ki marammat par ₹3,500 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
-  { ch: "asset", q: "Ac ki marammat par ₹7,000 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
+  { ch: "asset", q: "AC ki marammat par ₹7,000 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
   { ch: "asset", q: "Auzaar ki marammat par ₹2,200 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
   { ch: "asset", q: "Furniture ki marammat par ₹4,500 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },
   { ch: "asset", q: "Machine ki marammat par ₹8,000 cash kharch hua.", dr: "Repairs A/c", cr: "Cash A/c" },

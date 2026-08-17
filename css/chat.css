@@ -107,21 +107,6 @@
 }
 .chat-head__close:hover { background: rgb(255 255 255 / .3); }
 
-/* Awaaz ka button — close ke bagal me, waisa hi naap taaki dono ek line me
-   baithe dikhein. */
-.chat-head__btn {
-  background: rgb(255 255 255 / .15); border: none; color: #fff;
-  width: 32px; height: 32px; border-radius: 50%;
-  display: grid; place-items: center; cursor: pointer;
-  transition: var(--t-fast); flex-shrink: 0;
-}
-.chat-head__btn:hover { background: rgb(255 255 255 / .3); }
-.chat-head__btn.is-on { background: rgb(255 255 255 / .34); }
-/* Bolte waqt halki dhadkan — student ko dikhe ki awaaz isi se aa rahi hai
-   aur rokna bhi yahin se hai. */
-.chat-head__btn.is-live { background: #fff; color: var(--brand); animation: chatSpeak 1.1s ease-in-out infinite; }
-@keyframes chatSpeak { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
-
 /* ---------------- Messages ---------------- */
 .chat-body {
   flex: 1; min-height: 160px;
@@ -244,29 +229,6 @@
 }
 .chat-send:hover { transform: scale(1.07); box-shadow: var(--shadow-brand); }
 .chat-send:active { transform: scale(.95); }
-
-/* ---------------- Mic ---------------- */
-.chat-mic {
-  width: 40px; height: 40px; flex-shrink: 0;
-  border: 1.5px solid var(--border-default); border-radius: 50%;
-  background: var(--bg-surface-2); color: var(--text-secondary);
-  display: grid; place-items: center;
-  cursor: pointer; transition: var(--t-fast);
-}
-.chat-mic:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
-/* Sun-ne ke waqt laal — mic chalu hone ka sabse saaf ishara yahi hai. */
-.chat-mic.is-live {
-  background: var(--danger, #dc2626); border-color: var(--danger, #dc2626); color: #fff;
-  animation: chatMic 1.2s ease-in-out infinite;
-}
-@keyframes chatMic {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(220 38 38 / .45); }
-  60%      { box-shadow: 0 0 0 9px rgb(220 38 38 / 0); }
-}
-/* Jinke liye halchal takleef deti hai, unke liye sirf rang badalta hai. */
-@media (prefers-reduced-motion: reduce) {
-  .chat-mic.is-live, .chat-head__btn.is-live { animation: none; }
-}
 
 .chat-note {
   margin: 0; padding: var(--sp-2) var(--sp-4) var(--sp-4);

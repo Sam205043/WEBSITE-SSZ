@@ -51,6 +51,7 @@ const { defineSecret } = require("firebase-functions/params");
    jaata tha. Sirf options wala hissa lene se ye jhamela hi khatam. */
 const { setGlobalOptions } = require("firebase-functions/v2/options");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const crypto = require("crypto");
@@ -1770,4 +1771,46 @@ exports.attachPayment = onCall({ cors: true, secrets: MAIL_SECRETS }, async (req
 
   logger.info("bina juda payment jod diya gaya", { paymentId, studentId, amount, by: uid });
   return { ok: true, studentId, amount };
+});
+
+
+/* ==========================================================================
+   Seat ki ginti apne aap — settings/azadi ka seatsTaken
+   --------------------------------------------------------------------------
+   Website ke banner par "80 me se X seat bhar chuki hain" wali patti isi ek
+   field se chalti hai. Pehle ye number haath se Firebase console me badalna
+   padta tha, aur wahi sabse pehle bhoola jaata hai: banner mahine bhar "0"
+   dikhata rehta, jo bechne ke bajaye ulta nuksaan karta hai.
+
+   YE TRIGGER KYUN, DONO JAGAH GINTI KYUN NAHI
+
+   Student do raaston se banta hai: admin panel ke "Approve" se, aur payment
+   aane par webhook ke `claimStudentId` se. Ginti dono jagah likhne ka matlab
+   hota do jagah yaad rakhna — aur aaj hi hum wahi galti bhugat chuke hain
+   (course website me juda tha, function ki table me nahi, aur payment ruk
+   gaya). Isliye ginti wahan se hoti hai jahan dono raaste milte hain: student
+   ka document banne par. Ek jagah, dono raaste.
+
+   `increment` isliye ki do admission ek saath ho jaayein to bhi ginti nahi
+   bigadti — Firestore khud jodta hai, padh kar likhne me race lag jaati.
+
+   Ye trigger sirf ek document par likhta hai. Kabhi fail bhi ho jaaye to
+   student ka banna nahi rukta — ginti thodi peeche reh jaayegi, bas. Isi
+   liye ise student banane wale code ke andar nahi rakha.
+   ========================================================================== */
+exports.countAzadiSeat = onDocumentCreated("students/{studentId}", async (event) => {
+  const s = event.data?.data();
+  if (!s || s.courseId !== AZADI.courseId) return;
+
+  try {
+    await db.collection("settings").doc("azadi").set(
+      { seatsTaken: admin.firestore.FieldValue.increment(1) },
+      { merge: true }
+    );
+    logger.info("azadi seat ginti badhi", { studentId: event.params.studentId });
+  } catch (e) {
+    /* Ginti se zyada zaroori student ka record hai — isliye yahan sirf
+       likhte hain, phenkte nahi. */
+    logger.error("azadi seat ginti nahi badh payi", { studentId: event.params.studentId, err: e.message });
+  }
 });

@@ -156,7 +156,7 @@ export function installSteps() {
       return {
         title: "iPhone par pehle Safari me kholein",
         steps: [
-          "Ye suvidha Apple sirf Safari me deta hai — Chrome ya kisi aur me milegi hi nahi.",
+          "Ye option Apple sirf Safari me deta hai — Chrome ya kisi aur me milegi hi nahi.",
           "Safari kholiye aur softskillzone.in likhiye.",
           "Phir Share (⬆️) → \"Add to Home Screen\" → \"Add\"."
         ]

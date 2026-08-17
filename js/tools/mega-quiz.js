@@ -164,7 +164,9 @@ function finish() {
         html: icon(pct >= 60 ? "award" : "trending", { size: 32 })
       }),
       el("div", { class: "result-hero__value", style: { color: "var(--text-primary)" } }, `${score} / ${quiz.length}`),
-      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 .35rem" } }, `${pct}% — ${verdict}`),
+      /* Ginti aur vaakya alag node me. Jodkar bana vaakya dictionary se
+         kabhi match nahi karta — English chunne par bhi Hinglish reh jata. */
+      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 .35rem" } }, `${pct}%`, " — ", verdict),
       isBest ? el("p", { style: { color: "var(--success)", fontWeight: "600", fontSize: ".88rem" } }, "Naya best score! 🎉") : null
     ),
 
@@ -174,7 +176,7 @@ function finish() {
           ...wrong.slice(0, 10).map((w) =>
             el("div", { class: "quiz-explain", style: { marginTop: ".5rem" } },
               el("strong", { style: { display: "block", marginBottom: ".25rem" } }, w.q),
-              el("span", {}, "Sahi jawab: " + w.right)))
+              el("span", {}, el("b", {}, "Sahi jawab:"), " ", w.right)))
         )
       : null,
 

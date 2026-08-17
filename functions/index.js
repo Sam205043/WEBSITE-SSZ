@@ -54,8 +54,30 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const crypto = require("crypto");
-const Razorpay = require("razorpay");
-const nodemailer = require("nodemailer");
+/* --------------------------------------------------------------------------
+   Ye do package zaroorat par hi load hote hain — upar se nahi.
+
+   KYUN
+
+   `firebase deploy` se pehle Firebase poori file ko load karke dekhta hai ki
+   ismein kaun-kaun se function hain, aur uske paas sirf 10 second hote hain.
+   Naapne par pata chala ki razorpay ~1.3 second aur nodemailer ~1.4 second
+   khaate hain — dono milkar 2.7 second, sirf load hone me.
+
+   In dono ki zaroorat poori file me sirf DO jagah padti hai: payment link
+   banate waqt, aur mail bhejte waqt. Baaki saat me se paanch function inhe
+   chhute bhi nahi. Upar rakhne ka matlab tha ki gradeMcq jaisa function bhi,
+   jo na payment karta hai na mail bhejta, in dono ka bojh uthaata rahe — har
+   thandi shuruaat (cold start) par.
+
+   Ab pehli baar zaroorat padne par load hote hain aur wahin yaad rakh liye
+   jaate hain, isliye doosri baar ka kharcha shoonya hai.
+   -------------------------------------------------------------------------- */
+let _Razorpay = null;
+const getRazorpay = () => (_Razorpay ||= require("razorpay"));
+
+let _nodemailer = null;
+const getNodemailer = () => (_nodemailer ||= require("nodemailer"));
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -199,7 +221,7 @@ const SITE = "https://softskillzone.in";
 let mailTransport = null;
 function mailer() {
   if (!mailTransport) {
-    mailTransport = nodemailer.createTransport({
+    mailTransport = getNodemailer().createTransport({
       host: "smtp-relay.brevo.com",
       port: 587,
       secure: false,                    // 587 par STARTTLS khud lag jaata hai
@@ -608,7 +630,7 @@ exports.createPaymentLink = onCall(
 
     const amount = Math.min(due, Math.max(min, asked || min));
 
-    const rzp = new Razorpay({
+    const rzp = new (getRazorpay())({
       key_id: RZP_KEY_ID.value(),
       key_secret: RZP_KEY_SECRET.value()
     });

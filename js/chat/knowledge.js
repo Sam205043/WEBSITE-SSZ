@@ -21,16 +21,16 @@ import { money, formatPhone } from "../core/utils.js";
 
 /* Sahayak ka naam. Ek hi jagah likha hai — badalna ho to sirf yahi line;
    baaki poora code ${BOT_NAME} se hi bolta hai.
+   "Nova" = wo taara jo achanak chamak uthta hai. Chhota naam, har bhasha
+   me aasaan, aur phone ki chhoti screen par bhi poora dikh jaata hai.
 
-   "Sarathi" = jo raah dikhaakar saath le chale. Pehle "Nova" tha, par wo
-   student ko kuchh mehsoos nahi karata — bas ek angrezi shabd tha. Sarathi
-   ka matlab Ara ke student ko bina samjhaaye samajh aata hai.
-
-   Ek baat jaan lena zaroori hai: India me "Sarathi" driving licence wale
-   sarkari portal ka bhi naam hai. Isliye is naam se Google par apni site
-   dhoondhwane ki koshish bekaar hai — ye naam chat ke andar apnaapan ke
-   liye hai, SEO ke liye nahi. */
-export const BOT_NAME = "Sarathi";
+   "Sarathi" par 17 Aug 2026 ko dobara sochkar mana kar diya gaya. Matlab
+   achha tha, par India me Sarathi ab driving licence wale sarkari portal
+   ka naam hai (Sarathi Parivahan) — Bihar me jisne bhi DL banwaya hai wo
+   us naam ko licence se jodta hai, aur Google par is naam ke pehle das
+   nateeje licence ke hi rehte hain. Institute ke sahayak ke liye wo naam
+   hamesha kisi aur ki chhaya me rehta. */
+export const BOT_NAME = "Nova";
 
 /* ==========================================================================
    Text normalise
@@ -168,7 +168,7 @@ const PUBLIC_INTENTS = [
   },
   {
     id: "whoareyou",
-    keys: ["tum kaun", "aap kaun", "who are you", "bot", "kaun ho", "tumhara naam", "naam kya", "sarathi", "nova", "insaan ho", "aadmi ho", "robot"],
+    keys: ["tum kaun", "aap kaun", "who are you", "bot", "kaun ho", "tumhara naam", "naam kya", "nova", "sarathi", "insaan ho", "aadmi ho", "robot"],
     answer: () => ({
       text: `Mera naam **${BOT_NAME}** hai — ${INSTITUTE.name} ki website ka sahayak. Ek program hoon, insaan nahi.\n\nCourse, fees, timing aur admission ki pakki jaankari de sakta hoon. Jo mujhe na pata ho, us par andaaza nahi lagata — seedhe institute se baat kara deta hoon.`,
       chips: ["Course dekhein", "Baat karni hai"]

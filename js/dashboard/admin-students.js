@@ -109,7 +109,7 @@ function openStudent(s) {
       <p class="field__hint" style="margin:.35rem 0 0;font-size:.76rem;line-height:1.5;color:var(--text-muted)">
         Active ke alawa kuch bhi chunte hi is student ko nayi class, recording,
         notes aur assignments milne band ho jaate hain. Apni fees, receipt,
-        haazri aur certificate phir bhi dikhti rahengi — aur bakaya ho to wo
+        attendance aur certificate phir bhi dikhti rahengi — aur bakaya ho to wo
         bhar bhi sakta hai.
       </p>
     </div>

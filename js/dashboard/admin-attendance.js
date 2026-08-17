@@ -108,7 +108,7 @@ async function save() {
       }
     })));
     toast.success(`${list.length} students ki attendance save ho gayi (${date}).`);
-    loadLow();   // aaj ki hazri jodne ke baad list dobara bane
+    loadLow();   // aaj ki attendance jodne ke baad list dobara bane
   } catch (err) {
     toast.error(err.message || "Save fail ho gaya.");
   }
@@ -154,7 +154,7 @@ function lowReminderText(s, pct) {
   const name = (s.fullName || "").split(" ")[0] || "ji";
   return [
     `Namaste ${name} ji, Soft Skill Zone se.`,
-    `Pichhle mahine class me aapki hazri ${pct}% rahi hai — hum aapko miss kar rahe hain.`,
+    `Pichhle mahine class me aapki attendance ${pct}% rahi hai — hum aapko miss kar rahe hain.`,
     "Padhai ka nuksan na ho, isliye class me aana zaroori hai.",
     "Koi dikkat ho — time, tabiyat ya kuch aur — to bata dijiye, hum raasta nikal lenge."
   ].join("\n");

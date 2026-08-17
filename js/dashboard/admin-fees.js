@@ -178,7 +178,7 @@ const MAX_ONE_PAYMENT = 10_00_000;    // ek payment me itne se zyada? zaroor typ
 function checkAmount(amount) {
   const n = Number(amount);
   if (!Number.isFinite(n) || n <= 0) {
-    return "Rakam sahi nahi hai — 0 se zyada koi number likhein.";
+    return "Amount sahi nahi hai — 0 se zyada koi number likhein.";
   }
   /* Paise (dashamlav) jaan-boojh kar mana hain. Receipt, bakaya aur kist
      sab poore rupaye me chalte hain; 1500.75 aage jaakar 1500.7499999 jaisi
@@ -315,7 +315,7 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
   if (overpaid > 0) {
     toast.warning(
       `${student.fullName || student.studentId} ne kul fees se ${money(overpaid)} zyada de diya hai. ` +
-      "Bakaya 0 dikhega — ye rakam wapas karni hai ya kisi aur course me jodni hai, aap tay karein.",
+      "Bakaya 0 dikhega — ye amount wapas karna hai ya kisi aur course me jodni hai, aap tay karein.",
       { duration: 12000 });
   }
 
@@ -414,7 +414,7 @@ function collectDialog(preStudent = null) {
         title: "Bakaya se zyada rakam?",
         message: `${student.fullName || student.studentId} ka bakaya sirf ${money(due)} hai, ` +
           `aur aap ${money(amount)} le rahe hain — ${money(amount - due)} zyada. ` +
-          "Receipt poori rakam ki banegi aur bakaya 0 ho jayega. Aage badhein?",
+          "Receipt poore amount ki banegi aur bakaya 0 ho jayega. Aage badhein?",
         confirmText: "Haan, theek hai"
       });
       if (!go) return;
@@ -488,7 +488,7 @@ function verifyDialog(f) {
         title: "Bakaya se zyada rakam?",
         message: `${f.studentName || f.studentId} ka bakaya ${money(due)} hai, par aap ${money(amount)} bhar rahe hain — ` +
                  `${money(amount - due)} zyada. Number dobara dekh lein.`,
-        confirmText: "Haan, rakam sahi hai"
+        confirmText: "Haan, amount sahi hai"
       });
       if (!go) return;
     }
@@ -784,7 +784,7 @@ async function attachUnmatched(u, btn) {
   const s = students.find((x) => x.studentId === studentId);
   const ok = await confirmModal({
     title: "Payment jodein?",
-    message: `${money(u.amount)} ${s?.fullName || studentId} (${studentId}) ke khaate me chadh jayega aur receipt ban jayegi. ` +
+    message: `${money(u.amount)} ${s?.fullName || studentId} (${studentId}) ke account me chadh jayega aur receipt ban jayegi. ` +
       "Ye wapas nahi hota — galat student chuna ho to abhi rok dein.",
     confirmText: "Haan, jod dein"
   });
@@ -816,7 +816,7 @@ async function attachUnmatched(u, btn) {
 
     toast.success(res?.alreadyDone
       ? "Ye payment pehle hi jud chuka tha — dobara paisa nahi chadhaya gaya."
-      : `${money(u.amount)} ${s?.fullName || studentId} ke khaate me chadh gaya.`);
+      : `${money(u.amount)} ${s?.fullName || studentId} ke account me chadh gaya.`);
 
     /* Nayi receipt list me laane ke liye — poora page refresh karne se
        behtar hai sirf fees dobara padh lena. */
@@ -854,8 +854,8 @@ async function quickConfirm(f, btn) {
   const bad = checkAmount(claimed);
   if (bad) {
     return toast.error(
-      `Student ne jo rakam batayi hai wo theek nahi lag rahi (${f.claimedAmount}). ${bad} ` +
-      "Neeche wale 'Verify' se sahi rakam bhar dein.", { duration: 11000 });
+      `Student ne jo amount bataya hai wo theek nahi lag raha (${f.claimedAmount}). ${bad} ` +
+      "Neeche wale 'Verify' se sahi amount bhar dein.", { duration: 11000 });
   }
 
   /* Button DIALOG SE PEHLE band hota hai. Pehle iske baad hota tha, isliye
@@ -895,7 +895,7 @@ async function quickConfirm(f, btn) {
       student: rec,
       amount: claimed,
       payMode: f.mode || "upi",
-      remarks: "Student ki batayi rakam confirm ki gayi",
+      remarks: "Student ka bataya amount confirm kiya gaya",
       existingFeeId: f.id,
       txnRef: f.txnRef || ""
     });

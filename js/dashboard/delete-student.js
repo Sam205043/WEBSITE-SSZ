@@ -80,7 +80,7 @@ const VERIFY_CODES = "certificateCodes";
 
 /* Kaun-kaun si jagah studentId se judi hui hai */
 const LINKED = [
-  { key: "attendance",    coll: COLLECTIONS.ATTENDANCE,    label: "haazri ke record" },
+  { key: "attendance",    coll: COLLECTIONS.ATTENDANCE,    label: "attendance ke record" },
   { key: "fees",          coll: COLLECTIONS.FEES,          label: "fee ke record" },
   { key: "submissions",   coll: COLLECTIONS.SUBMISSIONS,   label: "assignment ke jawab" },
   { key: "certificates",  coll: COLLECTIONS.CERTIFICATES,  label: "certificate" },
@@ -266,7 +266,7 @@ export function confirmDeleteStudent(student, fp) {
         "Ye sab hatega:"),
       el("ul", { style: { margin: "0 0 1rem", paddingLeft: "1.2rem", fontSize: ".85rem", lineHeight: "1.9" } },
         el("li", {}, el("strong", {}, "1"), " student ka record"),
-        line(c.attendance, "haazri ke record"),
+        line(c.attendance, "attendance ke record"),
         line(c.fees, "fee ke record (receipt samet)"),
         line(c.submissions, "assignment ke jawab"),
         line(c.certificates, "certificate"),

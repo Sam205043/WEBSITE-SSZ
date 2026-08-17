@@ -122,7 +122,7 @@ function todayCard({ student, classes, assignments, submissions }) {
   const first = String(student.fullName || "").split(" ")[0] || "";
   return box("brand", "Sab theek hai", first ? `Namaste ${first}` : "Namaste",
     pending > 0
-      ? `Abhi koi class ya assignment sar par nahi. Bakaya ${money(pending)} hai — jab suvidha ho tab.`
+      ? `Abhi koi class ya assignment sar par nahi. Bakaya ${money(pending)} hai — jab time mile tab.`
       : "Abhi koi class, assignment ya bakaya nahi. Notes aur practice se aage badh sakte hain.",
     el("a", { class: "btn-ssz btn-secondary-ssz", href: url("studentNotes") }, "Notes kholein"));
 }

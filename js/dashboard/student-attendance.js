@@ -58,7 +58,7 @@ if (mode === "preview") {
   rows = student
     ? await data.getAttendance(student).catch((err) => {
         console.error("[attendance] load nahi hui:", err);
-        toast.warning("Haazri ka record abhi nahi khul paya. Agar ye baar-baar ho to institute ko bata dein.", { duration: 9000 });
+        toast.warning("Attendance ka record abhi nahi khul paya. Agar ye baar-baar ho to institute ko bata dein.", { duration: 9000 });
         return [];
       })
     : [];

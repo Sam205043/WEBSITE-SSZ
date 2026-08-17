@@ -40,7 +40,7 @@ const WIPE = [
   { key: "STUDENTS",       label: "Students" },
   { key: "ADMISSIONS",     label: "Admission forms" },
   { key: "FEES",           label: "Fee record aur receipt" },
-  { key: "ATTENDANCE",     label: "Haazri" },
+  { key: "ATTENDANCE",     label: "Attendance" },
   { key: "SUBMISSIONS",    label: "Assignment ke jawab" },
   { key: "CERTIFICATES",   label: "Certificates" },
   { key: "NOTIFICATIONS",  label: "Notifications" },

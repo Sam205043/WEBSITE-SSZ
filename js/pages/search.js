@@ -89,7 +89,7 @@ function paintResults(q) {
     render(box, el("div", { class: "empty-state" },
       el("div", { class: "empty-state__icon", html: icon("search", { size: 32 }) }),
       el("h2", {}, "Kuch bhi search karein"),
-      el("p", {}, "Course ka naam, ek topic, ya koi sawal — jo bhi dhundh rahe hain.")
+      el("p", {}, "Course ka naam, ek topic, ya koi sawal — jo bhi search karna ho.")
     ));
     return;
   }

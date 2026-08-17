@@ -103,7 +103,7 @@ function renderAside(c) {
   const points = [
     `${durationLabel(c.durationMonths)} ka course`,
     `${c.modules.length} modules, ${c.modules.reduce((a, m) => a + (m.topics?.length || 0), 0)} topics`,
-    "Installment ki suvidha",
+    "Installment ki facility",
     "Notes aur assignments dashboard me",
     "Certificate course complete hone par"
   ];

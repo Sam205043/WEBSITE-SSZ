@@ -470,7 +470,7 @@ function feeCard(appNo, course, email) {
         style="width:100%">Fee bharein</button>
 
       <p class="field__hint" style="margin:.9rem 0 0;font-size:.78rem">
-        Kul course fee ${money(total)}. Baaki rakam har mahine kist me de sakte hain —
+        Kul course fee ${money(total)}. Baaki amount har mahine kist me de sakte hain —
         plan aapke dashboard me apne aap ban jayega.
         Cash dena ho to institute aakar bhi de sakte hain; tab admin khud aapka
         admission confirm kar dega.</p>

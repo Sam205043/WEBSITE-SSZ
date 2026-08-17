@@ -78,6 +78,7 @@ export const ROUTES = Object.freeze({
   toolExcelErr:   "pages/tools/excel-errors.html",
   toolExcelData:  "pages/tools/excel-datasets.html",
   toolMiniExcel:  "pages/tools/mini-excel.html",
+  toolJournal:    "pages/tools/journal-practice.html",
 
   /* AI Automation Pro ke free tools */
   toolAiToolkit:  "free-tools/student-toolkit.html",

@@ -799,3 +799,55 @@
   font-size: .84rem; line-height: 1.6;
 }
 .chip.is-done { border-color: rgba(22,163,74,.45); }
+
+/* ==========================================================================
+   Journal Entry Practice — Dr/Cr
+   ==========================================================================
+   Do dropdown saath-saath: bade parde par ek line me, phone par upar-neeche.
+   Dono ka naap barabar rakha hai, warna "Debit" wala chhota dikhta hai aur
+   nazar usi par atak jaati hai. */
+.je-pair {
+  display: grid; gap: var(--sp-3);
+  grid-template-columns: 1fr 1fr;
+  margin: var(--sp-4) 0;
+}
+@media (max-width: 575.98px) { .je-pair { grid-template-columns: 1fr; } }
+
+/* Sahi entry — wahi dhaancha jo copy me likha jaata hai:
+     Purchases A/c            Dr
+        To Cash A/c              Cr           */
+.je-answer {
+  font-family: ui-monospace, "Courier New", monospace;
+  background: var(--bg-surface-2);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+}
+.je-line {
+  display: flex; align-items: baseline; gap: .5rem;
+  padding: .25rem 0;
+}
+.je-line b { flex: 1; font-family: inherit; }
+.je-line span:last-child { font-size: .78rem; opacity: .7; }
+.je-to { padding-inline-start: 1.5rem; opacity: .7; }
+/* Jo khaata student ne sahi chuna wo hara, jo galat wo laal — do rang me
+   turant dikh jaata hai ki galti kis taraf hui. */
+.je-line.is-right b { color: var(--success); }
+.je-line.is-wrong b { color: var(--danger); }
+
+/* Paanch niyam — panel ke neeche, hamesha saamne. Student inhe padhta hua
+   hi practice karta hai; yahi is tool ka asli padhaai wala hissa hai. */
+.je-rules {
+  margin-top: var(--sp-5);
+  padding: var(--sp-4);
+  background: var(--brand-soft);
+  border-radius: var(--r-lg);
+}
+.je-rules h2 { font-size: var(--fs-md); margin: 0 0 var(--sp-3); }
+.je-rules ul { margin: 0; padding-inline-start: 1.1rem; }
+.je-rules li { margin-bottom: .5rem; font-size: .9rem; line-height: 1.6; }
+.je-rules li:last-child { margin-bottom: 0; }
+/* Galat taraf par student ne kya chuna tha — chhote akshar me saath hi,
+   taaki laal rang "ye khaata galat hai" na lage. Galti apni pasand me thi,
+   khaate me nahi. */
+.je-mine { font-size: .74rem; color: var(--danger); opacity: .95; margin-inline-start: .5rem; font-family: var(--font-body, inherit); }
+.je-mine b { font-weight: var(--fw-semibold); font-family: inherit; }

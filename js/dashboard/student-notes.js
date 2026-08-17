@@ -10,8 +10,9 @@
      2. Module wise — har module ka apna hissa, aur uske saath usi module ka
         practice test ka link. Padha, aur wahin se test de diya.
 
-   Module ke naam wahi hain jo sawaalon ke bank me hain, isliye dono taraf ek
-   hi bhaasha rehti hai.
+   Module ka naam wahi hota hai jo admin ne note par likha — ya to us course
+   ka apna module, ya sawaalon ke bank wala naam. Test ka link sirf doosri
+   soorat me dikhta hai, kyunki test bank se hi banta hai.
    ========================================================================== */
 
 import { $, el, on, render } from "../core/dom.js";
@@ -23,7 +24,7 @@ import { open as openModal } from "../core/modal.js";
 import { initShell } from "./shell.js";
 import * as data from "./student-data.js";
 import { DEMO_NOTES } from "./demo-data.js";
-import { BANK_MODULES } from "../config/question-bank.js";
+import { BANK_MODULES, bankCounts } from "../config/question-bank.js";
 import { deliver } from "./watermark.js";
 import toast from "../core/toast.js";
 
@@ -119,8 +120,19 @@ function empty(q) {
   );
 }
 
+/* Kis module ke sawaal sach me maujood hain. Ek baar gin liya, har paint
+   par dobara 480 sawaal ginne ki zaroorat nahi. */
+const BANK_COUNTS = bankCounts();
+
 /** Ek module ka poora hissa — heading, uske notes, aur test ka link. */
 function moduleBlock(mod, list) {
+  /* Test ka link SIRF tab, jab us module ke sawaal bank me hon.
+     Sawaal-bank ADCA/DCA wale computer module ka hai. Naye course (jaise AI
+     Automation Pro) ke module ka koi test abhi hai hi nahi — wahan link
+     dikhana student ko khaali page par bhej deta, aur khaali page se bura
+     lagta hai ki kuchh toota hua hai. */
+  const hasTest = (BANK_COUNTS[mod] || 0) > 0;
+
   return el("section", { style: { marginBottom: "2rem" } },
     el("div", {
       style: { display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginBottom: ".85rem" }
@@ -128,11 +140,11 @@ function moduleBlock(mod, list) {
       el("h3", { style: { margin: 0, fontSize: "1rem" } }, mod),
       /* Padhne ke turant baad test — isliye link seedha usi module ke test
          par jaata hai, list par nahi. */
-      el("a", {
+      hasTest ? el("a", {
         class: "btn-ssz btn-ghost-ssz btn-sm-ssz",
         style: { marginInlineStart: "auto" },
         href: url("studentPractice", { module: mod })
-      }, "Is module ka test dein")
+      }, "Is module ka test dein") : null
     ),
     el("div", { class: "auto-grid" }, ...list.map((n) => card(n)))
   );

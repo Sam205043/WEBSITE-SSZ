@@ -518,11 +518,48 @@ function noteForm() {
   cSel.appendChild(el("option", { value: "" }, "Chunein"));
   COURSES.forEach((c) => cSel.appendChild(el("option", { value: c.id }, c.title)));
 
-  /* Module ke naam wahi hain jo sawaalon ke bank me hain — isse padhai aur
-     test ek doosre se jud jaate hain: module padha, wahi module ka test. */
+  /* --------------------------------------------------------------------
+     Module ki list — CHUNE HUE COURSE ki, sthir nahi
+
+     Pehle yahan sirf BANK_MODULES bharte the, yaani MCQ ke sawaal-bank ke
+     aath naam (Fundamentals, MS Word, Excel...). Wo bank ADCA/DCA ka hai,
+     isliye AI Automation Pro chunne par bhi wahi computer wale naam dikhte
+     the — us course ka apna koi module chunne ka raasta hi nahi tha, aur
+     uski book majboori me "Poori book" me daalni padti thi.
+
+     Ab do hisse hain:
+       1. Us course ke apne module (site-data se) — jo admin sach me chunna
+          chahta hai.
+       2. Sawaal-bank wale module, alag khaane me — kyunki student ke page
+          par "Is module ka test dein" wala link inhi naamon se judta hai.
+          Inhe hataya nahi ja sakta, warna ADCA ke naye notes ka test se
+          rishta toot jaata.
+     -------------------------------------------------------------------- */
   const mSel = form.querySelector('[name="module"]');
-  mSel.appendChild(el("option", { value: "" }, "Poori book (kisi ek module ka nahi)"));
-  BANK_MODULES.forEach((m) => mSel.appendChild(el("option", { value: m }, m)));
+
+  const fillModules = () => {
+    mSel.replaceChildren(el("option", { value: "" }, "Poori book (kisi ek module ka nahi)"));
+
+    const own = (COURSES.find((c) => c.id === cSel.value)?.modules || [])
+      .map((m) => m.title).filter(Boolean);
+
+    if (own.length) {
+      const g = el("optgroup", { label: "Is course ke module" });
+      own.forEach((m) => g.appendChild(el("option", { value: m }, m)));
+      mSel.appendChild(g);
+    }
+
+    /* Jo naam upar aa chuke unhe dobara nahi dikhate. */
+    const rest = BANK_MODULES.filter((m) => !own.includes(m));
+    if (rest.length) {
+      const g = el("optgroup", { label: "Practice test wale module" });
+      rest.forEach((m) => g.appendChild(el("option", { value: m }, m)));
+      mSel.appendChild(g);
+    }
+  };
+
+  cSel.addEventListener("change", fillModules);
+  fillModules();
 
   /* Type badalte hi sirf kaam ke khaane dikhte hain — donon ek saath dikhana
      confusion paida karta hai ("file bhi doon aur link bhi?"). */

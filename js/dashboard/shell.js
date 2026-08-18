@@ -38,6 +38,7 @@ const NAV = [
   { key: "assignments", label: "Assignments",    icon: "clipboard",  route: "studentAssignments" },
   { key: "practice",    label: "Practice Test",  icon: "checkCircle",route: "studentPractice" },
   { key: "notes",       label: "Notes",          icon: "book",       route: "studentNotes" },
+  { key: "audiobooks",  label: "Audiobooks",     icon: "headphones", route: "studentAudiobooks" },
   { key: "certificates",label: "Certificates",   icon: "award",      route: "studentCerts" },
   { group: "Account" },
   { key: "fees",        label: "Fees",           icon: "wallet",     route: "studentFees" },

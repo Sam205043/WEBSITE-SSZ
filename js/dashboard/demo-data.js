@@ -95,7 +95,17 @@ export const DEMO_NOTES = Object.freeze([
   { id: "n2", title: "Computer Fundamentals — Full Notes", description: "Hardware, software, memory units",
     courseId: "ai-dca", fileName: "fundamentals.pdf", fileType: "application/pdf", fileSize: 2411520, fileURL: "#", downloads: 203, createdAt: at(-20) },
   { id: "n3", title: "ChatGPT Prompt Cheat-Sheet", description: "Office kaam ke 40 ready prompts",
-    courseId: "ai-dca", fileName: "prompts.pdf", fileType: "application/pdf", fileSize: 812000, fileURL: "#", downloads: 318, createdAt: at(-9) }
+    courseId: "ai-dca", fileName: "prompts.pdf", fileType: "application/pdf", fileSize: 812000, fileURL: "#", downloads: 318, createdAt: at(-9) },
+
+  /* Audiobook bhi isi list me rehte hain, bas `kind: "audio"` ke saath —
+     asli Firestore me bhi thik aisa hi hota hai. Ye do entry isliye zaroori
+     hain ki Firebase ke bina bhi Audiobooks ka page khaali na dikhe; pehle
+     yahan koi audio thi hi nahi, isliye preview me wo page hamesha khaali
+     lagta tha aur bana hua feature dikhta hi nahi tha. */
+  { id: "n4", kind: "audio", title: "Chapter 1 — Automation Kya Hai", description: "Module 1 ka pehla chapter, sunne wala roop",
+    courseId: "ai-dca", module: "Automation Ki Basics", audioURL: "#", audioFileId: "", durationMin: 27, createdAt: at(-3) },
+  { id: "n5", kind: "audio", title: "Chapter 2 — Trigger, Action, Result", description: "Automation ka poora dhaancha ek misal se",
+    courseId: "ai-dca", module: "Automation Ki Basics", audioURL: "#", audioFileId: "", durationMin: 25, createdAt: at(-3) }
 ]);
 
 export const DEMO_FEES = Object.freeze([

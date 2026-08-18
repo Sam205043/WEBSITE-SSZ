@@ -74,6 +74,26 @@ let dict = null;      // { "Hinglish vaakya": "anuvaad" } — hinglish par null
 let lang = DEFAULT_LANG;
 let ready = false;
 
+/* initI18n() ke poora hone ka intezaar.
+   -------------------------------------------------------------------------
+   Ye ek asli bug ka ilaaj hai. Tool ka apna JS `onReady` par loadPack("quiz")
+   bulata hai, aur wo initI18n() ke khatam hone se PEHLE bhi chal sakta hai.
+   Pehle aisa hone par loadPack apni dictionary `dict` me rakh deta tha, aur
+   thodi der baad initI18n ki apni line —
+
+       dict = await loadDict(lang);
+
+   — usi ko poora ka poora mita deti thi. Natija: kabhi page theek anuvaad
+   hota, kabhi wahi page Hinglish me hi reh jata. Do async kaam ki daud thi,
+   isliye galti har baar nahi dikhti thi.
+
+   Ab loadPack pehle yahin ruk jata hai. Isse do baatein pakki ho jaati hain:
+   base dictionary hamesha pehle baithti hai, aur `lang` bhi tab tak asli
+   (localStorage wali) bhasha ban chuki hoti hai — warna Hinglish chunne wale
+   student ke page par bhi English pack utar aata tha. */
+let markInitDone;
+const initDone = new Promise((resolve) => { markInitDone = resolve; });
+
 /* ---------------------------------------------------------------- bhasha */
 
 export function getLang() {
@@ -172,12 +192,18 @@ export async function initI18n() {
     dict = await loadDict(lang);
   }
   ready = true;
-  if (dict) {
-    /* render() se jo bhi aage banega, wo bhi apne aap badalta rahe. */
-    const { setRenderHook } = await import("./dom.js");
-    setRenderHook(translateNode);
-    translateNode(document.body);
-    watchNewNodes();
+  try {
+    if (dict) {
+      /* render() se jo bhi aage banega, wo bhi apne aap badalta rahe. */
+      const { setRenderHook } = await import("./dom.js");
+      setRenderHook(translateNode);
+      translateNode(document.body);
+      watchNewNodes();
+    }
+  } finally {
+    /* Kuchh bhi ho jaye, intezaar khol dena zaroori hai — warna loadPack
+       hamesha ke liye ruka reh jayega aur tool ka text kabhi nahi badlega. */
+    markInitDone();
   }
   return lang;
 }
@@ -249,7 +275,10 @@ export function mountLangPicker(node) {
  *   await loadPack("quiz")   →   lang/hi.quiz.json
  */
 export async function loadPack(name) {
-  if (lang === SOURCE_LANG || !name) return false;
+  if (!name) return false;
+  /* Upar `initDone` wali tippani dekhein — ye line hi us daud ko rokti hai. */
+  await initDone;
+  if (lang === SOURCE_LANG) return false;
   const depth = Number(document.body?.dataset?.depth || 0);
   const up = "../".repeat(depth);
   try {

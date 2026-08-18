@@ -15,6 +15,7 @@ import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { parse, stringify, FormulaError, rangeSize, colToNum } from "./formula-parser.js";
 import { EXCEL_FUNCTIONS, FUNCTION_GROUPS, lookupFunction } from "../config/excel-function-bank.js";
+import { loadPack } from "../core/i18n.js";
 
 const EXAMPLES = [
   '=VLOOKUP(A2,Sheet2!A:C,3,0)',
@@ -29,40 +30,67 @@ const EXAMPLES = [
 
 /* ==========================================================================
    Ek node ko ek line me batana
+   --------------------------------------------------------------------------
+   YAHAN SE AAGE HAR VAAKYA TUKDON KI LIST HAI, EK JUDI HUI STRING NAHI.
+
+   Wajah anuvaad hai. i18n har text node ko poora-ka-poora dictionary me
+   dhoondhta hai. "cell A2 ko cell B2 se ghataata hai." jaisi line har baar
+   naye cell ke naam se banti hai — uski entry dictionary me ho hi nahi
+   sakti, isliye English chunne par bhi wo Hinglish reh jaati thi.
+
+   Tukdon me todne par cell ka naam apne alag node me chala jaata hai (jo
+   dictionary me nahi milega — theek hai, wo waise bhi nahi badalna) aur
+   baaki likha hua hissa apne node me, jiski entry dictionary me hai.
+
+   Ek anushasan: tukdon ka KRAM dono bhasha me ek jaisa rehna chahiye,
+   kyunki jagah wahi ki wahi rehti hai. Isliye operator ka chinh (+ - * /)
+   beech me rakha gaya hai aur uska matlab aakhir me — dono bhasha me.
    ========================================================================== */
 const OP_WORD = {
   "+": "jodta hai", "-": "ghataata hai", "*": "guna karta hai", "/": "bhaag deta hai",
   "^": "ghaat lagata hai", "&": "jod kar ek text banata hai",
-  "=": "barabar hai ya nahi — ye jaanchta hai",
-  "<>": "barabar NAHI hai — ye jaanchta hai",
-  "<": "se chhota hai ya nahi", ">": "se bada hai ya nahi",
-  "<=": "se chhota ya barabar hai ya nahi", ">=": "se bada ya barabar hai ya nahi"
+  "=": "barabar hai ya nahi, ye jaanchta hai",
+  "<>": "barabar NAHI hai, ye jaanchta hai",
+  "<": "pehla chhota hai ya nahi, ye jaanchta hai",
+  ">": "pehla bada hai ya nahi, ye jaanchta hai",
+  "<=": "pehla chhota ya barabar hai ya nahi, ye jaanchta hai",
+  ">=": "pehla bada ya barabar hai ya nahi, ye jaanchta hai"
 };
 
 function sayNode(node) {
-  if (!node) return "";
+  if (!node) return [];
   switch (node.type) {
-    case "number": return `number ${node.value}`;
-    case "string": return `text "${node.value}"`;
-    case "bool": return node.value ? "TRUE (haan)" : "FALSE (na)";
-    case "error": return `error value ${node.value}`;
-    case "empty": return "khaali (kuchh nahi)";
-    case "ref": return `cell ${stringify(node)}`;
+    case "number": return ["number ", String(node.value)];
+    case "string": return ['text "', String(node.value), '"'];
+    case "bool": return [node.value ? "TRUE (haan)" : "FALSE (na)"];
+    case "error": return ["error value ", String(node.value)];
+    case "empty": return ["khaali (kuchh nahi)"];
+    case "ref": return ["cell ", stringify(node)];
     case "range": {
       const s = rangeSize(node);
-      return `range ${stringify(node)}${s ? ` (${s.rows} row × ${s.cols} column)` : ""}`;
+      return s
+        ? ["range ", stringify(node), " (", String(s.rows), " row × ", String(s.cols), " column)"]
+        : ["range ", stringify(node)];
     }
-    case "colrange": return `poora column ${stringify(node)}`;
-    case "rowrange": return `poori row ${stringify(node)}`;
-    case "name": return `naam "${node.value}"`;
-    case "func": return `${node.name}(...) ka natija`;
+    case "colrange": return ["poora column ", stringify(node)];
+    case "rowrange": return ["poori row ", stringify(node)];
+    case "name": return ['naam "', String(node.value), '"'];
+    case "func": return [node.name, "(...) ka natija"];
     case "paren": return sayNode(node.arg);
-    case "percent": return `${stringify(node.arg)} ka pratishat`;
-    case "unary": return node.op === "-" ? `${stringify(node.arg)} ka minus` : stringify(node.arg);
-    case "binary": return `${stringify(node)}`;
-    case "array": return "khud likhi hui list";
-    default: return stringify(node);
+    case "percent": return [stringify(node.arg), " ka pratishat"];
+    case "unary": return node.op === "-" ? [stringify(node.arg), " ka minus"] : [stringify(node.arg)];
+    case "binary": return [stringify(node)];
+    case "array": return ["khud likhi hui list"];
+    default: return [stringify(node)];
   }
+}
+
+/* "cell B1 / cell A1 — bhaag deta hai." — chinh beech me, matlab aakhir me. */
+function sayBinary(node) {
+  return [
+    ...sayNode(node.left), " ", node.op, " ", ...sayNode(node.right),
+    " — ", OP_WORD[node.op] || node.op, "."
+  ];
 }
 
 /* ==========================================================================
@@ -84,7 +112,7 @@ function collectSteps(node, steps = [], hasFn = { v: false }) {
     let say;
     if (meta && typeof meta.tell === "function") say = meta.tell(argTexts);
     else if (meta) say = meta.one;
-    else say = `"${node.name}" naam ka function chalega. Ye hamare kosh me nahi hai — spelling dobara dekh lijiye.`;
+    else say = [`"${node.name}"`, " naam ka function chalega. Ye hamare kosh me nahi hai — spelling dobara dekh lijiye."];
     steps.push({ code: stringify(node), say, fn: node.name, known: !!meta });
   }
   return steps;
@@ -97,12 +125,9 @@ function arithSteps(node, steps = []) {
     if (node[k] && typeof node[k] === "object") arithSteps(node[k], steps);
   });
   if (node.type === "binary") {
-    steps.push({
-      code: stringify(node),
-      say: `${sayNode(node.left)} ko ${sayNode(node.right)} se ${OP_WORD[node.op] || node.op}.`
-    });
+    steps.push({ code: stringify(node), say: sayBinary(node) });
   } else if (node.type === "percent") {
-    steps.push({ code: stringify(node), say: `${stringify(node.arg)} ko 100 se bhaag deta hai (pratishat).` });
+    steps.push({ code: stringify(node), say: [stringify(node.arg), " ko 100 se bhaag deta hai (pratishat)."] });
   }
   return steps;
 }
@@ -135,10 +160,13 @@ function collectParts(node, out = { refs: [], ranges: [], funcs: [], ops: [], sh
 function findWarnings(root) {
   const warn = [];
   const seen = new Set();
-  const push = (level, text) => {
-    if (seen.has(text)) return;
-    seen.add(text);
-    warn.push({ level, text });
+  /* Tukdon me — upar wali tippani dekhein. Dobara aane se rokne ke liye
+     jude hue roop ko chaabi banate hain. */
+  const push = (level, ...parts) => {
+    const key = parts.join("");
+    if (seen.has(key)) return;
+    seen.add(key);
+    warn.push({ level, text: parts });
   };
 
   let ifCount = 0;
@@ -165,29 +193,33 @@ function findWarnings(root) {
       if (name === "VLOOKUP" || name === "HLOOKUP") {
         const last = a[3];
         if (a.length < 4 || (last && last.type === "empty")) {
-          push("danger", `${name} me aakhri hissa (0) nahi lagaya. Bina iske Excel "aas-paas ki" value utha leta hai — error nahi dega, chupchaap GALAT jawab dega. Aakhir me 0 laga dijiye.`);
+          push("danger", name, ' me aakhri hissa (0) nahi lagaya. Bina iske Excel "aas-paas ki" value utha leta hai — error nahi dega, chupchaap GALAT jawab dega. Aakhir me 0 laga dijiye.');
         } else if (last && ((last.type === "bool" && last.value === true) || (last.type === "number" && last.value === 1))) {
-          push("danger", `${name} me aakhri hissa ${last.type === "bool" ? "TRUE" : "1"} hai — matlab "milta-julta chalega". Exact value chahiye to 0 (ya FALSE) kijiye.`);
+          push("danger", name, " me aakhri hissa ", last.type === "bool" ? "TRUE" : "1",
+            ' hai — matlab "milta-julta chalega". Exact value chahiye to 0 (ya FALSE) kijiye.');
         }
 
         const table = a[1];
         if (table && table.type === "range") {
           const loose = !(table.from.colAbs && table.from.rowAbs && table.to.colAbs && table.to.rowAbs);
           if (loose) {
-            push("warn", `Table ka pata ${stringify(table)} bina $ ke hai. Formula ko neeche kheenchte (fill) hi ye range khisak jaayega aur neeche wali rows galat jawab dengi. $ lagaayein: ${absolutize(table)}`);
+            push("warn", "Table ka pata ", stringify(table),
+              " bina $ ke hai. Formula ko neeche kheenchte (fill) hi ye range khisak jaayega aur neeche wali rows galat jawab dengi. $ lagaayein: ",
+              absolutize(table));
           }
           const size = rangeSize(table);
           const idx = a[2];
           if (size && idx && idx.type === "number") {
             if (idx.value > size.cols) {
-              push("danger", `Column number ${idx.value} maanga hai, par ${stringify(table)} me sirf ${size.cols} column hain. Excel #REF! dega.`);
+              push("danger", "Column number ", String(idx.value), " maanga hai, par ", stringify(table),
+                " me sirf ", String(size.cols), " column hain. Excel #REF! dega.");
             } else if (idx.value < 1) {
               push("danger", "Column number 1 se kam nahi ho sakta. Excel #VALUE! dega.");
             }
           }
         }
         if (table && table.type === "colrange") {
-          push("info", `${stringify(table)} poora column hai — chalega to sahi, par bade file me sheet dheemi ho jaati hai. Jitni rows me data hai utna hi range lena behtar hai.`);
+          push("info", stringify(table), " poora column hai — chalega to sahi, par bade file me sheet dheemi ho jaati hai. Jitni rows me data hai utna hi range lena behtar hai.");
         }
       }
 
@@ -198,12 +230,12 @@ function findWarnings(root) {
       if ((name === "SUMIFS" || name === "COUNTIFS" || name === "AVERAGEIFS")) {
         const rest = name === "SUMIFS" || name === "AVERAGEIFS" ? a.length - 1 : a.length;
         if (rest % 2 !== 0) {
-          push("warn", `${name} me range aur shart jodi me aate hain. Abhi ginti jodi me nahi baith rahi — koi hissa chhoot gaya lagta hai.`);
+          push("warn", name, " me range aur shart jodi me aate hain. Abhi ginti jodi me nahi baith rahi — koi hissa chhoot gaya lagta hai.");
         }
       }
 
       if (!lookupFunction(name)) {
-        push("info", `"${name}" hamare kosh me nahi mila. Ya to spelling me galti hai, ya ye function hamari list me nahi hai.`);
+        push("info", `"${name}"`, " hamare kosh me nahi mila. Ya to spelling me galti hai, ya ye function hamari list me nahi hai.");
       }
     }
 
@@ -215,7 +247,7 @@ function findWarnings(root) {
   })(root);
 
   if (ifCount >= 4) {
-    push("info", `${ifCount} IF ek doosre ke andar hain. Chalega, par padhna-sudharna mushkil ho jaata hai — IFS ya ek chhoti lookup table zyada saaf rehti hai.`);
+    push("info", String(ifCount), " IF ek doosre ke andar hain. Chalega, par padhna-sudharna mushkil ho jaata hai — IFS ya ek chhoti lookup table zyada saaf rehti hai.");
   }
   if (hasDivide && !hasErrorGuard) {
     push("info", "Bhaag (/) lag raha hai. Neeche wala hissa kabhi 0 ya khaali hua to #DIV/0! aayega — chaahein to IFERROR se sambhaal lein.");
@@ -242,12 +274,12 @@ function summarise(root, parts) {
     if (meta) return meta.one;
   }
   if (root.type === "binary") {
-    return `${sayNode(root.left)} ko ${sayNode(root.right)} se ${OP_WORD[root.op] || root.op}.`;
+    return sayBinary(root);
   }
   if (parts.funcs.length) {
-    return `Ye formula ${parts.funcs.join(", ")} ka istemaal karke natija nikaalta hai.`;
+    return ["Ye formula ", parts.funcs.join(", "), " ka istemaal karke natija nikaalta hai."];
   }
-  return `Ye ${sayNode(root)} deta hai.`;
+  return ["Ye ", ...sayNode(root), " deta hai."];
 }
 
 /* ==========================================================================
@@ -267,7 +299,7 @@ function warnBox(w) {
   const ic = { danger: "alert", warn: "alert", info: "info" }[w.level];
   return el("li", { class: `fx-warn fx-warn--${w.level}` },
     el("span", { class: "fx-warn__icon", style: { color: colour }, html: icon(ic, { size: 17 }) }),
-    el("span", {}, w.text));
+    el("span", {}, w.text));   // w.text tukdon ki list hai — el() use khud khol leta hai
 }
 
 function funcCard(name) {
@@ -285,7 +317,7 @@ function showError(err, raw) {
   render($("#fxOut"),
     el("div", { class: "fx-card fx-card--bad" },
       el("h3", {}, "Formula padha nahi ja saka"),
-      el("p", { style: { margin: ".4rem 0 0" } }, err.message),
+      el("p", { style: { margin: ".4rem 0 0" } }, err.parts || err.message),
       err.at >= 0 && raw
         ? el("pre", { class: "fx-point" }, `${raw}\n${" ".repeat(Math.max(0, err.at))}^`)
         : null,
@@ -374,7 +406,7 @@ function paintList() {
 
   if (!rows.length) {
     return render($("#fxList"),
-      el("p", { class: "fx-fn__how" }, `"${listQuery}" se milta koi function nahi mila.`));
+      el("p", { class: "fx-fn__how" }, `"${listQuery}"`, " se milta koi function nahi mila."));
   }
 
   const byGroup = {};
@@ -392,6 +424,12 @@ function paintList() {
    Boot
    ========================================================================== */
 onReady(() => {
+
+  /* In tools ka saara padhne wala text ek hi anuvaad-file me hai
+     (lang/en.tools.json) aur sirf zaroorat par utarta hai. Await nahi kar
+     rahe — pack aate hi i18n poore page ka text khud badal deta hai.
+     Hinglish par ye line kuch karti hi nahi. */
+  loadPack("tools");
   render($("#fxExamples"), EXAMPLES.map((e) =>
     el("button", { type: "button", class: "chip", dataset: { ex: e } }, e)));
 

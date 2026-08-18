@@ -6,6 +6,7 @@ import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { url } from "../core/routes.js";
 import { GST_QUIZ } from "./tool-data.js";
+import { loadPack } from "../core/i18n.js";
 
 const KEYS = ["A", "B", "C", "D"];
 let questions = [], index = 0, score = 0, answered = false;
@@ -56,7 +57,9 @@ function answer(picked) {
 
   render($("#quizAfter"),
     el("div", { class: "quiz-explain" },
-      el("strong", {}, picked === q.answer ? "Sahi! " : "Sahi jawab: " + q.options[q.answer] + ". "),
+      picked === q.answer
+        ? el("strong", {}, "Sahi! ")
+        : el("strong", {}, "Sahi jawab: ", q.options[q.answer], ". "),
       q.why),
     el("button", { class: "btn-ssz btn-primary-ssz btn-block-ssz", type: "button", id: "quizNext", style: { marginTop: "1.25rem" } },
       index + 1 < questions.length ? "Agla sawal" : "Result dekhein")
@@ -82,7 +85,9 @@ function finish() {
         html: icon(pct >= 50 ? "award" : "trending", { size: 32 })
       }),
       el("div", { class: "result-hero__value", style: { color: "var(--text-primary)" } }, `${score} / ${questions.length}`),
-      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 1.5rem" } }, `${pct}% — ${verdict}`),
+      /* Ginti aur vaakya alag node me — jodkar bana vaakya dictionary se
+         kabhi match nahi karta. */
+      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 1.5rem" } }, `${pct}%`, " — ", verdict),
       el("div", { class: "cluster", style: { justifyContent: "center" } },
         el("button", { class: "btn-ssz btn-primary-ssz", type: "button", id: "quizAgain" }, "Dobara khelein"),
         el("a", { class: "btn-ssz btn-secondary-ssz", href: url("courseDetail", { id: "gst-2" }) }, "GST 2.0 course dekhein")
@@ -92,6 +97,12 @@ function finish() {
 }
 
 onReady(() => {
+
+  /* In tools ka saara padhne wala text ek hi anuvaad-file me hai
+     (lang/en.tools.json) aur sirf zaroorat par utarta hai. Await nahi kar
+     rahe — pack aate hi i18n poore page ka text khud badal deta hai.
+     Hinglish par ye line kuch karti hi nahi. */
+  loadPack("tools");
   start();
 
   on($("#quizBody"), "click", ".quiz-option", (e, btn) => answer(Number(btn.dataset.i)));

@@ -6,6 +6,7 @@ import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { debounce, highlight, unique } from "../core/utils.js";
 import { HSN_DATA } from "./tool-data.js";
+import { loadPack } from "../core/i18n.js";
 
 let term = "", chapter = "all";
 
@@ -47,6 +48,12 @@ function paintFilters() {
 }
 
 onReady(() => {
+
+  /* In tools ka saara padhne wala text ek hi anuvaad-file me hai
+     (lang/en.tools.json) aur sirf zaroorat par utarta hai. Await nahi kar
+     rahe — pack aate hi i18n poore page ka text khud badal deta hai.
+     Hinglish par ye line kuch karti hi nahi. */
+  loadPack("tools");
   paintFilters();
   paint();
 

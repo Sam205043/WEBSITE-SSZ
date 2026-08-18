@@ -13,6 +13,7 @@
 import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { EXCEL_ERRORS, findError } from "../config/excel-error-bank.js";
+import { loadPack } from "../core/i18n.js";
 
 let query = "";
 let openCode = EXCEL_ERRORS[0].code;
@@ -64,7 +65,9 @@ function paint() {
       el("div", { class: "empty-state" },
         el("div", { class: "empty-state__icon", html: icon("search", { size: 28 }) }),
         el("h2", {}, "Kuchh nahi mila"),
-        el("p", {}, `"${query}" se milta koi error nahi mila. Cell me jo bilkul likha hai wahi type kar dekhein — jaise #N/A.`)));
+        /* Student ka apna likha hua alag text node me — jodkar bana vaakya
+           dictionary se kabhi match nahi karta. */
+        el("p", {}, `"${query}"`, " se milta koi error nahi mila. Cell me jo bilkul likha hai wahi type kar dekhein — jaise #N/A.")));
   }
 
   /* Dhundhte waqt sab khol dena theek rehta hai — warna student ko har
@@ -76,6 +79,12 @@ function paint() {
 
 /* ---------------- Boot ---------------- */
 onReady(() => {
+
+  /* In tools ka saara padhne wala text ek hi anuvaad-file me hai
+     (lang/en.tools.json) aur sirf zaroorat par utarta hai. Await nahi kar
+     rahe — pack aate hi i18n poore page ka text khud badal deta hai.
+     Hinglish par ye line kuch karti hi nahi. */
+  loadPack("tools");
   /* Upar ke chhote button — seedhe us error par le jaate hain */
   render($("#xeQuick"), EXCEL_ERRORS.slice(0, 8).map((e) =>
     el("button", { type: "button", class: "chip", dataset: { jump: e.code } }, e.code)));

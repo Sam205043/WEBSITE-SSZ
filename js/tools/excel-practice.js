@@ -14,6 +14,7 @@ import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { store } from "../core/utils.js";
 import { EXCEL_QUESTIONS, EXCEL_LEVELS, questionsFor, isCorrect } from "../config/excel-bank.js";
+import { loadPack } from "../core/i18n.js";
 
 const BEST_KEY = "ssz.excel.best";
 
@@ -172,7 +173,9 @@ function finish() {
         html: icon(pct >= 60 ? "award" : "calculator", { size: 32 })
       }),
       el("div", { class: "result-hero__value", style: { color: "var(--text-primary)" } }, `${score} / ${set.length}`),
-      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 .35rem" } }, `${pct}% — ${verdict}`),
+      /* Ginti aur vaakya alag node me — jodkar bana vaakya dictionary se
+         kabhi match nahi karta. */
+      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 .35rem" } }, `${pct}%`, " — ", verdict),
       isBest ? el("p", { style: { color: "var(--success)", fontWeight: "600", fontSize: ".88rem" } }, "Naya best! 🎉") : null,
       el("div", { class: "cluster", style: { justifyContent: "center", marginTop: "1.5rem" } },
         el("button", { class: "btn-ssz btn-primary-ssz", type: "button", id: "exAgain" }, "Dobara")
@@ -183,6 +186,12 @@ function finish() {
 
 /* ---------------- Boot ---------------- */
 onReady(() => {
+
+  /* In tools ka saara padhne wala text ek hi anuvaad-file me hai
+     (lang/en.tools.json) aur sirf zaroorat par utarta hai. Await nahi kar
+     rahe — pack aate hi i18n poore page ka text khud badal deta hai.
+     Hinglish par ye line kuch karti hi nahi. */
+  loadPack("tools");
   paintSetup();
 
   on($("#exBody"), "click", "#exStart", () => {

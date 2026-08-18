@@ -27,6 +27,7 @@ import { numToCol, colToNum } from "./formula-parser.js";
 import { createSheet, isErr } from "./formula-eval.js";
 import { LESSONS, getLesson } from "../config/excel-lessons.js";
 import toast from "../core/toast.js";
+import { loadPack } from "../core/i18n.js";
 
 const DONE_KEY = "ssz.miniexcel.done";
 
@@ -254,6 +255,12 @@ function paintLessonList() {
    Boot
    ========================================================================== */
 onReady(() => {
+
+  /* In tools ka saara padhne wala text ek hi anuvaad-file me hai
+     (lang/en.tools.json) aur sirf zaroorat par utarta hai. Await nahi kar
+     rahe — pack aate hi i18n poore page ka text khud badal deta hai.
+     Hinglish par ye line kuch karti hi nahi. */
+  loadPack("tools");
   loadLesson(LESSONS[0].id);
 
   const bar = $("#mxBar");

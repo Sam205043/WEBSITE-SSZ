@@ -40,10 +40,17 @@ const OPS = ["<=", ">=", "<>", "+", "-", "*", "/", "^", "&", "=", "<", ">"];
 const CELL_RE = /^(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7})/;
 const NAME_RE = /^[A-Za-z_\\][A-Za-z0-9_.\\]*/;
 
+/* Sandesh tukdon ki list bhi ho sakta hai: ["Yahan ", '")"', " hona chahiye tha."]
+   Aisa isliye ki jo hissa student ke apne formula se aata hai wo screen par
+   apne alag text node me baithe — tabhi anuvaad ki dictionary baaki likhe
+   hue hisse ko pehchaan paati hai. `message` jud kar bana rehta hai (Error
+   ke apne kaam ke liye), aur `parts` screen par jaata hai. */
 export class FormulaError extends Error {
   constructor(message, at = -1) {
-    super(message);
+    const parts = Array.isArray(message) ? message : [message];
+    super(parts.join(""));
     this.name = "FormulaError";
+    this.parts = parts;
     this.at = at;
   }
 }
@@ -114,7 +121,7 @@ export function tokenize(input) {
       }
       i = j + 2;
       const ref = readRef(src, i, name);
-      if (!ref) throw new FormulaError(`'${name}'! ke baad cell ka pata nahi mila.`, i);
+      if (!ref) throw new FormulaError([`'${name}'!`, " ke baad cell ka pata nahi mila."], i);
       tokens.push(ref.token);
       i = ref.next;
       continue;
@@ -152,7 +159,7 @@ export function tokenize(input) {
       }
     }
 
-    throw new FormulaError(`Ye nishaan samajh nahi aaya: "${c}"`, i);
+    throw new FormulaError(["Ye nishaan samajh nahi aaya: ", `"${c}"`], i);
   }
 
   return tokens;
@@ -248,7 +255,7 @@ export function parse(input) {
   const eat = (type) => {
     const t = tokens[pos];
     if (!t || t.type !== type) {
-      throw new FormulaError(`Yahan "${type === "rparen" ? ")" : type}" hona chahiye tha.`, t ? t.at : -1);
+      throw new FormulaError(["Yahan ", `"${type === "rparen" ? ")" : type}"`, " hona chahiye tha."], t ? t.at : -1);
     }
     pos++;
     return t;
@@ -333,7 +340,7 @@ export function parse(input) {
       eat("rbrace");
       return { type: "array", items };
     }
-    throw new FormulaError(`Yahan "${t.value}" ki ummeed nahi thi.`, t.at);
+    throw new FormulaError(["Yahan ", `"${t.value}"`, " ki ummeed nahi thi."], t.at);
   }
 
   /* IF(A1>5,,"na") jaisi jagah par khaali argument bhi chalta hai */
@@ -346,7 +353,7 @@ export function parse(input) {
   const ast = parseExpr(0);
   if (pos < tokens.length) {
     const t = tokens[pos];
-    throw new FormulaError(`Formula ke baad fazool me "${t.value}" pada hai.`, t.at);
+    throw new FormulaError(["Formula ke baad fazool me ", `"${t.value}"`, " pada hai."], t.at);
   }
   return ast;
 }

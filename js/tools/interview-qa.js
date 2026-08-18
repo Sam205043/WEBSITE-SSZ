@@ -13,6 +13,7 @@ import { $, el, on, onReady, render } from "../core/dom.js";
 import { icon } from "../core/icons.js";
 import { store } from "../core/utils.js";
 import { INTERVIEW_QA, QA_TOPICS } from "../config/interview-bank.js";
+import { loadPack } from "../core/i18n.js";
 
 const BEST_KEY = "ssz.interview.best";
 const ROUND = 20;   // ek baithak me itne sawaal — 480 ek saath dena bekaar hai
@@ -152,7 +153,9 @@ function finish() {
         html: icon(pct >= 60 ? "award" : "users", { size: 32 })
       }),
       el("div", { class: "result-hero__value", style: { color: "var(--text-primary)" } }, `${easy} / ${total}`),
-      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 .35rem" } }, `${pct}% — ${verdict}`),
+      /* Ginti aur vaakya alag node me — jodkar bana vaakya dictionary se
+         match nahi karta aur English chunne par bhi Hinglish reh jata hai. */
+      el("p", { style: { fontSize: "var(--fs-md)", margin: ".5rem 0 .35rem" } }, `${pct}%`, " — ", verdict),
       isBest ? el("p", { style: { color: "var(--success)", fontWeight: "600", fontSize: ".88rem" } }, "Naya best! 🎉") : null,
       el("div", { class: "cluster", style: { justifyContent: "center", marginTop: "1.5rem" } },
         el("button", { class: "btn-ssz btn-primary-ssz", type: "button", id: "iqAgain" }, "Naya round")
@@ -164,6 +167,14 @@ function finish() {
 /* ---------------- Boot ---------------- */
 onReady(() => {
   paintSetup();
+
+  /* 480 sawaal aur unke jawab ka anuvaad alag file me rehta hai
+     (lang/en.interview.json) aur sirf yahin mangwaya jaata hai — homepage
+     kholne wale ke phone par ye 130 KB bhejna bekaar hai.
+
+     Await nahi kar rahe: pack aate hi i18n poore page ka text khud badal
+     deta hai. Hinglish par ye line kuch karti hi nahi. */
+  loadPack("interview");
 
   on($("#iqBody"), "click", "#iqStart", () => {
     topic = $("#iqTopic").value;

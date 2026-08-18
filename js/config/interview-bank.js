@@ -467,7 +467,7 @@ export const INTERVIEW_QA = [
   { t: "GST & Tax", q: "Form 26AS kya batata hai?", a: "Aapke PAN par jitna tax kata aur jama hua, uska poora hisaab." },
   { t: "GST & Tax", q: "TDS kya hai?", a: "Tax Deducted at Source — payment karte waqt hi tax kaat kar sarkar ko jama karna." },
   { t: "GST & Tax", q: "TDS kaun kaatta hai?", a: "Payment karne wala (deductor) kaat kar sarkar ko jama karta hai." },
-  { t: "GST & Tax", q: "TAN kya hai?", a: "Tax Deduction Account Number — TDS kaatne walon ke liye zaroori 10 ank ka number." },
+  { t: "GST & Tax", q: "TAN kya hai?", a: "Tax Deduction Account Number — TDS kaatne walon ke liye zaroori 10 akshar-ank ka number." },
   { t: "GST & Tax", q: "TDS return kab bharna hota hai?", a: "Har tinmahi — aam taur par tinmahi khatam hone ke agle mahine ki 31 tareekh tak." },
   { t: "GST & Tax", q: "Form 16 aur 16A me farq?", a: "16 salary par kate TDS ke liye, 16A salary ke alawa (jaise contract, byaaj) par kate TDS ke liye." },
   { t: "GST & Tax", q: "Advance Tax kya hai?", a: "Saal ke aakhir me ek saath dene ke bajaye, kist me pehle se tax bharna — 10,000 se zyada tax bane to zaroori." },

@@ -54,13 +54,18 @@ const LANGS = ["en", "hi"];
    mil gaya to line pakki Hinglish hai — chahe usme Ctrl+S ya / kyun na ho.
    Ye jaanch sabse pehle hoti hai, warna "Ctrl + S kya karta hai?" shortcut
    samajh kar chhoot jaata tha. */
-const HINGLISH = /\b(se|ka|ki|ke|ko|me|mein|par|hai|hain|tha|thi|the|kya|kaun|kaunsa|kyun|kaise|nahi|nahin|karna|karta|karte|karein|hota|hoti|jaata|jaati|wala|wali|aur|bhi|jo|ye|wo|liye|sakta|sakte|kijiye|chuniye|chunein|dekhein|apna|apne|hamesha)\b/i;
+const HINGLISH = /\b(se|ka|ki|ke|ko|me|mein|par|hai|hain|tha|thi|the|kya|kaun|kaunsa|kyun|kaise|nahi|nahin|karna|karta|karte|karein|hota|hoti|jaata|jaati|wala|wali|aur|bhi|jo|ye|wo|liye|sakta|sakte|kijiye|chuniye|chunein|dekhein|apna|apne|hamesha|shuru|aakhir|aakhri|kisme|kahan|jahan|khaali|wahan|koi|kuchh|sirf|bina|jaise|likhein|likhiye|lagayein|rakhein|milega|maangta)\b/i;
 
 export function translatable(t) {
   if (typeof t !== "string") return false;
   const s = t.trim();
   if (s.length < 2) return false;
-  if (HINGLISH.test(s)) return true;                                   // pehle ye
+  /* Underscore ko space maan kar dekhna zaroori hai. Function ke roop
+     (`sig`) me naam aise likhe jaate hain: "SUMIF(kahan_dekhein, shart, …)".
+     Seedhi jaanch me `\bkahan\b` nahi milta — underscore bhi shabd ka hi
+     akshar hai, isliye wahan shabd ki seema banti hi nahi. Isi ek wajah se
+     saat `sig` line chup-chaap Hinglish me reh gayi thin. */
+  if (HINGLISH.test(s.replace(/_/g, " "))) return true;                // pehle ye
   if (/^(Ctrl|Alt|Shift|Windows|Fn|Cmd)\s*\+/i.test(s)) return false;  // Ctrl+C
   if (/[$#=<>\\/*[\]{}|~^]/.test(s)) return false;                     // $B$2, =SUM(), File > Save
   if (/\.[a-z]{2,4}$/i.test(s) && !s.includes(" ")) return false;      // .xlsx, .pptx
@@ -128,16 +133,116 @@ const BANKS = {
       out.delete("");
       return out;
     }
+  },
+
+  /* ---- Excel ke chaar tool, GST quiz aur Shortcut trainer ----
+     In sab me FORMULA ko haath nahi lagana. `a`, `hint`, `want` aur `demo`
+     ka formula wala hissa jaisa hai waisa hi rehta hai — usme likha text
+     (jaise "Nahi mila") formula ka nateeja hai, jise tool jaanchta hai.
+     Anuvaad sirf us text ka hota hai jo student PADHTA hai. */
+
+  formula: {
+    label: "Excel formula explainer",
+    file: "js/config/excel-function-bank.js",
+    async lines() {
+      const m = await import(join(ROOT, "js/config/excel-function-bank.js"));
+      const out = new Set(m.FUNCTION_GROUPS || []);
+      for (const f of Object.values(m.EXCEL_FUNCTIONS || {})) {
+        if (f.one) out.add(f.one);
+        if (f.how) out.add(f.how);
+        /* sig me parameter ke naam Hinglish me hain — FIND(kya, kisme, …) */
+        if (f.sig) out.add(f.sig);
+      }
+      return out;
+    }
+  },
+
+  excelerror: {
+    label: "Excel error finder",
+    file: "js/config/excel-error-bank.js",
+    async lines() {
+      const m = await import(join(ROOT, "js/config/excel-error-bank.js"));
+      const out = new Set();
+      for (const e of (m.EXCEL_ERRORS || [])) {
+        if (e.name) out.add(e.name);
+        if (e.one) out.add(e.one);
+        /* demo ka formula to code hai, par uske aage ka samjhaav padha jaata hai */
+        if (e.demo) out.add(e.demo);
+        for (const w of (e.why || [])) { if (w.cause) out.add(w.cause); if (w.fix) out.add(w.fix); }
+      }
+      return out;
+    }
+  },
+
+  excelpractice: {
+    label: "Excel formula practice",
+    file: "js/config/excel-bank.js",
+    async lines() {
+      const m = await import(join(ROOT, "js/config/excel-bank.js"));
+      const out = new Set(m.EXCEL_LEVELS || []);
+      for (const q of (m.EXCEL_QUESTIONS || [])) if (q.q) out.add(q.q);
+      return out;
+    }
+  },
+
+  lessons: {
+    label: "Excel lessons",
+    file: "js/config/excel-lessons.js",
+    async lines() {
+      const m = await import(join(ROOT, "js/config/excel-lessons.js"));
+      const out = new Set();
+      for (const L of (m.LESSONS || [])) {
+        for (const k of ["title", "level", "about"]) if (L[k]) out.add(L[k]);
+        for (const v of Object.values(L.data || {})) if (typeof v === "string") out.add(v);
+        for (const t of (L.tasks || [])) { if (t.say) out.add(t.say); if (t.hint) out.add(t.hint); }
+      }
+      return out;
+    }
+  },
+
+  shortcut: {
+    label: "Shortcut trainer",
+    file: "js/config/shortcut-bank.js",
+    async lines() {
+      const m = await import(join(ROOT, "js/config/shortcut-bank.js"));
+      const out = new Set(m.SHORTCUT_GROUPS || []);
+      for (const s of (m.SHORTCUTS || [])) if (s[1]) out.add(s[1]);
+      return out;
+    }
+  },
+
+  gst: {
+    label: "GST quiz + HSN",
+    file: "js/tools/tool-data.js",
+    async lines() {
+      const m = await import(join(ROOT, "js/tools/tool-data.js"));
+      const out = new Set();
+      for (const q of (m.GST_QUIZ || [])) {
+        if (q.q) out.add(q.q);
+        for (const o of (q.options || [])) out.add(o);
+        if (q.why) out.add(q.why);
+      }
+      for (const h of (m.HSN_DATA || [])) { if (h.desc) out.add(h.desc); if (h.chapter) out.add(h.chapter); }
+      return out;
+    }
   }
 };
 
 /* ------------------------------------------------------------------ jaanch */
 
+/* Chhote tools ka anuvaad ek hi file me rehta hai — alag-alag 6 file banane
+   se koi fayda nahi tha, aur sab ek hi page par bhi nahi khulte. */
+const PACK_FILE = {
+  formula: "tools", excelerror: "tools", excelpractice: "tools",
+  lessons: "tools", shortcut: "tools", gst: "tools"
+};
+
 function loadPack(lang, name) {
   /* Bade bank ka anuvaad alag file me rehta hai (lazy pack). Chhoti cheezein
      seedhe main dictionary me bhi ho sakti hain, isliye dono dekhte hain. */
   const merged = {};
-  for (const p of [`lang/${lang}.json`, `lang/${lang}.${name}.json`]) {
+  const file = PACK_FILE[name] || name;
+  for (const p of [`lang/${lang}.json`, `lang/${lang}.${file}.json`]) {
     const full = join(ROOT, p);
     if (existsSync(full)) Object.assign(merged, JSON.parse(readFileSync(full, "utf8")));
   }

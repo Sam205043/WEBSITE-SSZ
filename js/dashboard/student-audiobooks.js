@@ -115,8 +115,22 @@ function empty(q) {
 function moduleBlock(mod, list) {
   return el("section", { style: { marginBottom: "2rem" } },
     el("h3", { style: { margin: "0 0 .85rem", fontSize: "1rem" } }, mod),
-    el("div", { class: "auto-grid" }, ...list.map((n) => card(n)))
+    el("div", { class: "auto-grid" }, ...byChapter(list).map((n) => card(n)))
   );
+}
+
+/* Audiobook ka kram naam se aata hai, upload ke waqt se nahi.
+   PDF ke saath ye baat nahi uthti — student ek hi file khol leta hai. Audio
+   me kram sab kuchh hai: Chapter 3 sunne se pehle Chapter 1 chahiye. Query
+   `createdAt desc` par aati hai, yaani jo aakhir me upload hua wo sabse
+   upar — bilkul ulta kram.
+
+   `numeric: true` isliye ki saada tulna me "Chapter 10" seedhe "Chapter 2"
+   se pehle aa jaata hai (1 aur 2 ki tulna me 1 chhota hai). Isse ginti
+   ginti ki tarah tulti hai. */
+function byChapter(list) {
+  return list.slice().sort((a, b) =>
+    String(a.title || "").localeCompare(String(b.title || ""), undefined, { numeric: true, sensitivity: "base" }));
 }
 
 function paint() {
@@ -139,7 +153,7 @@ function paint() {
   if (whole.length) {
     parts.push(el("section", { style: { marginBottom: "2.25rem" } },
       el("h3", { style: { margin: "0 0 .85rem", fontSize: "1rem" } }, "Poori book"),
-      el("div", { class: "auto-grid" }, ...whole.map((n) => card(n, { big: true })))
+      el("div", { class: "auto-grid" }, ...byChapter(whole).map((n) => card(n, { big: true })))
     ));
   }
 

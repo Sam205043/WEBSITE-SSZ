@@ -39,6 +39,9 @@ export const ROUTES = Object.freeze({
   studentAssignments:"pages/student/assignments.html",
   studentPractice:   "pages/student/practice.html",
   studentNotes:      "pages/student/notes.html",
+  /* Book ka audio roop. Alag page isliye ki sunne wala student PDF ke beech
+     me dhoondhta reh jaata tha — vistaar student-audiobooks.js me. */
+  studentAudiobooks: "pages/student/audiobooks.html",
   studentCerts:      "pages/student/certificates.html",
   studentNotify:     "pages/student/notifications.html",
   studentProfile:    "pages/student/profile.html",

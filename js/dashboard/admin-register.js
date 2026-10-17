@@ -16,7 +16,10 @@
    hai — ye page sirf dekhne ke liye hai.
 
    Fee pichhe ka niyam (Rule B, Nova aur Excel dashboard jaisa hi):
-     ab tak aana chahiye = min(net fee, pehli payment + har 30 din ki kist)
+     kist = website ka hi niyam — admission par 10% (100 ke round figure, kam se
+     kam 500), baaki barabar mahine-mahine (Duration_Months - 1) kist mein, max 9.
+     Duration har student ki apni hai (Sheet ka Duration_Months column).
+     pichhe = ab tak aana chahiye - ab tak mila   (sirf Active, baaki > 0)
      pichhe = ab tak aana chahiye - ab tak mila   (sirf Active, baaki > 0)
    ========================================================================== */
 
@@ -28,8 +31,18 @@ import { initAdminShell } from "./admin-shell.js";
 import toast from "../core/toast.js";
 
 const API = "https://script.google.com/macros/s/AKfycbzAyU3lMxRnHEam8sEuy8jJ1uWhhSMcSF5uRBI7sqG00JetyhHg3a-NatPignmTrjOrXQ/exec";
-const FIRST = 1000;        // admission ke din pehli payment
-const INSTALLMENT = 1000;  // har 30 din ki kist
+/** Kist plan — functions/index.js ke buildFeePlan aur Nova ke plan() jaisa */
+function feePlan(net, months) {
+  const total = Math.max(0, Math.round(net));
+  if (!total) return null;
+  const first = Math.min(total, Math.max(500, Math.ceil((total * 0.10) / 100) * 100));
+  const k = Math.max(1, Math.min(9, (Number(months) || 12) - 1));
+  const rest = total - first;
+  const base = Math.floor(rest / k);
+  return { total, first, n: k, base, extra: rest - base * k };
+}
+/** m mahine (30-30 din) baad tak kitna aa jaana chahiye tha */
+const expectedBy = (p, m) => !p ? 0 : Math.min(p.total, p.first + (m >= 1 ? p.extra : 0) + Math.min(m, p.n) * p.base);
 const INST = "Soft Skill Zone (Gym Town Pakri, Ara)";
 
 const TABS = [
@@ -81,22 +94,23 @@ function compute() {
     const adm = pd(s.Admission_Date);
     const active = String(s.Status || "").trim() === "Active";
     let behind = 0, since = 0;
+    const plan = feePlan(net, s.Duration_Months);
     if (active && bal > 0 && adm) {
       const k = Math.max(0, Math.floor(days(adm, t) / 30));
-      behind = Math.max(0, Math.min(net, FIRST + k * INSTALLMENT) - paid);
+      behind = Math.max(0, expectedBy(plan, k) - paid);
       if (behind > 0) {
-        let j = 0; while (j < k && FIRST + j * INSTALLMENT <= paid) j++;
+        let j = 0; while (j < k && expectedBy(plan, j) <= paid) j++;
         since = Math.max(0, days(new Date(adm.getTime() + j * 30 * 864e5), t));
       }
     }
-    return { s, id, net, paid, bal, adm, active, behind, since, pays: (paysBy[id] || []).slice() };
+    return { s, id, net, paid, bal, adm, active, behind, since, plan, pays: (paysBy[id] || []).slice() };
   });
 }
 
 const matches = (...vals) => !term || vals.some((v) => String(v ?? "").toLowerCase().includes(term));
 
 function feeMsg(r) {
-  return `Namaste ${r.s.Name}, ${INST} se reminder: aapki ${money(Math.min(r.behind || INSTALLMENT, r.bal))} ki fee installment due hai. Total baaki: ${money(r.bal)}. Thank you!`;
+  return `Namaste ${r.s.Name}, ${INST} se reminder: aapki ${money(Math.min(r.behind || (r.plan ? r.plan.base : r.bal), r.bal))} ki fee installment due hai. Total baaki: ${money(r.bal)}. Thank you!`;
 }
 
 function actions(phone, msg) {
@@ -278,6 +292,7 @@ function showStudent(id) {
         line("Net fee", money(r.net)),
         line("Mila", money(r.paid)),
         line("Baaki", money(r.bal)),
+        r.plan ? line("Kist", `${money(r.plan.first)} admission + ${r.plan.n} × ${money(r.plan.base)} (${s.Duration_Months || 12} mahine)`) : null,
         r.behind > 0 ? line("Installment pichhe", `${money(r.behind)} · ${r.since} din se`) : null,
         line("Status", s.Status),
         s.Notes ? line("Note", s.Notes) : null),

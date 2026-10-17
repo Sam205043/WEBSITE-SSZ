@@ -88,55 +88,76 @@ const COURSE_LIST = [
     id: "ai-dca", code: "DCA", order: 5,
     title: "DCA",
     shortTitle: "DCA",
-    tagline: "Computer basics + AI tools — sabse popular course",
+    tagline: "Computer + MS Office 2021 + Google Workspace + AI",
     description:
-      "Diploma in Computer Applications, ab AI ke saath. MS Office, Internet, typing aur " +
-      "computer fundamentals ke saath ChatGPT, Canva AI aur prompt writing bhi seekhein — " +
-      "taaki aap office ka kaam aadhe time me kar sakein.",
+      "Diploma in Computer Applications — MS Office 2021 aur Google Workspace ka Master Course. " +
+      "Computer basics, Windows 11, internet aur cyber safety se shuru karke Word, Excel, PowerPoint, " +
+      "Gmail, Drive, Docs, Sheets aur ChatGPT + Gemini tak — har chapter me practical lab ke saath.",
     category: "ai", level: "beginner",
     durationMonths: 4, fee: 2500, feeOffline: 5500, admissionFee: 0,
     icon: "sparkles", colorFrom: "#4f46e5", colorTo: "#7c3aed",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
-      "AI tools ke saath practical assignments",
-      "MS Word, Excel, PowerPoint in depth",
-      "Hindi + English typing practice",
-      "Government-recognised certificate"
+      "8 modules, 48 chapters — Hinglish course book",
+      "MS Office 2021 + Google Workspace dono",
+      "ChatGPT + Google Gemini se office ka kaam",
+      "Excel me VLOOKUP, XLOOKUP, Pivot Table aur Dashboard",
+      "Har chapter me practical lab aur mini project"
     ],
     eligibility: ["10th pass ya usse upar", "Koi prior computer knowledge zaroori nahi"],
-    careerOptions: ["Computer Operator", "Data Entry Executive", "Back Office Assistant", "AI Content Assistant"],
+    careerOptions: [
+      "Computer Operator",
+      "Data Entry Executive",
+      "Back Office Assistant",
+      "Office Assistant",
+      "AI Content Assistant"
+    ],
     modules: [
-      { title: "Computer Fundamentals", topics: ["Hardware & Software", "Windows 11", "File Management", "Internet & Email"] },
-      { title: "MS Office Complete", topics: ["MS Word", "MS Excel + Formulas", "PowerPoint", "Mail Merge"] },
-      { title: "AI Productivity", topics: ["ChatGPT for office work", "Prompt writing basics", "Canva AI design", "Gemini research"] },
-      { title: "Typing & Practical", topics: ["English typing 30+ WPM", "Hindi Mangal typing", "Live project", "Final assessment"] }
+      { title: "Computer Fundamentals", topics: ["Computer ka parichay", "Hardware: CPU, RAM, storage, ports", "Software aur OS", "Keyboard, mouse aur typing", "Data, files aur folders"] },
+      { title: "Windows 11 Basics", topics: ["Desktop, Start Menu, Snap Layouts", "File Explorer mastery", "Settings aur personalization", "Apps, printing aur Windows Security"] },
+      { title: "Internet & Cloud Computing", topics: ["Browsers aur smart searching", "Online safety: 2FA, phishing, OTP fraud", "Cloud: OneDrive aur Google Drive"] },
+      { title: "Google Workspace", topics: ["Gmail aur email etiquette", "Google Drive sharing", "Google Docs, Sheets, Slides", "Google Forms", "Calendar aur Meet", "Team collaboration workflow"] },
+      { title: "AI Productivity", topics: ["ChatGPT se office work", "Gemini in Gmail aur Docs", "Gemini in Sheets, Slides aur research", "Prompt writing aur responsible AI"] },
+      { title: "MS Word 2021", topics: ["Interface aur pehla document", "Formatting aur page setup", "Tables, graphics, SmartArt", "Styles, templates, Table of Contents", "Mail Merge", "Review, protection, business documents"] },
+      { title: "MS Excel 2021", topics: ["Data entry, formatting, number formats", "Formulas: SUM, IF, IFS, SUMIFS, COUNTIFS", "VLOOKUP, XLOOKUP, INDEX-MATCH", "Text aur date functions", "Data tools, conditional formatting, charts", "Pivot Tables, dashboard, business reports"] },
+      { title: "MS PowerPoint 2021", topics: ["Pehli presentation, Designer", "Graphics aur media", "Animations, transitions, Morph", "Slide Master aur templates", "Presentation delivery"] }
     ]
   },
   {
     id: "ai-tally-prime", code: "TLY", order: 7,
     title: "Tally Prime",
     shortTitle: "Tally Prime",
-    tagline: "Accounting + GST + AI — job-ready in 4 months",
+    tagline: "Accounting se GST, TDS, Payroll tak — job-ready in 4 months",
     description:
-      "Tally Prime ka complete practical training — company creation se GST return tak. " +
-      "Saath me AI tools se reconciliation aur report analysis fast karna seekhein.",
+      "AI Powered TallyPrime Professional Mastery — sahi order me: Accounting Foundation, Stock, " +
+      "GST, TDS, Payroll aur Advanced MIS. FY 2025-26 ke hisaab se 40 chapter, aur teen practice " +
+      "companies (manufacturing, trading, service) par poore saal ka kaam.",
     category: "accounts", level: "beginner",
     durationMonths: 4, fee: 3500, feeOffline: 5500, admissionFee: 0,
     icon: "wallet", colorFrom: "#059669", colorTo: "#06b6d4",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
-      "Latest Tally Prime version par training",
-      "Real business vouchers par practice",
-      "GST, TDS aur payroll included",
-      "Interview preparation support"
+      "40 chapters — FY 2025-26 updated",
+      "3 practice companies: manufacturing, trading, service",
+      "GST returns: GSTR-1, 3B, 2B reconciliation, GSTR-9",
+      "TDS, Payroll, PF aur ESI practical",
+      "AI-assisted accounting aur MIS reports"
     ],
     eligibility: ["10th/12th pass", "Commerce background helpful, zaroori nahi"],
-    careerOptions: ["Accountant", "Tally Operator", "GST Assistant", "Billing Executive"],
+    careerOptions: [
+      "Accountant",
+      "Tally Operator",
+      "GST Assistant",
+      "Payroll Executive",
+      "Billing Executive"
+    ],
     modules: [
-      { title: "Tally Foundation", topics: ["Company creation", "Ledgers & groups", "Vouchers", "Inventory masters"] },
-      { title: "GST in Tally", topics: ["GST setup", "Sales & purchase entry", "GSTR-1 & 3B", "E-way bill"] },
-      { title: "Advanced Tally", topics: ["Payroll", "TDS entries", "Bank reconciliation", "Cost centres"] },
-      { title: "AI + Reports", topics: ["Balance Sheet & P&L", "AI-assisted data checking", "Excel export", "Live case study"] }
+      { title: "Accounting Foundation", topics: ["Golden Rules aur Double Entry", "Company creation aur ledgers", "Cash aur credit transactions", "Debit Note, Credit Note", "Trial Balance, P&L, Balance Sheet"] },
+      { title: "Stock & Inventory", topics: ["Stock items aur units", "Purchase/Sales with stock", "Multiple godowns aur transfer", "Manufacturing Journal aur BOM", "Stock valuation aur reorder level"] },
+      { title: "GST — Complete Module", topics: ["GST concepts, rates, HSN/SAC", "GST setup in Tally", "Purchase, Sales, RCM, ITC", "E-Invoice aur E-Way Bill", "GSTR-1, GSTR-3B, GSTR-2B reconciliation", "GSTR-9 aur 9C"] },
+      { title: "TDS & Income Tax", topics: ["TDS sections, rates, thresholds", "TDS in Tally aur Challan 281", "24Q, 26Q returns aur TRACES", "Form 16/16A, 26AS, AIS", "Advance Tax aur Tax Audit basics"] },
+      { title: "Payroll, PF & ESI", topics: ["CTC, Gross, Net salary", "Pay Heads aur Employee Masters", "Monthly payroll aur salary slip", "PF, ESI, Professional Tax", "Gratuity aur labour law basics"] },
+      { title: "Advanced, MIS & Career", topics: ["Bank Reconciliation (BRS)", "Cost Centres, Budgets, Cash Flow", "3 company end-to-end projects", "MIS reports aur ratio analysis", "AI-assisted accounting", "Year-end closing aur career guidance"] }
     ]
   },
   {
@@ -172,25 +193,33 @@ const COURSE_LIST = [
     shortTitle: "ADCA",
     tagline: "Advanced Diploma — computer ka complete package",
     description:
-      "Advanced Diploma in Computer Applications — ek saal ka comprehensive programme " +
-      "jisme office suite, accounting, DTP, internet aur basic programming sab shamil hai.",
+      "Advanced Diploma in Computer Applications — 12 mahine ka job-oriented programme. " +
+      "Computer aur MS Office se shuru karke accounting, TallyPrime (GST, TDS, Payroll) aur " +
+      "bina coding ki AI Automation tak — theory, practical aur real business projects ke saath.",
     category: "academic", level: "intermediate",
     durationMonths: 12, fee: 6500, feeOffline: 12000, admissionFee: 0,
     icon: "graduation", colorFrom: "#7c3aed", colorTo: "#f43f5e",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
-      "12 months ka complete syllabus",
-      "Tally + DTP + Office ek saath",
-      "Practical lab har din",
-      "Placement assistance"
+      "12 months ka updated 2026 syllabus",
+      "Computer + Office + Accounting + TallyPrime + AI Automation",
+      "GST, TDS aur Payroll practical TallyPrime me",
+      "Real business projects — institute, shop, clinic, property",
+      "Job-oriented training aur placement assistance"
     ],
     eligibility: ["10th pass ya usse upar"],
-    careerOptions: ["Computer Operator", "Office Assistant", "DTP Operator", "Accounts Assistant"],
+    careerOptions: [
+      "Computer Operator",
+      "Accounts Assistant",
+      "Tally / GST Operator",
+      "AI Automation Assistant",
+      "Office Executive"
+    ],
     modules: [
-      { title: "Module 1", topics: ["Computer fundamentals", "Windows", "MS Office", "Internet & email"] },
-      { title: "Module 2", topics: ["Tally Prime", "GST basics", "Financial accounting", "Billing software"] },
-      { title: "Module 3", topics: ["Photoshop", "CorelDRAW", "PageMaker / DTP", "Design practical"] },
-      { title: "Module 4", topics: ["HTML & CSS basics", "AI tools", "Project work", "Final exam"] }
+      { title: "DCA — Computer & Office", topics: ["Computer Fundamentals & Windows 11", "Internet & Cloud Computing", "Google Workspace", "AI Productivity Tools", "MS Word, Excel, PowerPoint", "Practical Office Projects"] },
+      { title: "Accounting Fundamentals", topics: ["Accounting Concepts & Principles", "Journal & Ledger", "Trial Balance & Adjustments", "Trading Account", "Profit & Loss Account", "Balance Sheet & Accounting Cycle"] },
+      { title: "TallyPrime — Practical Accounting", topics: ["Company, Groups, Ledgers, Vouchers", "Purchase, Sales, Inventory", "GST, ITC, GSTR-1, GSTR-3B", "E-Way Bill, E-Invoice", "TDS, Payroll, PF, ESI, PT", "BRS, Job Costing, Reports & MIS"] },
+      { title: "AI Automation — Business Automation", topics: ["Automation Basics, Forms, Sheets, AI", "n8n, Triggers, Webhooks, HTTP, Errors", "AI + WhatsApp, Telegram, Lead Automation", "Bill/Invoice, Document AI, Daily Reports", "Projects: Institute, Shop, Clinic, Property", "AI Chatbot, Social Media, Client Handling"] }
     ]
   },
   {
@@ -444,9 +473,10 @@ const COURSE_LIST = [
     isPopular: true, isNew: true, isActive: true,
     highlights: [
       "100% no-code — ek line bhi programming nahi",
-      "n8n, Make, Google Sheets/Forms, WhatsApp API aur AI tools",
-      "5 asli business project — dukaan, coaching, clinic, property, chatbot",
-      "Hinglish Book — chaaron module ki apni Book, ghar par revision ke liye",
+      "36 classes, 25+ small automation aur 5 poore business project",
+      "n8n, Google Sheets/Forms, Gmail, Gemini AI, Telegram, WhatsApp API",
+      "Saare tools free ya free-tier — koi software kharidna nahi",
+      "Hinglish course book + har class ki practice sheet",
       "Automation service bechkar kamai karna bhi sikhaya jaata hai"
     ],
     eligibility: [

@@ -81,7 +81,7 @@ export function courseCard(course) {
   foot.appendChild(el("div", { class: "course-card__fee" },
     offer ? el("span", { class: "course-card__mrp" }, money(course.mrp)) : null,
     money(course.fee),
-    el("small", {}, offer ? "Azadi offer price" : "Full course fee")
+    el("small", {}, offer ? "Azadi offer price" : course.feeOffline ? `Online · Classroom ${money(course.feeOffline)}` : "Full course fee")
   ));
   foot.appendChild(el("span", {
     class: "btn-ssz btn-secondary-ssz btn-sm-ssz",

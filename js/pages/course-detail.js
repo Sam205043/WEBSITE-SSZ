@@ -113,7 +113,7 @@ function renderAside(c) {
     el("div", { class: "card-ssz enroll-card" },
       el("div", { class: "card-ssz__body" },
         el("p", { class: "text-muted-c", style: { fontSize: ".75rem", letterSpacing: "var(--ls-caps)", textTransform: "uppercase", marginBottom: ".4rem" } },
-          offer ? "Azadi offer price" : "Course fee"),
+          offer ? "Azadi offer price" : c.feeOffline ? "Online class fee" : "Course fee"),
         el("div", { class: "enroll-card__price" },
           offer ? el("span", { class: "enroll-card__mrp" }, money(c.mrp)) : null,
           money(c.fee)
@@ -126,7 +126,9 @@ function renderAside(c) {
           offer
             ? `Classroom (Ara) ${money(c.feeOffline || c.fee)}` +
               (c.mrpOffline ? ` — pehle ${money(c.mrpOffline)}` : "")
-            : c.admissionFee
+            : c.feeOffline
+              ? `Classroom (Ara): ${money(c.feeOffline)}`
+              : c.admissionFee
               ? `+ ${money(c.admissionFee)} admission fee · Total ${money(total)}`
               : "Koi alag admission fee nahi"),
 
@@ -213,7 +215,10 @@ function injectCourseSchema(c) {
 
 onReady(() => {
   const id = param("id");
-  const course = id ? getCourse(id) : null;
+  /* Band ho chuke course (RETIRED_COURSES) public page par nahi khulte — getCourse unhe
+     purane records ke liye lautata hai, isliye yahan isActive bhi dekhna zaroori hai. */
+  const found = id ? getCourse(id) : null;
+  const course = found && found.isActive ? found : null;
 
   if (!course) {
     render($("#courseHero"), el("div", { class: "ssz-container" },

@@ -24,6 +24,7 @@ const NAV = [
   { key: "home",       label: "Overview",   icon: "home",      route: "adminHome" },
   { key: "admissions", label: "Admissions", icon: "userPlus",  route: "adminAdmissions", badge: true },
   { key: "students",   label: "Students",   icon: "users",     route: "adminStudents" },
+  { key: "register",   label: "Register (Offline)", icon: "clipboard", route: "adminRegister" },
   { key: "batches",    label: "Batches",    icon: "calendar",  route: "adminBatches" },
   { group: "Operations" },
   { key: "fees",       label: "Fees",       icon: "wallet",    route: "adminFees", badge: true },

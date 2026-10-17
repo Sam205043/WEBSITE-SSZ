@@ -74,27 +74,27 @@ export const INSTITUTE = Object.freeze({
    ========================================================================== */
 export const STATS = Object.freeze([
   { value: 5000, suffix: "+", label: "Students Trained",  icon: "users" },
-  { value: 11,   suffix: "",  label: "Career Courses",    icon: "book" },
+  { value: 13,   suffix: "",  label: "Career Courses",    icon: "book" },
   { value: 95,   suffix: "%", label: "Placement Support", icon: "trending" },
   { value: 9,    suffix: "+", label: "Years of Trust",    icon: "award" }
 ]);
 
 /* ==========================================================================
-   COURSES — 11 programmes
+   COURSES — 13 programmes (17 Oct 2026 se nayi list)
    `code` is used inside the generated Student ID (SSZ2026DCA0007)
    ========================================================================== */
-export const COURSES = Object.freeze([
+const COURSE_LIST = [
   {
-    id: "ai-dca", code: "DCA", order: 1,
-    title: "AI Powered DCA",
-    shortTitle: "AI DCA",
+    id: "ai-dca", code: "DCA", order: 5,
+    title: "DCA",
+    shortTitle: "DCA",
     tagline: "Computer basics + AI tools — sabse popular course",
     description:
       "Diploma in Computer Applications, ab AI ke saath. MS Office, Internet, typing aur " +
       "computer fundamentals ke saath ChatGPT, Canva AI aur prompt writing bhi seekhein — " +
       "taaki aap office ka kaam aadhe time me kar sakein.",
     category: "ai", level: "beginner",
-    durationMonths: 6, fee: 6000, admissionFee: 0,
+    durationMonths: 4, fee: 2500, feeOffline: 5500, admissionFee: 0,
     icon: "sparkles", colorFrom: "#4f46e5", colorTo: "#7c3aed",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
@@ -113,15 +113,15 @@ export const COURSES = Object.freeze([
     ]
   },
   {
-    id: "ai-tally-prime", code: "TLY", order: 2,
-    title: "AI Powered Tally Prime",
+    id: "ai-tally-prime", code: "TLY", order: 7,
+    title: "Tally Prime",
     shortTitle: "Tally Prime",
-    tagline: "Accounting + GST + AI — job-ready in 3 months",
+    tagline: "Accounting + GST + AI — job-ready in 4 months",
     description:
       "Tally Prime ka complete practical training — company creation se GST return tak. " +
       "Saath me AI tools se reconciliation aur report analysis fast karna seekhein.",
     category: "accounts", level: "beginner",
-    durationMonths: 3, fee: 5000, admissionFee: 0,
+    durationMonths: 4, fee: 3500, feeOffline: 5500, admissionFee: 0,
     icon: "wallet", colorFrom: "#059669", colorTo: "#06b6d4",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
@@ -140,15 +140,15 @@ export const COURSES = Object.freeze([
     ]
   },
   {
-    id: "python-314", code: "PYT", order: 3,
-    title: "Python 3.14 Programming",
-    shortTitle: "Python 3.14",
+    id: "python-314", code: "PYT", order: 6,
+    title: "Python",
+    shortTitle: "Python",
     tagline: "Zero se programming — projects ke saath",
     description:
       "Latest Python 3.14 par complete programming course. Syntax se shuru karke " +
       "automation scripts, data handling aur mini projects tak — sab practical.",
     category: "programming", level: "intermediate",
-    durationMonths: 4, fee: 7000, admissionFee: 0,
+    durationMonths: 6, fee: 4500, feeOffline: 7500, admissionFee: 0,
     icon: "zap", colorFrom: "#0891b2", colorTo: "#4f46e5",
     isPopular: true, isNew: true, isActive: true,
     highlights: [
@@ -167,7 +167,7 @@ export const COURSES = Object.freeze([
     ]
   },
   {
-    id: "adca", code: "ADC", order: 4,
+    id: "adca", code: "ADC", order: 1,
     title: "ADCA",
     shortTitle: "ADCA",
     tagline: "Advanced Diploma — computer ka complete package",
@@ -175,7 +175,7 @@ export const COURSES = Object.freeze([
       "Advanced Diploma in Computer Applications — ek saal ka comprehensive programme " +
       "jisme office suite, accounting, DTP, internet aur basic programming sab shamil hai.",
     category: "academic", level: "intermediate",
-    durationMonths: 12, fee: 10000, admissionFee: 0,
+    durationMonths: 12, fee: 6500, feeOffline: 12000, admissionFee: 0,
     icon: "graduation", colorFrom: "#7c3aed", colorTo: "#f43f5e",
     isPopular: true, isNew: false, isActive: true,
     highlights: [
@@ -194,15 +194,15 @@ export const COURSES = Object.freeze([
     ]
   },
   {
-    id: "ai-video-editing", code: "VID", order: 5,
-    title: "AI Powered Video Editing",
+    id: "ai-video-editing", code: "VID", order: 4,
+    title: "Video Editing",
     shortTitle: "Video Editing",
     tagline: "Reels, YouTube aur ads — AI ke saath",
     description:
       "Professional video editing with AI — auto captions, background removal, voice " +
       "cleanup aur fast reel production. Freelancing ke liye ekdum practical course.",
     category: "creative", level: "beginner",
-    durationMonths: 3, fee: 6500, admissionFee: 0,
+    durationMonths: 4, fee: 2500, feeOffline: 5500, admissionFee: 0,
     icon: "video", colorFrom: "#f43f5e", colorTo: "#f59e0b",
     isPopular: false, isNew: true, isActive: true,
     highlights: [
@@ -221,15 +221,15 @@ export const COURSES = Object.freeze([
     ]
   },
   {
-    id: "icom", code: "ICM", order: 6,
-    title: "I.Com",
-    shortTitle: "I.Com",
-    tagline: "Intermediate Commerce — strong base for B.Com",
+    id: "icom", code: "ICM", order: 8,
+    title: "I.Com - 11th",
+    shortTitle: "I.Com 11th",
+    tagline: "Class 11 Commerce — strong base for 12th aur B.Com",
     description:
       "Intermediate Commerce ki complete coaching — Accountancy, Business Studies, " +
       "Economics aur Entrepreneurship, board exam pattern ke hisaab se.",
     category: "academic", level: "beginner",
-    durationMonths: 24, fee: 12000, admissionFee: 0,
+    durationMonths: 12, fee: 3000, feeOffline: 6000, admissionFee: 0,
     icon: "book", colorFrom: "#f59e0b", colorTo: "#059669",
     isPopular: false, isNew: false, isActive: true,
     highlights: [
@@ -248,15 +248,42 @@ export const COURSES = Object.freeze([
     ]
   },
   {
-    id: "bcom", code: "BCM", order: 7,
-    title: "B.Com",
-    shortTitle: "B.Com",
-    tagline: "Graduation + practical accounting skills",
+    id: "icom-12", code: "IC2", order: 9,
+    title: "I.Com - 12th",
+    shortTitle: "I.Com 12th",
+    tagline: "Class 12 Commerce — board exam ki poori taiyari",
+    description:
+      "Intermediate Commerce ki complete coaching — Accountancy, Business Studies, " +
+      "Economics aur Entrepreneurship, board exam pattern ke hisaab se.",
+    category: "academic", level: "beginner",
+    durationMonths: 12, fee: 3000, feeOffline: 6000, admissionFee: 0,
+    icon: "book", colorFrom: "#f59e0b", colorTo: "#059669",
+    isPopular: false, isNew: false, isActive: true,
+    highlights: [
+      "BSEB board pattern ke hisaab se",
+      "Monthly tests aur doubt classes",
+      "Accountancy par extra practical",
+      "Computer basics free"
+    ],
+    eligibility: ["11th pass (Commerce)"],
+    careerOptions: ["B.Com admission", "CA Foundation prep", "Junior Accountant", "Government exam base"],
+    modules: [
+      { title: "Accountancy", topics: ["Journal & ledger", "Trial balance", "Final accounts", "Partnership"] },
+      { title: "Business Studies", topics: ["Business environment", "Management principles", "Marketing", "Finance"] },
+      { title: "Economics", topics: ["Micro economics", "Macro economics", "Statistics", "Indian economy"] },
+      { title: "Entrepreneurship", topics: ["Business idea", "Project report", "MSME basics", "Practical file"] }
+    ]
+  },
+  {
+    id: "bcom", code: "BCM", order: 10,
+    title: "B.Com - 1st yr",
+    shortTitle: "B.Com 1st yr",
+    tagline: "Graduation + practical accounting skills — 1st year",
     description:
       "B.Com ki subject-wise coaching, saath me Tally, GST aur Excel ki practical training " +
       "— taaki degree ke saath job-ready skill bhi mile.",
     category: "academic", level: "intermediate",
-    durationMonths: 36, fee: 18000, admissionFee: 0,
+    durationMonths: 12, fee: 3000, feeOffline: 6000, admissionFee: 0,
     icon: "graduation", colorFrom: "#4f46e5", colorTo: "#0891b2",
     isPopular: false, isNew: false, isActive: true,
     highlights: [
@@ -268,22 +295,103 @@ export const COURSES = Object.freeze([
     eligibility: ["12th pass (Commerce preferred)"],
     careerOptions: ["Accountant", "Audit Assistant", "Banking exams", "M.Com / MBA"],
     modules: [
-      { title: "Year 1", topics: ["Financial Accounting", "Business Law", "Micro Economics", "Business Communication"] },
-      { title: "Year 2", topics: ["Corporate Accounting", "Cost Accounting", "Income Tax", "Company Law"] },
-      { title: "Year 3", topics: ["Auditing", "Management Accounting", "GST", "Project work"] },
-      { title: "Practical Add-on", topics: ["Tally Prime", "Advanced Excel", "GST return filing", "Interview prep"] }
+      { title: "Financial Accounting", topics: ["Accounting principles", "Journal to final accounts", "Depreciation", "Bank reconciliation"] },
+      { title: "Business Law", topics: ["Contract Act", "Sale of Goods", "Partnership Act", "Consumer protection"] },
+      { title: "Micro Economics", topics: ["Demand & supply", "Consumer behaviour", "Production & cost", "Market forms"] },
+      { title: "Practical Add-on", topics: ["Tally Prime basics", "Excel for accounts", "Business communication", "Monthly tests"] }
     ]
   },
   {
-    id: "gst-2", code: "GST", order: 8,
-    title: "GST 2.0 Master Course",
-    shortTitle: "GST 2.0",
-    tagline: "Registration se return filing tak — updated rules",
+    id: "bcom-2", code: "BC2", order: 11,
+    title: "B.Com - 2nd yr",
+    shortTitle: "B.Com 2nd yr",
+    tagline: "B.Com 2nd yr — subject coaching + practical skills",
     description:
-      "GST 2.0 ke naye slabs aur rules ke hisaab se complete practical course. " +
-      "Portal par live filing practice ke saath.",
+      "B.Com ki subject-wise coaching, saath me Tally, GST aur Excel ki practical training " +
+      "— taaki degree ke saath job-ready skill bhi mile.",
+    category: "academic", level: "intermediate",
+    durationMonths: 12, fee: 3000, feeOffline: 6000, admissionFee: 0,
+    icon: "graduation", colorFrom: "#4f46e5", colorTo: "#0891b2",
+    isPopular: false, isNew: false, isActive: true,
+    highlights: [
+      "University syllabus coverage",
+      "Tally + GST practical free",
+      "Semester-wise test series",
+      "Career counselling"
+    ],
+    eligibility: ["B.Com 1st year pass"],
+    careerOptions: ["Accountant", "Audit Assistant", "Banking exams", "M.Com / MBA"],
+    modules: [
+      { title: "Corporate Accounting", topics: ["Share capital", "Debentures", "Company final accounts", "Amalgamation basics"] },
+      { title: "Cost Accounting", topics: ["Cost sheet", "Material & labour", "Overheads", "Marginal costing"] },
+      { title: "Income Tax", topics: ["Heads of income", "Salary income", "Deductions", "Tax computation"] },
+      { title: "Practical Add-on", topics: ["Tally Prime + GST", "Advanced Excel", "Company Law basics", "Monthly tests"] }
+    ]
+  },
+  {
+    id: "bcom-3", code: "BC3", order: 12,
+    title: "B.Com - 3rd yr",
+    shortTitle: "B.Com 3rd yr",
+    tagline: "B.Com 3rd yr — subject coaching + practical skills",
+    description:
+      "B.Com ki subject-wise coaching, saath me Tally, GST aur Excel ki practical training " +
+      "— taaki degree ke saath job-ready skill bhi mile.",
+    category: "academic", level: "intermediate",
+    durationMonths: 12, fee: 3000, feeOffline: 6000, admissionFee: 0,
+    icon: "graduation", colorFrom: "#4f46e5", colorTo: "#0891b2",
+    isPopular: false, isNew: false, isActive: true,
+    highlights: [
+      "University syllabus coverage",
+      "Tally + GST practical free",
+      "Semester-wise test series",
+      "Career counselling"
+    ],
+    eligibility: ["B.Com 2nd year pass"],
+    careerOptions: ["Accountant", "Audit Assistant", "Banking exams", "M.Com / MBA"],
+    modules: [
+      { title: "Auditing", topics: ["Audit process", "Vouching", "Company audit", "Audit report"] },
+      { title: "Management Accounting", topics: ["Ratio analysis", "Fund & cash flow", "Budgeting", "Standard costing"] },
+      { title: "GST", topics: ["GST law", "Input tax credit", "Returns", "Portal practice"] },
+      { title: "Practical Add-on", topics: ["GST return filing", "Project work", "Interview prep", "Monthly tests"] }
+    ]
+  },
+  {
+    id: "bcom-4", code: "BC4", order: 13,
+    title: "B.Com - 4th yr",
+    shortTitle: "B.Com 4th yr",
+    tagline: "B.Com 4th yr — subject coaching + practical skills",
+    description:
+      "B.Com ki subject-wise coaching, saath me Tally, GST aur Excel ki practical training " +
+      "— taaki degree ke saath job-ready skill bhi mile.",
+    category: "academic", level: "intermediate",
+    durationMonths: 12, fee: 3000, feeOffline: 6000, admissionFee: 0,
+    icon: "graduation", colorFrom: "#4f46e5", colorTo: "#0891b2",
+    isPopular: false, isNew: false, isActive: true,
+    highlights: [
+      "University syllabus coverage",
+      "Tally + GST practical free",
+      "Semester-wise test series",
+      "Career counselling"
+    ],
+    eligibility: ["B.Com 3rd year pass (4-year degree)"],
+    careerOptions: ["Accountant", "Audit Assistant", "Banking exams", "M.Com / MBA"],
+    modules: [
+      { title: "Financial Management", topics: ["Capital budgeting", "Cost of capital", "Working capital", "Dividend decisions"] },
+      { title: "Advanced Accounting", topics: ["Accounting standards", "Consolidation basics", "Branch accounts", "Insurance claims"] },
+      { title: "Research & Project", topics: ["Research methodology", "Data collection", "Project report", "Viva"] },
+      { title: "Career Add-on", topics: ["Tally + GST revision", "Banking exam basics", "Resume & interview", "Internship guidance"] }
+    ]
+  },
+  {
+    id: "gst-2", code: "GST", order: 3,
+    title: "GST (Law + Tally Prime + Portal)",
+    shortTitle: "GST",
+    tagline: "GST law, Tally Prime aur portal — teeno ek course me",
+    description:
+      "GST ka poora practical course — law aur naye rules, Tally Prime me GST entries, " +
+      "aur GST portal par live filing practice.",
     category: "taxation", level: "intermediate",
-    durationMonths: 2, fee: 4500, admissionFee: 0,
+    durationMonths: 4, fee: 4000, feeOffline: 7500, admissionFee: 0,
     icon: "receipt", colorFrom: "#059669", colorTo: "#4f46e5",
     isPopular: true, isNew: true, isActive: true,
     highlights: [
@@ -295,64 +403,10 @@ export const COURSES = Object.freeze([
     eligibility: ["12th pass", "Basic accounting knowledge helpful"],
     careerOptions: ["GST Practitioner Assistant", "Tax Assistant", "Accounts Executive", "Freelance return filer"],
     modules: [
-      { title: "GST Foundation", topics: ["GST structure", "CGST/SGST/IGST", "Registration process", "Composition scheme"] },
-      { title: "Invoicing", topics: ["Tax invoice rules", "E-invoice", "E-way bill", "Debit/credit notes"] },
-      { title: "Returns", topics: ["GSTR-1", "GSTR-3B", "GSTR-9 annual", "Late fee & interest"] },
+      { title: "GST Law", topics: ["GST structure", "CGST/SGST/IGST", "Registration process", "Composition scheme", "Tax invoice, e-invoice, e-way bill"] },
+      { title: "Tally Prime + GST", topics: ["GST setup in Tally Prime", "Sales & purchase entry", "Debit/credit notes", "GST reports"] },
+      { title: "GST Portal & Returns", topics: ["GSTR-1", "GSTR-3B", "GSTR-9 annual", "Late fee & interest"] },
       { title: "Advanced", topics: ["Input tax credit", "Reverse charge", "Refunds", "Departmental notices"] }
-    ]
-  },
-  {
-    id: "income-tax-2025", code: "ITX", order: 9,
-    title: "New Income Tax Act 2025",
-    shortTitle: "Income Tax 2025",
-    tagline: "Naye Act ke hisaab se ITR filing seekhein",
-    description:
-      "New Income Tax Act 2025 ke provisions, slabs aur ITR forms ka practical course. " +
-      "Salaried, business aur capital gains — teeno cases cover.",
-    category: "taxation", level: "intermediate",
-    durationMonths: 2, fee: 4500, admissionFee: 0,
-    icon: "fileText", colorFrom: "#7c3aed", colorTo: "#06b6d4",
-    isPopular: false, isNew: true, isActive: true,
-    highlights: [
-      "New Act 2025 ke updated provisions",
-      "ITR-1 se ITR-4 tak filing practice",
-      "Old vs new regime comparison",
-      "Form 16 aur AIS reading"
-    ],
-    eligibility: ["12th pass", "Accounting basics"],
-    careerOptions: ["Tax Return Preparer", "Accounts Executive", "CA firm assistant", "Freelance ITR filer"],
-    modules: [
-      { title: "Act Basics", topics: ["Heads of income", "Residential status", "New slabs 2025", "Assessment year"] },
-      { title: "Computation", topics: ["Salary income", "House property", "Business income", "Capital gains"] },
-      { title: "Deductions", topics: ["Chapter VI-A", "Old vs new regime", "Rebates", "Set-off & carry forward"] },
-      { title: "Filing", topics: ["ITR-1 to ITR-4", "Form 16 & AIS", "e-Verification", "Revised & belated returns"] }
-    ]
-  },
-  {
-    id: "tds-finance-2025", code: "TDS", order: 10,
-    title: "TDS Finance Act 2025",
-    shortTitle: "TDS 2025",
-    tagline: "Deduction, deposit aur return — sab practical",
-    description:
-      "Finance Act 2025 ke hisaab se TDS/TCS ka complete course — section-wise rates, " +
-      "challan deposit, return filing aur Form 16/16A generation.",
-    category: "taxation", level: "advanced",
-    durationMonths: 2, fee: 3500, admissionFee: 0,
-    icon: "clipboard", colorFrom: "#e11d48", colorTo: "#7c3aed",
-    isPopular: false, isNew: true, isActive: true,
-    highlights: [
-      "Finance Act 2025 updated rates",
-      "TRACES portal practical",
-      "Form 16 / 16A generation",
-      "Late fee & interest calculation"
-    ],
-    eligibility: ["Accounting ya taxation ka basic knowledge"],
-    careerOptions: ["TDS Executive", "Payroll Assistant", "Compliance Executive", "CA firm assistant"],
-    modules: [
-      { title: "TDS Basics", topics: ["Concept & applicability", "Section-wise rates", "Threshold limits", "PAN/Aadhaar rules"] },
-      { title: "Deposit", topics: ["Challan 281", "Due dates", "Interest on late deposit", "Corrections"] },
-      { title: "Returns", topics: ["24Q & 26Q", "27Q & 27EQ", "Quarterly filing", "Correction statements"] },
-      { title: "TRACES", topics: ["Form 16 / 16A", "Justification report", "Default resolution", "TCS overview"] }
     ]
   },
   {
@@ -369,7 +423,7 @@ export const COURSES = Object.freeze([
        wala daam dikhta hai; classroom wale student ka total admin approve
        karte waqt badal deta hai — waise hi jaise abhi hota hai.
        -------------------------------------------------------------------- */
-    id: "ai-automation-pro", code: "AUT", order: 11,
+    id: "ai-automation-pro", code: "AUT", order: 2,
     title: "AI Automation Pro",
     shortTitle: "AI Automation",
     tagline: "Business ko automatic banao — bina coding ke",
@@ -384,8 +438,8 @@ export const COURSES = Object.freeze([
        kuch nahi karna — AZADI_LIVE jhootha hote hi asli daam laut aata hai,
        aur `mrp` bhi tabhi barabar ho jaata hai, isliye kaata hua daam apne
        aap gayab ho jaata hai. */
-    durationMonths: 3, fee: AZADI_LIVE ? 1947 : 5000, admissionFee: 0,
-    mrp: 5000, feeOffline: AZADI_LIVE ? 3947 : 7500, mrpOffline: 7500,
+    durationMonths: 5, fee: AZADI_LIVE ? 1947 : 4000, admissionFee: 0,
+    mrp: 4000, feeOffline: AZADI_LIVE ? 3947 : 7500, mrpOffline: 7500,
     icon: "zap", colorFrom: "#ff9933", colorTo: "#138808",
     isPopular: true, isNew: true, isActive: true,
     highlights: [
@@ -421,6 +475,70 @@ export const COURSES = Object.freeze([
       { title: "Real Business Projects Aur Earning",
         topics: ["Coaching institute system", "Dukaan order aur bill", "Clinic appointment",
                  "Property lead qualification", "Website AI chatbot", "Client ko kaise bechein"] }
+    ]
+  }
+];
+
+/* Website par isi kram me dikhte hain (`order` se) — array me kahin bhi likho. */
+export const COURSES = Object.freeze([...COURSE_LIST].sort((a, b) => a.order - b.order));
+
+/* Purane course (17 Oct 2026 se band). Website par kahin nahi dikhte —
+   na list me, na admission form me, na admin ke dropdown me. Sirf isliye
+   rakhe hain ki koi purana record (admission/fee/note) in IDs ka ho to
+   getCourse() use naam de sake aur page na toote. */
+export const RETIRED_COURSES = Object.freeze([
+  {
+    id: "income-tax-2025", code: "ITX", order: 9,
+    title: "New Income Tax Act 2025",
+    shortTitle: "Income Tax 2025",
+    tagline: "Naye Act ke hisaab se ITR filing seekhein",
+    description:
+      "New Income Tax Act 2025 ke provisions, slabs aur ITR forms ka practical course. " +
+      "Salaried, business aur capital gains — teeno cases cover.",
+    category: "taxation", level: "intermediate",
+    durationMonths: 2, fee: 4500, admissionFee: 0,
+    icon: "fileText", colorFrom: "#7c3aed", colorTo: "#06b6d4",
+    isPopular: false, isNew: false, isActive: false,
+    highlights: [
+      "New Act 2025 ke updated provisions",
+      "ITR-1 se ITR-4 tak filing practice",
+      "Old vs new regime comparison",
+      "Form 16 aur AIS reading"
+    ],
+    eligibility: ["12th pass", "Accounting basics"],
+    careerOptions: ["Tax Return Preparer", "Accounts Executive", "CA firm assistant", "Freelance ITR filer"],
+    modules: [
+      { title: "Act Basics", topics: ["Heads of income", "Residential status", "New slabs 2025", "Assessment year"] },
+      { title: "Computation", topics: ["Salary income", "House property", "Business income", "Capital gains"] },
+      { title: "Deductions", topics: ["Chapter VI-A", "Old vs new regime", "Rebates", "Set-off & carry forward"] },
+      { title: "Filing", topics: ["ITR-1 to ITR-4", "Form 16 & AIS", "e-Verification", "Revised & belated returns"] }
+    ]
+  },
+  {
+    id: "tds-finance-2025", code: "TDS", order: 10,
+    title: "TDS Finance Act 2025",
+    shortTitle: "TDS 2025",
+    tagline: "Deduction, deposit aur return — sab practical",
+    description:
+      "Finance Act 2025 ke hisaab se TDS/TCS ka complete course — section-wise rates, " +
+      "challan deposit, return filing aur Form 16/16A generation.",
+    category: "taxation", level: "advanced",
+    durationMonths: 2, fee: 3500, admissionFee: 0,
+    icon: "clipboard", colorFrom: "#e11d48", colorTo: "#7c3aed",
+    isPopular: false, isNew: false, isActive: false,
+    highlights: [
+      "Finance Act 2025 updated rates",
+      "TRACES portal practical",
+      "Form 16 / 16A generation",
+      "Late fee & interest calculation"
+    ],
+    eligibility: ["Accounting ya taxation ka basic knowledge"],
+    careerOptions: ["TDS Executive", "Payroll Assistant", "Compliance Executive", "CA firm assistant"],
+    modules: [
+      { title: "TDS Basics", topics: ["Concept & applicability", "Section-wise rates", "Threshold limits", "PAN/Aadhaar rules"] },
+      { title: "Deposit", topics: ["Challan 281", "Due dates", "Interest on late deposit", "Corrections"] },
+      { title: "Returns", topics: ["24Q & 26Q", "27Q & 27EQ", "Quarterly filing", "Correction statements"] },
+      { title: "TRACES", topics: ["Form 16 / 16A", "Justification report", "Default resolution", "TCS overview"] }
     ]
   }
 ]);
@@ -539,8 +657,8 @@ export const SEO = Object.freeze({
   siteName: "Soft Skill Zone Institute",
   defaultTitle: "Soft Skill Zone Institute | Learn Today. Lead Tomorrow.",
   defaultDescription:
-    "Ara, Bihar ka premium computer & commerce institute. AI Powered DCA, Tally Prime, Python, ADCA, GST 2.0, " +
-    "Income Tax 2025 aur B.Com — practical training, online admission aur student dashboard ke saath.",
+    "Ara, Bihar ka premium computer & commerce institute. ADCA, AI Automation Pro, GST, DCA, Python, Tally Prime, " +
+    "Video Editing, I.Com aur B.Com — practical training, online admission aur student dashboard ke saath.",
   keywords: [
     "computer institute Ara", "DCA course Bihar", "Tally Prime training",
     "GST course", "Python classes Ara", "ADCA", "B.Com coaching Ara",
@@ -553,7 +671,7 @@ export const SEO = Object.freeze({
 /* ==========================================================================
    Lookup helpers
    ========================================================================== */
-export const getCourse     = (id) => COURSES.find((c) => c.id === id) || null;
+export const getCourse     = (id) => COURSES.find((c) => c.id === id) || RETIRED_COURSES.find((c) => c.id === id) || null;
 export const getCourseCode = (id) => getCourse(id)?.code || "GEN";
 export const activeCourses = () => COURSES.filter((c) => c.isActive);
 export const popularCourses= () => COURSES.filter((c) => c.isPopular && c.isActive);
@@ -575,17 +693,17 @@ export const JOURNEY = Object.freeze([
    Live approved reviews (Firestore `reviews`) override these when available.
    ========================================================================== */
 export const TESTIMONIALS = Object.freeze([
-  { name: "Rahul Kumar",   course: "AI Powered DCA",        rating: 5,
+  { name: "Rahul Kumar",   course: "DCA",        rating: 5,
     message: "Pehle computer chhoona bhi nahi aata tha. 6 mahine me Word, Excel aur ChatGPT se kaam karna seekh gaya. Ab ek shop me computer operator hoon." },
-  { name: "Priya Singh",   course: "AI Powered Tally Prime", rating: 5,
+  { name: "Priya Singh",   course: "Tally Prime", rating: 5,
     message: "GST entries aur return filing ki practice yahan asli data par karayi gayi. Interview me confidence isi wajah se aaya — 3 mahine me job lag gayi." },
-  { name: "Amit Ranjan",   course: "Python 3.14 Programming", rating: 5,
+  { name: "Amit Ranjan",   course: "Python", rating: 5,
     message: "Sir ne har concept ko project banwa kar samjhaya. Automation script wala project abhi bhi apne kaam me use karta hoon." },
-  { name: "Sneha Gupta",   course: "GST 2.0 Master Course",  rating: 5,
+  { name: "Sneha Gupta",   course: "GST (Law + Tally Prime + Portal)",  rating: 5,
     message: "Portal par live filing karayi gayi — theory nahi, ekdum practical. Ab ghar baithe clients ki return file karti hoon." },
   { name: "Vikash Yadav",  course: "ADCA",                   rating: 4,
     message: "Ek hi course me Tally, DTP aur Office sab mil gaya. Lab practice roz hoti thi, isliye sab yaad reh gaya." },
-  { name: "Anjali Kumari", course: "AI Powered Video Editing", rating: 5,
+  { name: "Anjali Kumari", course: "Video Editing", rating: 5,
     message: "Reels editing seekh kar freelancing shuru ki. Pehle mahine hi 8,000 rupaye kama liye — thumbnail wala part sabse kaam aaya." }
 ]);
 
@@ -608,8 +726,8 @@ export const ABOUT = Object.freeze({
     "soch ke saath: Ara ke students ko wahi skill milni chahiye jo bade shehron me milti hai, " +
     "aur wo bhi practical tareeke se.",
   body: [
-    "Aaj hum computer fundamentals se lekar Tally, GST, Income Tax, Python aur video editing " +
-    "tak 11 career courses chalate hain. Har course me AI tools shamil hain, kyunki market ab " +
+    "Aaj hum ADCA aur DCA se lekar Tally Prime, GST, Python, AI Automation, video editing, " +
+    "I.Com aur B.Com tak 13 career courses chalate hain. Har course me AI tools shamil hain, kyunki market ab " +
     "sirf software janne wale nahi, AI ke saath tez kaam karne wale log maangta hai.",
 
     "Humara tareeka simple hai — chhote batches, roz lab practice, aur har topic par asli " +
@@ -688,13 +806,13 @@ export const BLOG_SEED = Object.freeze([
     content: [
       { type: "p", text: "Sabse pehle ek baat saaf kar lein — 'best course' jaisa kuch nahi hota. Sahi course wahi hai jo aapke goal se match kare. Neeche 4 common goals hain, aur unke hisaab se course." },
       { type: "h", text: "1. Jaldi job chahiye" },
-      { type: "p", text: "Agar aap 6 mahine me kaam par lagna chahte hain, to AI Powered DCA ya Tally Prime chunein. DCA aapko computer operator/data entry ke liye ready karta hai, Tally accounts ki jobs ke liye. Dono me demand stable rehti hai." },
+      { type: "p", text: "Agar aap 4-6 mahine me kaam par lagna chahte hain, to DCA ya Tally Prime chunein. DCA aapko computer operator/data entry ke liye ready karta hai, Tally accounts ki jobs ke liye. Dono me demand stable rehti hai." },
       { type: "h", text: "2. Accounts line me jaana hai" },
-      { type: "p", text: "Tally Prime se shuru karein, phir GST 2.0 aur uske baad Income Tax. Ye teen milkar aapko ek chhote CA office ya kisi bhi business ke accounts department ke liye ready kar dete hain." },
+      { type: "p", text: "Tally Prime se shuru karein, phir GST (Law + Tally Prime + Portal) wala course. Ye dono milkar aapko ek chhote CA office ya kisi bhi business ke accounts department ke liye ready kar dete hain." },
       { type: "h", text: "3. Technical/IT me interest hai" },
-      { type: "p", text: "Python 3.14 chunein. Lekin dhyan rahein — programming me shortcut nahi hota. Roz 1 ghanta practice zaroori hai. Agar aap wo de sakte hain, to iska return sabse zyada hai." },
+      { type: "p", text: "Python chunein. Lekin dhyan rahein — programming me shortcut nahi hota. Roz 1 ghanta practice zaroori hai. Agar aap wo de sakte hain, to iska return sabse zyada hai." },
       { type: "h", text: "4. Apna kaam/freelancing karna hai" },
-      { type: "p", text: "AI Powered Video Editing ya GST return filing — dono me aap ghar baithe clients le sakte hain. Video editing me portfolio zaroori hai, GST me practice aur bharosa." },
+      { type: "p", text: "Video Editing ya GST return filing — dono me aap ghar baithe clients le sakte hain. Video editing me portfolio zaroori hai, GST me practice aur bharosa." },
       { type: "h", text: "Ek aakhri salah" },
       { type: "p", text: "Course chunne se pehle institute me jaakar ek demo class zaroor lein. Lab dekh lein, batch size pooch lein, aur pichhle students se baat karein. Fees ke saath ye teen cheezein bhi utni hi important hain." }
     ]

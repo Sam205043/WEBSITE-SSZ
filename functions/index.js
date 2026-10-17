@@ -117,17 +117,24 @@ const MAIL_SECRETS = [BREVO_USER, BREVO_KEY];
    >>> code ya kist ka plan galat banega. <<<
    -------------------------------------------------------------------------- */
 const COURSES = {
-  "ai-dca":           { code: "DCA", months: 6,  fee: 6000,  admissionFee: 0 },
-  "ai-tally-prime":   { code: "TLY", months: 3,  fee: 5000,  admissionFee: 0 },
-  "python-314":       { code: "PYT", months: 4,  fee: 7000,  admissionFee: 0 },
-  "adca":             { code: "ADC", months: 12, fee: 10000, admissionFee: 0 },
-  "ai-video-editing": { code: "VID", months: 3,  fee: 6500,  admissionFee: 0 },
-  "icom":             { code: "ICM", months: 24, fee: 12000, admissionFee: 0 },
-  "bcom":             { code: "BCM", months: 36, fee: 18000, admissionFee: 0 },
-  "gst-2":            { code: "GST", months: 2,  fee: 4500,  admissionFee: 0 },
+  /* 17 Oct 2026 — nayi course list. `fee` = ONLINE class ka daam (website
+     form se yahi lagta hai); classroom wale ka total admin approve par badalta hai. */
+  "adca":             { code: "ADC", months: 12, fee: 6500,  admissionFee: 0 },
+  "ai-automation-pro":{ code: "AUT", months: 5,  fee: 4000,  admissionFee: 0 },
+  "gst-2":            { code: "GST", months: 4,  fee: 4000,  admissionFee: 0 },
+  "ai-video-editing": { code: "VID", months: 4,  fee: 2500,  admissionFee: 0 },
+  "ai-dca":           { code: "DCA", months: 4,  fee: 2500,  admissionFee: 0 },
+  "python-314":       { code: "PYT", months: 6,  fee: 4500,  admissionFee: 0 },
+  "ai-tally-prime":   { code: "TLY", months: 4,  fee: 3500,  admissionFee: 0 },
+  "icom":             { code: "ICM", months: 12, fee: 3000,  admissionFee: 0 },
+  "icom-12":          { code: "IC2", months: 12, fee: 3000,  admissionFee: 0 },
+  "bcom":             { code: "BCM", months: 12, fee: 3000,  admissionFee: 0 },
+  "bcom-2":           { code: "BC2", months: 12, fee: 3000,  admissionFee: 0 },
+  "bcom-3":           { code: "BC3", months: 12, fee: 3000,  admissionFee: 0 },
+  "bcom-4":           { code: "BC4", months: 12, fee: 3000,  admissionFee: 0 },
+  /* Band ho chuke — website par nahi dikhte, par purane record ke liye rakhe hain */
   "income-tax-2025":  { code: "ITX", months: 2,  fee: 4500,  admissionFee: 0 },
-  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500,  admissionFee: 0 },
-  "ai-automation-pro":{ code: "AUT", months: 3,  fee: 5000,  admissionFee: 0 }
+  "tds-finance-2025": { code: "TDS", months: 2,  fee: 3500,  admissionFee: 0 }
 };
 
 /* --------------------------------------------------------------------------
@@ -525,6 +532,130 @@ async function assertMayPay(req, kind, id, rec) {
      * rakam hamesha Firestore ki fees se tay hoti hai, client se nahi
      * kam se kam 10%, aur bakaya se zyada kabhi nahi
    ========================================================================== */
+   // ============================================================
+// AI AUTOMATION MASTERCLASS - ₹99 PAYMENT LINK
+// ============================================================
+
+const MASTERCLASS_FEE = 99;
+const MASTERCLASS_CALLBACK =
+  `${SITE}/pages/ai-automation-masterclass-success.html`;
+
+function cleanMobile(value) {
+  return String(value || "").replace(/\D/g, "").slice(-10);
+}
+
+exports.createMasterclassPaymentLink = onCall(
+  {
+    secrets: [RZP_KEY_ID, RZP_KEY_SECRET],
+    cors: true,
+  },
+  async (request) => {
+    try {
+      const data = request.data || {};
+
+      const name = String(data.name || "").trim();
+      const whatsapp = cleanMobile(data.whatsapp);
+      const email = String(data.email || "").trim().toLowerCase();
+
+      if (!name) {
+        throw new HttpsError("invalid-argument", "Name is required.");
+      }
+
+      if (!/^[0-9]{10}$/.test(whatsapp)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Please enter a valid 10-digit WhatsApp number."
+        );
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Please enter a valid email address."
+        );
+      }
+
+      const registrationRef =
+        db.collection("masterclassRegistrations").doc();
+
+      const registrationId = registrationRef.id;
+
+      await registrationRef.set({
+        name,
+        whatsapp,
+        email,
+        amount: MASTERCLASS_FEE,
+        status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      const razorpay = new (getRazorpay())({
+        key_id: RZP_KEY_ID.value(),
+        key_secret: RZP_KEY_SECRET.value(),
+      });
+
+      const referenceId =
+        `AMC99-${registrationId}`.slice(0, 40);
+
+      const paymentLink = await razorpay.paymentLink.create({
+        amount: MASTERCLASS_FEE * 100,
+        currency: "INR",
+        description: "AI Automation Masterclass — ₹99",
+        reference_id: referenceId,
+
+        customer: {
+          name,
+          contact: whatsapp,
+          email,
+        },
+
+        notes: {
+          kind: "masterclass",
+          registrationId,
+          name,
+          whatsapp,
+          email,
+        },
+
+        callback_url:
+          `${MASTERCLASS_CALLBACK}?registrationId=${encodeURIComponent(
+            registrationId
+          )}`,
+
+        callback_method: "get",
+      });
+
+      await registrationRef.update({
+        razorpayPaymentLinkId: paymentLink.id,
+        razorpayReferenceId: referenceId,
+        paymentUrl: paymentLink.short_url,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return {
+        success: true,
+        registrationId,
+        paymentUrl: paymentLink.short_url,
+      };
+
+    } catch (error) {
+      console.error(
+        "createMasterclassPaymentLink error:",
+        error
+      );
+
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+
+      throw new HttpsError(
+        "internal",
+        "Unable to create payment link."
+      );
+    }
+  }
+);
 exports.createPaymentLink = onCall(
   { secrets: [RZP_KEY_ID, RZP_KEY_SECRET], cors: true },
   async (req) => {
@@ -728,6 +859,62 @@ exports.razorpayWebhook = onRequest(
       const kind = String(notes.kind || "").trim().toLowerCase();
       const recordId = String(notes.recordId || "").trim();
 
+      // ===== AI AUTOMATION MASTERCLASS PAYMENT =====
+if (kind === "masterclass") {
+  const registrationId = String(notes.registrationId || "").trim();
+
+  if (!registrationId) {
+    await parkUnmatched({
+      paymentId,
+      amount,
+      payment,
+      link,
+      notes
+    });
+
+    return res.status(200).json({ received: true });
+  }
+
+  const registrationRef = db
+    .collection("masterclassRegistrations")
+    .doc(registrationId);
+
+  const registrationSnap = await registrationRef.get();
+
+  if (!registrationSnap.exists) {
+    await parkUnmatched({
+      paymentId,
+      amount,
+      payment,
+      link,
+      notes
+    });
+
+    return res.status(200).json({ received: true });
+  }
+
+  if (amount !== 99) {
+    await parkUnmatched({
+      paymentId,
+      amount,
+      payment,
+      link,
+      notes
+    });
+
+    return res.status(200).json({ received: true });
+  }
+
+  await onMasterclassPaid(
+    registrationId,
+    amount,
+    paymentId,
+    payment,
+    link
+  );
+
+  return res.status(200).json({ received: true });
+}
       const target = resolveTarget(kind, recordId, link.reference_id);
 
       if (!target) {
@@ -833,6 +1020,114 @@ function resolveTarget(kind, recordId, referenceId) {
  * doosri entry nahi banegi — aur agar aap tab tak use jod chuke hain, to
  * create() chupchaap nikal jayega, aapka kiya hua nahi mitega.
  */
+// ===== AI AUTOMATION MASTERCLASS PAYMENT SUCCESS =====
+async function onMasterclassPaid(
+  registrationId,
+  amount,
+  paymentId,
+  payment,
+  link
+) {
+  const registrationRef = db
+    .collection("masterclassRegistrations")
+    .doc(registrationId);
+
+  const paymentRef = db
+    .collection("masterclassPayments")
+    .doc(`rzp_${paymentId}`);
+
+  // Duplicate webhook protection
+  const existingPayment = await paymentRef.get();
+
+  if (existingPayment.exists) {
+    console.log(
+      `Masterclass payment already processed: ${paymentId}`
+    );
+    return;
+  }
+
+  const registrationSnap = await registrationRef.get();
+
+  if (!registrationSnap.exists) {
+    console.warn(
+      `Masterclass registration not found: ${registrationId}`
+    );
+    return;
+  }
+
+  const registration = registrationSnap.data() || {};
+
+  // Save payment + mark registration as paid
+  await db.runTransaction(async (transaction) => {
+    const paymentCheck = await transaction.get(paymentRef);
+
+    if (paymentCheck.exists) {
+      return;
+    }
+
+    transaction.set(paymentRef, {
+      registrationId,
+      razorpayPaymentId: paymentId,
+      razorpayLinkId: link?.id || "",
+      amount,
+      currency: "INR",
+      status: "paid",
+      paymentMethod: payment?.method || "",
+      paymentEmail: payment?.email || "",
+      paymentContact: payment?.contact || "",
+      paidAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    transaction.update(registrationRef, {
+      status: "paid",
+      paymentStatus: "paid",
+      amountPaid: amount,
+      razorpayPaymentId: paymentId,
+      paidAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  });
+
+  // Confirmation email
+  if (registration.email) {
+    await sendMail(`masterclass_${paymentId}`, {
+      to: registration.email,
+      subject: "AI Automation Masterclass – Registration Confirmed",
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6">
+          <h2>🎉 Registration Confirmed!</h2>
+
+          <p>Dear ${registration.name || "Participant"},</p>
+
+          <p>
+            Your <strong>AI Automation Masterclass</strong>
+            registration is confirmed successfully.
+          </p>
+
+          <p>
+            <strong>Amount Paid:</strong> ₹99<br>
+            <strong>Payment ID:</strong> ${paymentId}
+          </p>
+
+          <p>
+            Google Meet joining details and other class information
+            will be shared separately.
+          </p>
+
+          <p>
+            Regards,<br>
+            <strong>Soft Skill Zone Institute</strong>
+          </p>
+        </div>
+      `
+    });
+  }
+
+  console.log(
+    `AI Automation Masterclass payment processed successfully: ${paymentId}`
+  );
+}
 async function parkUnmatched({ paymentId, amount, payment, link, notes }) {
   const row = {
     razorpayPaymentId: paymentId,

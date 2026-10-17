@@ -96,11 +96,14 @@ const COURSE_ALIASES = {
   "python-314":        ["python", "पाइथन", "programming", "coding"],
   "adca":              ["adca", "a d c a", "advance diploma"],
   "ai-video-editing":  ["video editing", "video", "editing", "reels", "youtube"],
-  "icom":              ["i com", "icom", "intermediate commerce"],
-  "bcom":              ["b com", "bcom", "bachelor commerce", "graduation"],
-  "gst-2":        ["gst", "जीएसटी"],
-  "income-tax-2025":   ["income tax", "itr", "आयकर"],
-  "tds-finance-2025":          ["tds", "टीडीएस"]
+  "icom":              ["i com 11", "icom 11", "11th commerce", "class 11 commerce", "intermediate commerce"],
+  "icom-12":           ["i com 12", "icom 12", "12th commerce", "class 12 commerce"],
+  "bcom":              ["b com 1st", "bcom 1st", "b com first", "bcom part 1", "bachelor commerce", "graduation"],
+  "bcom-2":            ["b com 2nd", "bcom 2nd", "b com second", "bcom part 2"],
+  "bcom-3":            ["b com 3rd", "bcom 3rd", "b com third", "bcom part 3"],
+  "bcom-4":            ["b com 4th", "bcom 4th", "b com fourth", "bcom part 4"],
+  "ai-automation-pro": ["automation", "n8n", "ai automation"],
+  "gst-2":        ["gst", "जीएसटी", "gst portal"]
 };
 
 export function findCourse(norm) {
@@ -125,7 +128,7 @@ const wa = () => INSTITUTE.whatsapp || INSTITUTE.phone;
 const phone = () => formatPhone(INSTITUTE.phone);
 
 function courseLine(c) {
-  return `• **${c.title}** — ${money(c.fee)}, ${c.durationMonths} mahine`;
+  return `• **${c.title}** — Online ${money(c.fee)}${c.feeOffline ? ` · Classroom ${money(c.feeOffline)}` : ""}, ${c.durationMonths} mahine`;
 }
 
 function courseDetail(c) {
@@ -133,7 +136,7 @@ function courseDetail(c) {
     `**${c.title}**`,
     c.tagline,
     "",
-    `**Fees:** ${money(c.fee)} (poora course)`,
+    `**Fees:** Online class ${money(c.fee)}${c.feeOffline ? `, Classroom (Ara) ${money(c.feeOffline)}` : ""} (poora course)`,
     `**Duration:** ${c.durationMonths} mahine`,
     `**Kaun le sakta hai:** ${c.eligibility.join(", ")}`,
     "",
@@ -186,7 +189,7 @@ const PUBLIC_INTENTS = [
         "",
         "Kisi ek ka naam likhiye — poori detail bata deta hoon."
       ].join("\n"),
-      chips: ["AI Powered DCA", "Tally Prime", "GST course"],
+      chips: ["ADCA", "Tally Prime", "GST course"],
       link: { label: "Saare courses dekhein", route: "courses" }
     })
   },
@@ -196,7 +199,7 @@ const PUBLIC_INTENTS = [
     answer: (ctx, course) => {
       if (course) {
         return {
-          text: `**${course.title}** ki fees **${money(course.fee)}** hai — poore ${course.durationMonths} mahine ki.\n\nKoi alag se admission fee nahi lagti. Installment me bhi de sakte hain.`,
+          text: `**${course.title}** ki fees online class ke liye **${money(course.fee)}**${course.feeOffline ? ` aur classroom (Ara) ke liye **${money(course.feeOffline)}**` : ""} hai — poore ${course.durationMonths} mahine ki.\n\nKoi alag se admission fee nahi lagti. Installment me bhi de sakte hain.`,
           chips: ["Installment kaise banti hai?", "Admission kaise lein?"]
         };
       }
@@ -308,7 +311,7 @@ const PUBLIC_INTENTS = [
       if (course) return { text: `**${course.title}** ${course.durationMonths} mahine ka course hai.`, chips: ["Fees kitni hai?", "Admission kaise lein?"] };
       return {
         text: ["Course ke hisaab se time alag hai:", "", ...activeCourses().map((c) => `• **${c.title}** — ${c.durationMonths} mahine`)].join("\n"),
-        chips: ["AI Powered DCA", "Tally Prime"]
+        chips: ["ADCA", "Tally Prime"]
       };
     }
   },
@@ -728,7 +731,7 @@ export function groundingFacts() {
     "",
     "Courses (naam — fees — duration — kaun le sakta hai):",
     ...COURSES.filter((c) => c.isActive).map((c) =>
-      `- ${c.title} — ${money(c.fee)} — ${c.durationMonths} mahine — ${c.eligibility.join(", ")}`)
+      `- ${c.title} — online ${money(c.fee)}${c.feeOffline ? `, classroom ${money(c.feeOffline)}` : ""} — ${c.durationMonths} mahine — ${c.eligibility.join(", ")}`)
   ].join("\n");
 }
 

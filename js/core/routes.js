@@ -50,6 +50,7 @@ export const ROUTES = Object.freeze({
   adminHome:        "pages/admin/dashboard.html",
   adminAdmissions:  "pages/admin/admissions.html",
   adminStudents:    "pages/admin/students.html",
+  adminRegister:    "pages/admin/register.html",
   adminBatches:     "pages/admin/batches.html",
   adminFees:        "pages/admin/fees.html",
   adminAttendance:  "pages/admin/attendance.html",

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" translate="no" class="no-js" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<!-- `interactive-widget=resizes-content` ke bina Chrome keyboard khulne par
+     page ko chhota nahi karta — 100dvh utna hi rehta hai. Iska matlab tha ki
+     modal ka neeche wala button (jaise "Collect + Receipt") keyboard ke
+     PEECHHE chala jaata tha, aur `lockScroll` ki wajah se page scroll bhi
+     nahi hota tha. Har baar keyboard band karke button dabana padta tha. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#ffffff">
+<title>Business Services | Soft Skill Zone Institute</title>
+<meta name="description" content="Ara ke shop, clinic, gym, coaching aur hospital ke liye WhatsApp reminder, follow-up aur roz ki report ka automation. Free demo, setup aur training Soft Skill Zone ki team se.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Soft Skill Zone Institute">
+<meta property="og:image" content="https://softskillzone.in/images/logo/og-cover.jpg">
+<meta property="og:url" content="https://softskillzone.in/pages/business.html">
+<meta property="og:title" content="Business Services | Soft Skill Zone Institute">
+<meta property="og:description" content="Ara ke shop, clinic, gym, coaching aur hospital ke liye WhatsApp reminder, follow-up aur roz ki report ka automation. Free demo, setup aur training Soft Skill Zone ki team se.">
+<script>
+(function(){var t=null;try{t=localStorage.getItem("ssz.theme");}catch(e){}
+if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+document.documentElement.setAttribute("data-theme",t);
+document.documentElement.style.colorScheme=t;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Font ab render rokte nahi.
+
+     Pehle ye ek saada stylesheet link tha, aur wo bhi kisi doosre server
+     (Google) ka — yaani pehla akshar dikhne se PEHLE browser ko Google se
+     jawab ka intezaar karna padta tha. Ara ki patli 3G par yahi ek line
+     poore page ko do-teen second rok deti thi.
+
+     `media="print"` browser ko batata hai "abhi iski zaroorat nahi", isliye
+     wo download to karta hai par rukta nahi; utarte hi `onload` use `all`
+     kar deta hai aur font lag jaata hai. `preload` pehle se line me laga
+     deta hai taaki der bhi na ho. JavaScript band ho to <noscript> wala
+     purana tareeka chal jaata hai.
+
+     Weight bhi 8 se 6 kar diye: Manrope 800 aur Poppins 600 poore project
+     me kahin istemaal hi nahi ho rahe the (jaanch kar hataye hain). -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap"></noscript>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/animations.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/pages.css">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../images/logo/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../images/logo/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="../images/logo/apple-touch-icon.png">
+<link rel="canonical" href="https://softskillzone.in/pages/business.html">
+
+<script type="application/ld+json" id="ssz-static-ld">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://softskillzone.in/index.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Business Services",
+      "item": "https://softskillzone.in/pages/business.html"
+    }
+  ]
+}
+</script>
+<link rel="modulepreload" href="../js/core/dom.js">
+<link rel="modulepreload" href="../js/core/routes.js">
+<link rel="modulepreload" href="../js/core/include.js">
+<link rel="modulepreload" href="../js/core/theme.js">
+<link rel="modulepreload" href="../js/core/utils.js">
+<link rel="modulepreload" href="../js/core/icons.js">
+</head>
+
+<body data-depth="1">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-include="navbar"></div>
+<style>
+  .biz-step__num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:var(--grad-brand)}
+  .biz-faq{margin-bottom:.75rem}
+  .biz-faq summary{list-style:none;cursor:pointer}
+  .biz-faq summary::-webkit-details-marker{display:none}
+  .biz-faq[open]{border-color:var(--brand)}
+  .biz-faq[open] .faq-item__a{display:block}
+  .biz-faq[open] .faq-item__icon{transform:rotate(45deg);color:var(--brand)}
+</style>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="ssz-container">
+      <span class="eyebrow">For Business</span>
+      <h1 style="margin:.6rem 0 .75rem">Aapka business, ab <span class="text-gradient">chalega apne aap</span></h1>
+      <p style="max-width:62ch;margin-inline:auto">Ara aur aas-paas ke shop, clinic, gym, coaching aur hospital ke liye WhatsApp reminder, follow-up aur roz ki report ka automation. Setup aur training Soft Skill Zone ki team karti hai.</p>
+      <div class="cluster" style="justify-content:center;margin-top:1.25rem">
+        <a class="btn-ssz btn-primary-ssz btn-lg-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20business%20ke%20liye%20automation%20ka%20free%20demo%20chahiye." target="_blank" rel="noopener">Free Demo Book Karein</a>
+        <a class="btn-ssz btn-secondary-ssz btn-lg-ssz" href="tel:+916202856897">Call: 62028 56897</a>
+      </div>
+      <nav class="breadcrumb-ssz" aria-label="Breadcrumb"><a href="../index.html">Home</a><span>/</span><span aria-current="page">Business Services</span></nav>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container">
+      <div class="section-head" data-reveal="up">
+        <span class="eyebrow">What We Do</span>
+        <h2>Roz ka kaam, ab <span class="text-gradient">automatic</span></h2>
+      </div>
+      <div class="auto-grid">
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><h3 style="margin:0;font-size:1.1rem">Reminder apne aap</h3></div>
+          <p style="margin:0">Fees, membership renewal, appointment ya delivery — date se pehle har customer ko WhatsApp par message.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><h3 style="margin:0;font-size:1.1rem">Follow-up jo chhoote nahi</h3></div>
+          <p style="margin:0">Jo customer ya patient nahi aaya, use 1, 3 aur 7 din baad apne aap yaad dilana.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><h3 style="margin:0;font-size:1.1rem">Roz ki report phone par</h3></div>
+          <p style="margin:0">Har shaam aaj ka poora hisaab: kitne aaye, kitna collection, kal kya karna hai.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a3 3 0 0 0 0 6v3h18v-3a3 3 0 0 0 0-6V6H3z"/><path d="M13 6v12"/></svg></span><h3 style="margin:0;font-size:1.1rem">Ek line se entry</h3></div>
+          <p style="margin:0">Counter par fee, OPD token ya order — staff ek line likhe, record aur receipt dono ho jaye.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span><h3 style="margin:0;font-size:1.1rem">Enquiry seedha list mein</h3></div>
+          <p style="margin:0">Website, form ya WhatsApp se aayi enquiry apne aap Sheet mein, aur customer ko turant jawab.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span><h3 style="margin:0;font-size:1.1rem">Feedback aur Google review</h3></div>
+          <p style="margin:0">Kaam ke baad feedback, aur khush customer ko Google review ka link.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-sm section-alt">
+    <div class="ssz-container" style="text-align:center">
+      <span class="eyebrow">Kiske Liye</span>
+      <h2 style="margin:.6rem 0 1.25rem">Har chhota-bada <span class="text-gradient">local business</span></h2>
+      <div class="pill-list" style="justify-content:center"><span>Gym aur fitness centre</span><span>Clinic aur hospital</span><span>Coaching aur school</span><span>Shop aur kirana</span><span>Property dealer</span><span>Salon aur parlour</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container">
+      <div class="section-head" data-reveal="up">
+        <span class="eyebrow">How It Works</span>
+        <h2>Shuru karna aasaan hai</h2>
+      </div>
+      <div class="auto-grid">
+        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+          <div class="biz-step__num">1</div>
+          <h3 style="margin:.5rem 0 .4rem;font-size:1.1rem">Baat-cheet</h3>
+          <p style="margin:0">Aapke business ka sabse bada dard samajhte hain — kahan time aur paisa jaata hai.</p>
+        </div></div>
+        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+          <div class="biz-step__num">2</div>
+          <h3 style="margin:.5rem 0 .4rem;font-size:1.1rem">Free demo</h3>
+          <p style="margin:0">Aapke business ke naam se chalta hua demo, aapke apne phone par.</p>
+        </div></div>
+        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+          <div class="biz-step__num">3</div>
+          <h3 style="margin:.5rem 0 .4rem;font-size:1.1rem">Setup aur training</h3>
+          <p style="margin:0">Hum setup karte hain, aapke staff ko sikhate hain. Har message aap pehle approve karte hain.</p>
+        </div></div>
+        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+          <div class="biz-step__num">4</div>
+          <h3 style="margin:.5rem 0 .4rem;font-size:1.1rem">1 mahina chalaiye</h3>
+          <p style="margin:0">Result dekhiye, phir aage badhiye. Har mahine dekh-rekh hum karte hain.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="ssz-container">
+      <div class="section-head" data-reveal="up">
+        <span class="eyebrow">Why Us</span>
+        <h2>Kyun chunein <span class="text-gradient">Soft Skill Zone</span></h2>
+      </div>
+      <div class="auto-grid">
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><h3 style="margin:0;font-size:1.1rem">Ara mein hi team</h3></div>
+          <p style="margin:0">Aamne-saamne baat, zaroorat pade to hum khud aa jaate hain.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><h3 style="margin:0;font-size:1.1rem">Data aapka, aapke paas</h3></div>
+          <p style="margin:0">Saara record aapke apne Google account mein. Hum kabhi password nahi lete.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg></span><h3 style="margin:0;font-size:1.1rem">Sab phone se</h3></div>
+          <p style="margin:0">Computer aana zaroori nahi. Button dabaiye ya ek line likhiye.</p>
+        </div></div>
+        <div class="card-ssz has-accent" data-reveal="up"><div class="card-ssz__body">
+          <div class="cluster" style="margin-bottom:.75rem"><span class="stat-tile__icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg></span><h3 style="margin:0;font-size:1.1rem">Har mahine support</h3></div>
+          <p style="margin:0">Kuch atke ya badalna ho, hum theek karte hain.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="ssz-container ssz-container-narrow">
+      <div class="section-head" data-reveal="up">
+        <span class="eyebrow">FAQ</span>
+        <h2>Aksar poochhe jaane wale <span class="text-gradient">sawal</span></h2>
+      </div>
+        <details class="faq-item biz-faq">
+          <summary class="faq-item__q">Mujhe computer nahi aata, kya main chala paunga?<span class="faq-item__icon" aria-hidden="true">+</span></summary>
+          <div class="faq-item__a"><p>Haan. Sab kuch phone se chalta hai — ek button dabana ya ek line likhna. Staff ko training hum dete hain.</p></div>
+        </details>
+        <details class="faq-item biz-faq">
+          <summary class="faq-item__q">Customer ko message kahan jayega?<span class="faq-item__icon" aria-hidden="true">+</span></summary>
+          <div class="faq-item__a"><p>Customer ke WhatsApp par, aapke business ke number se. WhatsApp ka chhota sa kharcha alag hota hai, jo hum pehle hi bata dete hain.</p></div>
+        </details>
+        <details class="faq-item biz-faq">
+          <summary class="faq-item__q">Mera data safe rahega?<span class="faq-item__icon" aria-hidden="true">+</span></summary>
+          <div class="faq-item__a"><p>Data aapke apne Google account mein rehta hai. Hum password nahi lete, sirf zaroori access. Clinic ke message mein bimari ka naam kabhi nahi jaata.</p></div>
+        </details>
+        <details class="faq-item biz-faq">
+          <summary class="faq-item__q">Setup mein kitna time lagta hai?<span class="faq-item__icon" aria-hidden="true">+</span></summary>
+          <div class="faq-item__a"><p>Chhota setup 3 se 7 din mein. Aapke purane register ka data Sheet mein daalna bhi hum kar dete hain.</p></div>
+        </details>
+        <details class="faq-item biz-faq">
+          <summary class="faq-item__q">Rate kitna hai?<span class="faq-item__icon" aria-hidden="true">+</span></summary>
+          <div class="faq-item__a"><p>Business aur kaam ke hisaab se. Free demo ke baad aapko likhit quotation milta hai — koi chhupa kharcha nahi.</p></div>
+        </details>
+    </div>
+  </section>
+
+  <section class="section-sm">
+    <div class="ssz-container">
+      <div class="cta-band" data-reveal="zoom">
+        <h2>Apne business ka free demo dekhiye</h2>
+        <p>Aapke business ke naam se chalta hua demo, aapke phone par — bilkul free, koi obligation nahi.</p>
+        <div class="cluster" style="justify-content:center">
+          <a class="btn-ssz btn-primary-ssz btn-lg-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20business%20ke%20liye%20automation%20ka%20free%20demo%20chahiye." target="_blank" rel="noopener">WhatsApp Karein</a>
+          <a class="btn-ssz btn-secondary-ssz btn-lg-ssz" href="contact.html">Contact Page</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div data-include="footer"></div>
+
+<script type="module" src="../js/app.js"></script>
+
+<script>
+/* PWA: install the service worker so the site opens fast and the free
+   tools keep working on weak mobile data. Fails silently on file://. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

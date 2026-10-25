@@ -51,7 +51,7 @@ const { defineSecret } = require("firebase-functions/params");
    jaata tha. Sirf options wala hissa lene se ye jhamela hi khatam. */
 const { setGlobalOptions } = require("firebase-functions/v2/options");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const crypto = require("crypto");
@@ -2289,3 +2289,99 @@ exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req
 
   return { audio: audioContent, mime: "audio/mpeg", chars: spoken.length, voice: name };
 });
+
+
+/* ==========================================================================
+   Website -> Google Sheet (Nova wala "SSZ Institute Data")
+   --------------------------------------------------------------------------
+   Faisla (17 Oct 2026): Telegram/Nova wali Google Sheet hi asli register hai.
+   Isliye website par jo bhi naya hota hai, wo yahan se n8n ke webhook
+   "ssz-website" ko jaata hai, aur n8n use Sheet me likhkar Nova par khabar
+   deta hai:
+
+     enquiries/{id}  ban'ne par   -> Enquiries tab (Source: Website)
+     admissions/{id} ban'ne par   -> sirf Nova par khabar (form aaya hai)
+     students/{id}   ban'ne par   -> Students tab, naya SZA number
+     fees/{id}       "paid" hone par -> Payments tab (due apne aap ghatta hai)
+
+   TRIGGER KYUN, PAGE KE CODE ME KYUN NAHI
+   Student do raaston se banta hai (admin ka Approve aur Razorpay webhook),
+   fees bhi do raaston se "paid" hoti hai. countAzadiSeat wala sabak: ek
+   jagah trigger lagao, har raasta apne aap pakda jaata hai.
+
+   CHAABI
+   Webhook public URL hai, isliye har request ke saath header "x-ssz-key"
+   jaata hai. Chaabi secret N8N_HOOK_KEY me hai (repo public hai, isliye
+   code me nahi). Wahi chaabi n8n ke "Chaabi Check" node me likhi hai.
+   Lagane ka tarika:  firebase functions:secrets:set N8N_HOOK_KEY
+
+   Ye sab fail ho jaye to website ka kaam NAHI rukta — sirf log me error
+   aata hai aur Sheet me entry Nova se haath se karni padti hai.
+   ========================================================================== */
+const N8N_HOOK_KEY = defineSecret("N8N_HOOK_KEY");
+const N8N_HOOK_URL = "https://sam2050.app.n8n.cloud/webhook/ssz-website";
+
+const isoOf = (v) => {
+  try {
+    const d = v && typeof v.toDate === "function" ? v.toDate() : (v ? new Date(v) : null);
+    return d && !isNaN(d) ? d.toISOString() : "";
+  } catch (e) { return ""; }
+};
+
+async function sendToSheet(type, data) {
+  try {
+    const res = await fetch(N8N_HOOK_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-ssz-key": N8N_HOOK_KEY.value() },
+      body: JSON.stringify({ type, data }),
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!res.ok) logger.error("sheet webhook ne mana kiya", { type, status: res.status });
+    else logger.info("sheet ko bheja", { type });
+  } catch (e) {
+    logger.error("sheet webhook tak nahi pahuncha", { type, err: e.message });
+  }
+}
+
+exports.sheetEnquiry = onDocumentCreated({ document: "enquiries/{id}", secrets: [N8N_HOOK_KEY] }, async (event) => {
+  const q = event.data?.data(); if (!q) return;
+  await sendToSheet("enquiry", {
+    id: event.params.id, name: q.name || "", mobile: q.mobile || q.phone || "", email: q.email || "",
+    subject: q.subject || q.course || q.courseName || "", message: q.message || "", source: q.source || "website",
+    createdAt: isoOf(q.createdAt)
+  });
+});
+
+exports.sheetApplication = onDocumentCreated({ document: "admissions/{id}", secrets: [N8N_HOOK_KEY] }, async (event) => {
+  const a = event.data?.data(); if (!a) return;
+  await sendToSheet("application", {
+    id: event.params.id, name: a.fullName || "", mobile: a.mobile || "", courseId: a.courseId || "",
+    courseName: a.courseName || "", mode: a.mode || a.studyMode || "", batchPref: a.batchPref || ""
+  });
+});
+
+exports.sheetAdmission = onDocumentCreated({ document: "students/{studentId}", secrets: [N8N_HOOK_KEY] }, async (event) => {
+  const s = event.data?.data(); if (!s) return;
+  await sendToSheet("admission", {
+    studentId: event.params.studentId, name: s.fullName || "", fatherName: s.fatherName || "",
+    mobile: s.mobile || "", whatsapp: s.whatsapp || "", dob: s.dob || "", address: s.address || "",
+    courseId: s.courseId || "", courseName: s.courseName || "", months: COURSES[s.courseId]?.months || "",
+    totalFee: Number(s.totalFee) || 0, batchName: s.batchName || "", email: s.email || "",
+    admissionDate: isoOf(s.admissionDate) || new Date().toISOString()
+  });
+});
+
+exports.sheetPayment = onDocumentWritten({ document: "fees/{feeId}", secrets: [N8N_HOOK_KEY], timeoutSeconds: 120 }, async (event) => {
+  const before = event.data?.before?.data() || {};
+  const f = event.data?.after?.data();
+  if (!f || f.status !== "paid" || before.status === "paid") return;
+  /* Admission wali pehli fee aur student lagbhag ek saath bante hain.
+     Sheet me pehle student pahunche, isliye fee 30 second ruk kar jaati hai. */
+  await new Promise((r) => setTimeout(r, 30000));
+  await sendToSheet("payment", {
+    feeId: event.params.feeId, studentId: f.studentId || "", name: f.studentName || "",
+    amount: Number(f.amount) || 0, mode: f.mode || "", receiptNo: f.receiptNo || "",
+    razorpayPaymentId: f.razorpayPaymentId || "", paidOn: isoOf(f.paidOn) || new Date().toISOString()
+  });
+});
+

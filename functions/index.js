@@ -2319,7 +2319,7 @@ exports.novaSpeak = onCall({ secrets: [GOOGLE_TTS_KEY], cors: true }, async (req
    aata hai aur Sheet me entry Nova se haath se karni padti hai.
    ========================================================================== */
 const N8N_HOOK_KEY = defineSecret("N8N_HOOK_KEY");
-const N8N_HOOK_URL = "https://sam2050.app.n8n.cloud/webhook/ssz-website";
+const N8N_HOOK_URL = "https://n8n.softskillzone.in/webhook/ssz-website";
 
 const isoOf = (v) => {
   try {

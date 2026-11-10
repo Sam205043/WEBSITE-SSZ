@@ -36,10 +36,13 @@
    nahi padti.
    ========================================================================== */
 
+/* Nov 2026: Hindi hata di gayi — site par sirf English (default) aur
+   Hinglish. Jisne pehle Hindi chuni thi, readSaved() use apne aap English
+   par le aata hai (list me na ho to DEFAULT_LANG). lang/hi*.json files
+   pade hain, zaroorat ho to yahan ek line wapas jodne se Hindi laut aayegi. */
 export const LANGS = Object.freeze([
-  { code: "hinglish", label: "Hinglish", native: "Hinglish", htmlLang: "en" },
-  { code: "hi",       label: "Hindi",    native: "हिंदी",     htmlLang: "hi" },
-  { code: "en",       label: "English",  native: "English",  htmlLang: "en" }
+  { code: "en",       label: "English",  native: "English",  htmlLang: "en" },
+  { code: "hinglish", label: "Hinglish", native: "Hinglish", htmlLang: "en" }
 ]);
 
 /* --------------------------------------------------------------------------
@@ -247,7 +250,7 @@ function watchNewNodes() {
 export function buildLangPicker() {
   const sel = document.createElement("select");
   sel.className = "lang-pick";
-  sel.setAttribute("aria-label", "Bhasha chunein / भाषा चुनें");
+  sel.setAttribute("aria-label", "Language chunein");
   for (const l of LANGS) {
     const o = document.createElement("option");
     o.value = l.code;

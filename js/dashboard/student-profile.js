@@ -72,6 +72,28 @@ if (mode !== "preview" && !student) {
   const section = $("#linkIdSection");
   section.hidden = false;
 
+  /* Email/password wala account verify na ho to rules ID jodne nahi dete —
+     student ko wajah aur dobara mail ka button dikhao. Google login hamesha
+     verified hota hai, use ye box kabhi nahi dikhta. */
+  const { auth } = await import("../../firebase/firebase-init.js");
+  if (auth.currentUser && !auth.currentUser.emailVerified) {
+    $("#verifyEmailBox").hidden = false;
+    $("#resendVerify").addEventListener("click", async (e) => {
+      await withButton(e.currentTarget, async () => {
+        try {
+          const { resendVerification } = await import("../../firebase/auth-service.js");
+          const sent = await resendVerification();
+          if (sent) toast.success("Mail bhej diya. Inbox ya Spam dekhein.");
+          else { toast.success("Email verify ho chuka hai!"); setTimeout(() => location.reload(), 800); }
+        } catch (err) {
+          toast.error(err?.code === "auth/too-many-requests"
+            ? "Thodi der baad try karein — abhi bahut baar maanga gaya."
+            : (err.message || "Mail nahi gaya."));
+        }
+      });
+    });
+  }
+
   const idForm = $("#linkIdForm");
   const idv = createValidator(idForm, {
     studentId: [

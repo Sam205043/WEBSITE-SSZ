@@ -17,6 +17,7 @@ import {
   reauthenticateWithCredential, EmailAuthProvider,
   setPersistence, browserLocalPersistence, browserSessionPersistence,
   GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+  sendEmailVerification,
   doc, getDoc, setDoc, updateDoc, serverTimestamp,
   collection, query, where, limit, getDocs
 } from "./firebase-init.js";
@@ -230,6 +231,15 @@ async function syncInstitutePhoto(fbUser, studentId) {
  */
 export async function autoLinkStudentId(fbUser) {
   if (!fbUser?.email) return "";
+  /* Rules sirf VERIFIED email par record jodne dete hain (firestore.rules ka
+     verifiedEmail). Link dabane ke baad Firebase ka purana token abhi bhi
+     "unverified" kehta hai — isliye pehle user reload, phir naya token.
+     Verify nahi hua to query hi nahi chalate (warna bekaar permission error). */
+  if (!fbUser.emailVerified) {
+    try { await fbUser.reload(); } catch { /* net gaya — agli baar */ }
+    if (!fbUser.emailVerified) return "";
+    try { await fbUser.getIdToken(true); } catch { return ""; }
+  }
   try {
     const id = await findStudentIdByEmail(fbUser.email);
     if (!id) return "";
@@ -414,6 +424,11 @@ async function finishGoogleSignIn(fbUser) {
 export async function registerStudent({ email, password, name, phone = "", studentId = "" }) {
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
   await updateProfile(cred.user, { displayName: name });
+  /* Email ka saboot — iske bina rules Student ID jodne nahi dete. Mail na
+     jaye to bhi signup nahi rukta; profile page se dobara bheja ja sakta hai. */
+  try { await sendEmailVerification(cred.user); } catch (err) {
+    console.warn("[auth] verification mail nahi gaya:", err?.code || err);
+  }
 
   const base = {
     uid: cred.user.uid,
@@ -503,6 +518,18 @@ export async function claimStudentId(studentId) {
   const fbUser = auth.currentUser;
   if (!fbUser) throw new Error("Pehle login karein.");
 
+  if (!fbUser.emailVerified) {
+    try { await fbUser.reload(); } catch { /* ignore */ }
+    if (!fbUser.emailVerified) {
+      throw new Error(
+        "Pehle apna email verify karein — inbox (ya Spam) me Firebase ka link " +
+        "dabayein, phir dobara try karein. Mail nahi mila to \"Verification mail " +
+        "dobara bhejein\" dabayein."
+      );
+    }
+    await fbUser.getIdToken(true);
+  }
+
   const id = String(studentId || "").trim().toUpperCase();
   if (!id) throw new Error("Student ID daalein.");
 
@@ -523,6 +550,16 @@ export async function claimStudentId(studentId) {
   currentUser = await loadProfile(fbUser);
   emit();
   return currentUser;
+}
+
+/** Verification mail dobara bhejna (profile page ka button). */
+export async function resendVerification() {
+  const fbUser = auth.currentUser;
+  if (!fbUser) throw new Error("Pehle login karein.");
+  await fbUser.reload();
+  if (fbUser.emailVerified) return false;
+  await sendEmailVerification(fbUser);
+  return true;
 }
 
 /** Patch the users/{uid} document and refresh the cached session object. */

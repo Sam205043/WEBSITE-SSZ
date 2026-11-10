@@ -18,7 +18,8 @@ import {
   updateProfile, updatePassword, reauthenticateWithCredential,
   EmailAuthProvider, setPersistence, browserLocalPersistence,
   browserSessionPersistence,
-  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 import {
@@ -72,6 +73,7 @@ export {
   reauthenticateWithCredential, EmailAuthProvider,
   setPersistence, browserLocalPersistence, browserSessionPersistence,
   GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+  sendEmailVerification,
 
   /* firestore */
   collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,

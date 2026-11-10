@@ -1247,5 +1247,13 @@
  "Bahut bada kaam?": "A much bigger project?",
  "School ERP, e-commerce ya biometric attendance — quotation par, ₹{n} se shuru.": "School ERP, e-commerce or biometric attendance — quoted per project, starting at ₹{n}.",
  "Domain, WhatsApp API aur online payment ka kharcha client ka apna hota hai. Telegram par message ka koi kharcha nahi. GST lagu ho to alag. Free demo ke baad likhit quotation milta hai.": "Domain, WhatsApp API and online payment charges are paid by the client. Telegram messages cost nothing. GST is extra where it applies. You get a written quotation after the free demo.",
- "Bina website automation ₹{n} mahina se, website ₹{n} se, aur Starter plan ₹{n} (ek baar). Automation plans mein setup free hai. Free demo ke baad aapko likhit quotation milta hai — koi chhupa kharcha nahi.": "Automation without a website from ₹{n} a month, websites from ₹{n}, and the Starter plan at ₹{n} (one-time). Setup is free on automation plans. After the free demo you get a written quotation, with no hidden costs."
+ "Bina website automation ₹{n} mahina se, website ₹{n} se, aur Starter plan ₹{n} (ek baar). Automation plans mein setup free hai. Free demo ke baad aapko likhit quotation milta hai — koi chhupa kharcha nahi.": "Automation without a website from ₹{n} a month, websites from ₹{n}, and the Starter plan at ₹{n} (one-time). Setup is free on automation plans. After the free demo you get a written quotation, with no hidden costs.",
+ "Pehle email verify karein.": "Verify your email first.",
+ "Signup ke waqt aapke email par ek link bheja gaya tha (Spam bhi dekhein). Link dabane ke baad ye page reload karein — ID apne aap jud jaayegi.": "We sent a link to your email when you signed up (check Spam too). After you click the link, reload this page and your ID will be linked automatically.",
+ "Verification mail dobara bhejein": "Resend verification email",
+ "Mail bhej diya. Inbox ya Spam dekhein.": "Email sent. Check your Inbox or Spam.",
+ "Email verify ho chuka hai!": "Your email is verified!",
+ "Thodi der baad try karein — abhi bahut baar maanga gaya.": "Please try again in a while — too many requests right now.",
+ "Mail nahi gaya.": "The email could not be sent.",
+ "Pehle apna email verify karein — inbox (ya Spam) me Firebase ka link dabayein, phir dobara try karein. Mail nahi mila to \"Verification mail dobara bhejein\" dabayein.": "Verify your email first — click the Firebase link in your inbox (or Spam), then try again. If you did not get the email, tap \"Resend verification email\"."
 }

@@ -105,6 +105,17 @@ document.documentElement.style.colorScheme=t;})();
   .biz-group__title{font-size:1.35rem;margin:0 0 .3rem}
   .biz-group__sub{margin:0;color:var(--text-muted)}
   .biz-note{margin:1rem auto 0;max-width:70ch;text-align:center;font-size:.85rem;color:var(--text-muted,#64748b)}
+  .biz-demo .card-ssz__body{display:flex;flex-direction:column;height:100%}
+  .biz-demo__actions{display:flex;gap:.5rem;margin-top:auto;padding-top:1rem;flex-wrap:wrap}
+  .biz-demo__actions .btn-ssz{flex:1 1 8rem;justify-content:center}
+  .biz-shots{margin:auto;inset:0;width:min(960px,94vw);max-height:92vh;border:none;border-radius:20px;padding:1.25rem;background:var(--bg-surface);color:var(--text-primary);box-shadow:0 24px 60px rgba(15,23,42,.35)}
+  .biz-shots::backdrop{background:rgba(15,23,42,.6);backdrop-filter:blur(3px)}
+  .biz-shots__head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+  .biz-shots__head h2{font-size:1.25rem;margin:.4rem 0 0}
+  .biz-shots__close{border:none;background:var(--brand-soft);color:var(--brand-ink);width:40px;height:40px;border-radius:50%;font-size:1.6rem;line-height:1;cursor:pointer;flex:none}
+  .biz-shots__strip{display:flex;gap:.9rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.6rem;-webkit-overflow-scrolling:touch}
+  .biz-shots__strip img{flex:0 0 auto;width:min(230px,62vw);height:auto;border-radius:16px;scroll-snap-align:start;box-shadow:0 6px 18px rgba(15,23,42,.18);background:#eef1f6;aspect-ratio:480/1038}
+  .biz-shots__hint{font-size:.85rem;color:var(--text-muted);margin:.75rem 0 1rem}
   .biz-step__num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:var(--grad-brand)}
   .biz-faq{margin-bottom:.75rem}
   .biz-faq summary{list-style:none;cursor:pointer}
@@ -253,35 +264,59 @@ document.documentElement.style.colorScheme=t;})();
         <p>Ye sab sample demo hain, demo data par bane hue — taaki aap apne phone par dekh sakein ki aapke business mein system kaise chalega.</p>
       </div>
       <div class="auto-grid">
-        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+        <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Gym aur Fitness Centre</h3>
           <p style="margin:0">Member fees, renewal reminder, attendance aur enquiry.</p>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="gym">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20gym%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
         </div></div>
-        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+        <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Coaching aur School</h3>
           <p style="margin:0">Admission, fees, attendance, result aur parents ko message.</p>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="coaching">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20coaching%20ya%20school%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
         </div></div>
-        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+        <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Clinic aur Hospital</h3>
           <p style="margin:0">Appointment, patient follow-up, review request aur roz ki report.</p>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="clinic">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20clinic%20ya%20hospital%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
         </div></div>
-        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+        <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">CA aur Accounts Office</h3>
           <p style="margin:0">Client documents, GST deadline aur kaam ka status ek jagah.</p>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="ca">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20CA%20ya%20accounts%20office%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
         </div></div>
-        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+        <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Electronics aur Retail Shop</h3>
           <p style="margin:0">Stock, sales report, warranty record aur customer list.</p>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="shop">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20shop%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
         </div></div>
-        <div class="card-ssz" data-reveal="up"><div class="card-ssz__body">
+        <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Contractor aur Construction</h3>
           <p style="margin:0">Labour attendance, material, RA bill aur payment tracking.</p>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="contractor">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20contractor%20/%20construction%20business%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
         </div></div>
       </div>
     </div>
@@ -433,11 +468,65 @@ document.documentElement.style.colorScheme=t;})();
     </div>
   </section>
 
+
+  <!-- Demo screenshots ka popup. Photos tabhi load hoti hain jab koi button
+       dabaye (data-src), taaki page ki speed par asar na pade. Saari photos
+       demo data ki hain; asli business ke naam hata diye gaye hain. -->
+  <dialog class="biz-shots" id="bizShots" aria-labelledby="bizShotsTitle">
+    <div class="biz-shots__head">
+      <div>
+        <span class="badge-ssz badge-warning">Sample Demo</span>
+        <h2 id="bizShotsTitle"></h2>
+      </div>
+      <button type="button" class="biz-shots__close" id="bizShotsClose" aria-label="Band karein">&times;</button>
+    </div>
+    <div class="biz-shots__strip" id="bizShotsStrip"></div>
+    <p class="biz-shots__hint">Side mein swipe karke aur screens dekhein. Ye demo data hai — aapke business ka naam aur data lagakar hum aapke phone par live demo dikhate hain.</p>
+    <a class="btn-ssz btn-primary-ssz" id="bizShotsWa" href="#" target="_blank" rel="noopener" style="width:100%">Demo maangiye</a>
+  </dialog>
+
 </main>
 
 <div data-include="footer"></div>
 
 <script type="module" src="../js/app.js"></script>
+
+<script>
+/* Industry card ka "Screenshots" button: 4 demo photos popup me. */
+(function () {
+  var dlg = document.getElementById("bizShots");
+  if (!dlg || typeof dlg.showModal !== "function") {
+    document.querySelectorAll(".biz-demo__shots").forEach(function (b) { b.hidden = true; });
+    return;
+  }
+  var strip = document.getElementById("bizShotsStrip");
+  var title = document.getElementById("bizShotsTitle");
+  var wa = document.getElementById("bizShotsWa");
+  document.querySelectorAll(".biz-demo__shots").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var key = btn.getAttribute("data-demo");
+      var card = btn.closest(".card-ssz__body");
+      var name = card.querySelector("h3").textContent.trim();
+      title.textContent = name;
+      wa.href = card.querySelector(".biz-demo__actions a").href;
+      strip.replaceChildren();
+      for (var i = 1; i <= 4; i++) {
+        var img = document.createElement("img");
+        img.src = "../images/demos/" + key + "-" + i + ".jpg";
+        img.alt = name + " — demo screen " + i;
+        img.loading = "lazy";
+        img.decoding = "async";
+        strip.appendChild(img);
+      }
+      strip.scrollLeft = 0;
+      dlg.showModal();
+    });
+  });
+  document.getElementById("bizShotsClose").addEventListener("click", function () { dlg.close(); });
+  dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+})();
+</script>
+
 
 <script>
 /* PWA: install the service worker so the site opens fast and the free

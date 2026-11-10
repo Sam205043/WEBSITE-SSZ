@@ -179,6 +179,12 @@
 .hero-live__link:hover { background: rgba(255,255,255,.16); }
 
 .hero-progress { display: grid; gap: var(--sp-4); }
+/* Hero ka business card (Nov 2026) — do price, ek nazar me. */
+.hero-biz { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1.1rem; }
+.hero-biz__item { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); border-radius: 12px; padding: .65rem .8rem; color: #fff; }
+.hero-biz__item span { display: block; font-size: .72rem; opacity: .85; font-weight: 600; letter-spacing: .02em; }
+.hero-biz__item b { color: #fff; font-family: Poppins, sans-serif; font-size: 1.3rem; line-height: 1.2; }
+.hero-biz__item small { display: block; font-size: .7rem; opacity: .8; }
 .hero-progress__row { display: flex; justify-content: space-between; font-size: var(--fs-xs); font-weight: var(--fw-semibold); margin-bottom: .4rem; }
 
 /* Decorative blobs */

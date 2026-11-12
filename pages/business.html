@@ -106,6 +106,10 @@ document.documentElement.style.colorScheme=t;})();
   .biz-group__sub{margin:0;color:var(--text-muted)}
   .biz-note{margin:1rem auto 0;max-width:70ch;text-align:center;font-size:.85rem;color:var(--text-muted,#64748b)}
   .biz-demo .card-ssz__body{display:flex;flex-direction:column;height:100%}
+  .biz-demo--wide{grid-column:1/-1}
+  @media (min-width:768px){.biz-demo--wide .biz-demo__list{columns:2;column-gap:2rem}.biz-demo--wide .biz-demo__actions{max-width:26rem}}
+  .biz-demo__list{margin:.7rem 0 0;padding-left:1.1rem;font-size:.9rem;color:var(--text-secondary,inherit);line-height:1.55}
+  .biz-demo__site{display:inline-block;margin-top:.7rem;font-weight:700;font-size:.92rem}
   .biz-demo__actions{display:flex;gap:.5rem;margin-top:auto;padding-top:1rem;flex-wrap:wrap}
   .biz-demo__actions .btn-ssz{flex:1 1 8rem;justify-content:center}
   .biz-shots{margin:auto;inset:0;width:min(960px,94vw);max-height:92vh;border:none;border-radius:20px;padding:1.25rem;background:var(--bg-surface);color:var(--text-primary);box-shadow:0 24px 60px rgba(15,23,42,.35)}
@@ -264,6 +268,25 @@ document.documentElement.style.colorScheme=t;})();
         <p>Ye sab sample demo hain, demo data par bane hue — taaki aap apne phone par dekh sakein ki aapke business mein system kaise chalega.</p>
       </div>
       <div class="auto-grid">
+        <div class="card-ssz biz-demo biz-demo--wide" data-reveal="up"><div class="card-ssz__body">
+          <span><span class="badge-ssz badge-warning">Sample Demo</span> <span class="badge-ssz badge-success">New</span></span>
+          <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">School (Nursery se 12th)</h3>
+          <p style="margin:0">Principal, office, teacher, parent, student, bus aur gate — 7 dashboard ek system mein.</p>
+          <ul class="biz-demo__list">
+            <li>Attendance + absent alert parent ko</li>
+            <li>UPI fees, kist plan aur call list</li>
+            <li>Report card, admit card aur seating plan</li>
+            <li>Google Meet live class</li>
+            <li>Bus live location aur QR gate pass</li>
+            <li>PTM booking aur Hindi parent app</li>
+            <li>AI se school ka data poochhiye</li>
+          </ul>
+          <a class="biz-demo__site" href="https://n8n.softskillzone.in/webhook/aps-site" target="_blank" rel="noopener">Demo school ki website dekhiye ↗</a>
+          <div class="biz-demo__actions">
+            <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="school">Screenshots</button>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20school%20ke%20liye%20Smart%20System%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+          </div>
+        </div></div>
         <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
           <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Gym aur Fitness Centre</h3>
@@ -275,11 +298,11 @@ document.documentElement.style.colorScheme=t;})();
         </div></div>
         <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">
           <span class="badge-ssz badge-warning">Sample Demo</span>
-          <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Coaching aur School</h3>
+          <h3 style="margin:.6rem 0 .4rem;font-size:1.1rem">Coaching Institute</h3>
           <p style="margin:0">Admission, fees, attendance, result aur parents ko message.</p>
           <div class="biz-demo__actions">
             <button type="button" class="btn-ssz btn-outline-ssz biz-demo__shots" data-demo="coaching">Screenshots</button>
-            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20coaching%20ya%20school%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
+            <a class="btn-ssz btn-primary-ssz" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20coaching%20ke%20liye%20automation%20ka%20demo%20dekhna%20hai." target="_blank" rel="noopener">Demo maangiye</a>
           </div>
         </div></div>
         <div class="card-ssz biz-demo" data-reveal="up"><div class="card-ssz__body">

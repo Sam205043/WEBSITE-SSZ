@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharma &amp; Associates, Ara — Sample demo website</title>
+<meta name="description" content="Sample CA / tax consultant website made by Soft Skill Zone, Ara. Demo data only.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F7F7F4;--card:#fff;--line:#E4E4DD;--ink:#16232E;--mut:#5F6B73;--acc:#0F3D3E;--acc2:#0A2C2D;--gold:#B8892E;--soft:#EAF1EF;--red:#B42318}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}h1,h2,.logo b,.big{font-family:Fraunces,Georgia,serif}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+.demo{background:#FEF3C7;color:#78350F;font-size:13px;font-weight:700;text-align:center;padding:7px 12px}.demo a{font-weight:800}
+header{position:sticky;top:0;z-index:20;background:rgba(247,247,244,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:14px;height:68px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none;line-height:1.1}.logo b{font-size:20px;display:block}.logo small{font-size:11.5px;color:var(--mut);font-weight:600}
+.logo i{width:40px;height:40px;border-radius:10px;background:var(--acc);color:#E9D8A6;display:grid;place-items:center;font:700 17px Fraunces,serif;font-style:normal}
+.nav nav{margin-left:auto;display:flex;gap:22px;font-size:14.5px;font-weight:600;color:var(--mut)}.nav nav a{text-decoration:none}.nav nav a:hover{color:var(--acc)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:10px;border:0;font:700 15px Inter,sans-serif;text-decoration:none;cursor:pointer}
+.btn.p{background:var(--acc);color:#fff}.btn.p:hover{background:var(--acc2)}.btn.g{background:#fff;color:var(--ink);border:1.5px solid var(--line)}.btn.sm{min-height:40px;padding:0 16px;font-size:14px}
+.hero{padding:62px 0 54px}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.kick{color:var(--gold);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(34px,5vw,56px);line-height:1.08;margin:10px 0 16px;font-weight:700;letter-spacing:-.01em}h1 em{font-style:italic;color:var(--acc)}
+.lead{color:var(--mut);font-size:18px;max-width:540px;margin:0 0 24px}.cta{display:flex;gap:12px;flex-wrap:wrap}
+.trust{display:flex;gap:26px;margin-top:28px;flex-wrap:wrap}.trust b{display:block;font:700 28px Fraunces,serif}.trust span{color:var(--mut);font-size:13px}
+.due{background:var(--acc);color:#fff;border-radius:22px;padding:24px}
+.due h3{margin:0 0 4px;font-size:18px}.due p{margin:0 0 14px;color:#B9CFCB;font-size:13.5px}
+.due .d{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.due .d .dt{width:54px;text-align:center;flex:none;background:#fff;color:var(--acc);border-radius:10px;padding:4px 0;line-height:1.1}.due .d .dt b{display:block;font:700 20px Fraunces,serif}.due .d .dt small{font-size:11px;font-weight:700;text-transform:uppercase}
+.due .d span{flex:1;font-size:14.5px}.due .d em{font-style:normal;font-size:12px;font-weight:800;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.14)}
+.due .d em.hot{background:#F97316;color:#fff}
+section{padding:58px 0}.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+h2{font-size:clamp(28px,3.6vw,40px);margin:6px 0 0;line-height:1.15;font-weight:700}.sub{color:var(--mut);max-width:520px;margin:6px 0 0}
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+.svc .card{display:flex;flex-direction:column;gap:6px}.svc .ic{width:44px;height:44px;border-radius:12px;background:var(--soft);display:grid;place-items:center;font-size:22px}
+.svc h3{margin:6px 0 0;font-size:17px}.svc p{margin:0;color:var(--mut);font-size:14px}.svc .fr{margin-top:auto;padding-top:8px;font-weight:700;color:var(--acc);font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.fld label{font-size:13px;color:var(--mut);font-weight:700}
+input,select{background:#FAFAF8;border:1.5px solid var(--line);color:var(--ink);border-radius:10px;min-height:48px;padding:0 14px;font:600 16px Inter;width:100%}input:focus,select:focus{outline:none;border-color:var(--acc);background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calc .res{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}.calc .res div{background:var(--soft);border-radius:12px;padding:12px;text-align:center}.calc .res b{display:block;font:700 22px Fraunces,serif;color:var(--acc)}.calc .res span{font-size:12px;color:var(--mut)}
+.seg{display:inline-flex;background:#EFEFEA;border-radius:10px;padding:4px;gap:4px;margin-bottom:12px}.seg button{border:0;background:none;min-height:38px;padding:0 14px;border-radius:8px;font:700 14px Inter;cursor:pointer;color:var(--mut)}.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.docs ul{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:8px}.docs li{display:flex;gap:10px;align-items:flex-start;font-size:15px}.docs li::before{content:"☐";color:var(--acc);font-weight:800}
+.upl{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--mut);margin-bottom:12px;cursor:pointer}.drop b{color:var(--ink)}
+.chk{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}.chk li{display:flex;gap:10px}.chk li::before{content:"✓";flex:none;width:24px;height:24px;border-radius:50%;background:var(--soft);color:var(--acc);display:grid;place-items:center;font-weight:800;font-size:13px}
+.ok{display:none;background:#ECFDF5;color:#065F46;border-radius:12px;padding:14px;margin-top:10px;font-size:14.5px}
+.app{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;align-items:center}
+.shots{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.shots img{width:200px;flex:none;border-radius:20px;border:6px solid #fff;box-shadow:0 10px 30px -18px rgba(0,0,0,.4);scroll-snap-align:start}
+footer{border-top:1px solid var(--line);padding:30px 0 90px;color:var(--mut);font-size:14px;background:#fff}footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.made{background:var(--soft);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:22px;color:var(--ink);flex-basis:100%}
+.fab{position:fixed;right:16px;bottom:16px;z-index:30;width:58px;height:58px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.25);text-decoration:none;font-size:28px}
+.disc{font-size:12.5px;color:var(--mut);margin-top:10px}
+@media (max-width:960px){.hero .wrap,.upl,.app{grid-template-columns:1fr}.svc{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.nav nav{display:none}.hero{padding:40px 0}}
+@media (max-width:560px){.svc{grid-template-columns:1fr}.upl{padding:22px}.calc .res b{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="demo">Sample demo website — firm name, people and fees are dummy. <a href="../../pages/business.html">Get this for your office →</a></div>
+<header><div class="wrap nav">
+  <a class="logo" href="#"><i>S&amp;A</i><span><b>Sharma &amp; Associates</b><small>Tax · GST · Accounts · Ara</small></span></a>
+  <nav><a href="#services">Services</a><a href="#dates">Due dates</a><a href="#gst">GST calculator</a><a href="#docs">Documents</a></nav>
+  <a class="btn p sm" href="#upload">Send documents</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div>
+    <div class="kick">GST · Income tax · TDS · Audit</div>
+    <h1>Your tax work,<br><em>on time</em> — every time.</h1>
+    <p class="lead">Send bills and documents from your phone. We file on time, remind you before every due date and show the status of your work any time.</p>
+    <div class="cta"><a class="btn p" href="#upload">Send documents</a><a class="btn g" href="#services">Our services</a></div>
+    <div class="trust"><div><b>120+</b><span>business clients</span></div><div><b>0</b><span>late fee — our target</span></div><div><b>Mon – Sat</b><span>10 AM – 7 PM</span></div></div>
+  </div>
+  <div class="due" id="dates">
+    <h3>📅 Coming due dates</h3><p>Usual monthly / quarterly dates — always check the latest government notice.</p>
+    <div id="dl"></div>
+  </div>
+</div></section>
+
+<section id="services" style="padding-top:10px"><div class="wrap">
+  <div class="sh"><div><div class="kick">Services</div><h2>What we do for you</h2></div><p class="sub">Fixed monthly fee for regular work. No surprise bills.</p></div>
+  <div class="svc">
+    <div class="card"><span class="ic">🧾</span><h3>GST registration &amp; returns</h3><p>GSTR-1, GSTR-3B, annual return, e-way bill help.</p><span class="fr">From ₹700 / month</span></div>
+    <div class="card"><span class="ic">💼</span><h3>Income tax (ITR)</h3><p>Salary, business, capital gains. Notice reply.</p><span class="fr">From ₹999 / return</span></div>
+    <div class="card"><span class="ic">🏦</span><h3>TDS</h3><p>Monthly deposit, quarterly return, Form 16 / 16A.</p><span class="fr">From ₹500 / month</span></div>
+    <div class="card"><span class="ic">📒</span><h3>Accounting</h3><p>Tally / books every month, P&amp;L and balance sheet.</p><span class="fr">From ₹1,500 / month</span></div>
+    <div class="card"><span class="ic">🏢</span><h3>Firm / company registration</h3><p>Proprietorship, partnership, LLP, Pvt Ltd, MSME (Udyam).</p><span class="fr">Quote on call</span></div>
+    <div class="card"><span class="ic">🔍</span><h3>Audit</h3><p>Tax audit and stock audit for loans.</p><span class="fr">Quote on call</span></div>
+  </div>
+  <p class="disc">Sample fees for this demo website.</p>
+</div></section>
+
+<section id="gst" style="padding-top:0"><div class="wrap two">
+  <div class="card calc"><div class="kick">Free tool</div><h2 style="font-size:26px;margin-bottom:12px">GST calculator</h2>
+    <div class="seg" id="mode"><button class="on" data-m="add">Add GST</button><button data-m="rem">Remove GST</button></div>
+    <div class="row2"><div class="fld"><label for="amt">Amount (₹)</label><input id="amt" type="number" inputmode="decimal" value="10000"></div><div class="fld"><label for="rate">GST rate</label><select id="rate"><option value="0">0%</option><option value="3">3%</option><option value="5">5%</option><option value="18" selected>18%</option><option value="40">40%</option></select></div></div>
+    <div class="res"><div><b id="r1">₹10,000</b><span>Taxable value</span></div><div><b id="r2">₹1,800</b><span>GST (CGST + SGST)</span></div><div><b id="r3">₹11,800</b><span>Total</span></div></div>
+    <p class="disc">CGST and SGST are half each for sale inside Bihar; IGST for other states.</p></div>
+  <div class="card docs" id="docs"><div class="kick">Checklist</div><h2 style="font-size:26px;margin-bottom:12px">Documents needed</h2>
+    <div class="seg" id="dk"><button class="on" data-k="itr">ITR</button><button data-k="gst">GST registration</button><button data-k="firm">New firm</button></div>
+    <ul id="dlist"></ul></div>
+</div></section>
+
+<section id="upload" style="padding-top:0"><div class="wrap">
+  <div class="upl">
+    <div><div class="kick">Send documents</div><h2>No need to come to the office</h2><p class="sub">Send bills, bank statement or Aadhaar/PAN from your phone. You get a message when the work is done.</p>
+      <ul class="chk"><li>Send photo of bills on Telegram — we enter them</li><li>Reminder 3 days before every due date</li><li>See your work status: pending / filed</li></ul></div>
+    <form id="uf">
+      <div class="row2"><div class="fld"><label for="n">Name / firm</label><input id="n" required></div><div class="fld"><label for="ph">Mobile</label><input id="ph" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit number"></div></div>
+      <div class="fld"><label for="w">Work</label><select id="w"><option>GST return — this month</option><option>ITR filing</option><option>TDS return</option><option>New GST registration</option><option>Accounts / Tally</option><option>Other</option></select></div>
+      <div class="drop" id="drop"><b>📎 Tap to choose files</b><br><small>Bills, bank statement, PAN, Aadhaar (demo: files are not uploaded)</small><input type="file" id="f" multiple hidden></div>
+      <button class="btn p" style="width:100%" type="submit">Send to CA office</button>
+      <div class="ok" id="ok" role="status"></div>
+    </form>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap app">
+  <div><div class="kick">Behind the website</div><h2>The office runs on the phone too</h2>
+    <ul class="chk"><li>Due-date board — which client, which return, how many days left</li><li>AI reads bill photos and fills the entry</li><li>Client documents arrive on Telegram, sorted by client</li><li>Fees pending and staff work status in one place</li></ul></div>
+  <div class="shots"><img src="../../images/demos/ca-1.jpg" alt="Owner dashboard" loading="lazy"><img src="../../images/demos/ca-2.jpg" alt="Due date board" loading="lazy"><img src="../../images/demos/ca-3.jpg" alt="AI bill entries" loading="lazy"><img src="../../images/demos/ca-4.jpg" alt="Client documents" loading="lazy"></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© Sharma &amp; Associates (sample) · Ara · Demo contact: Soft Skill Zone 62028 56897</div>
+  <div>Made by <a href="../../pages/business.html">Soft Skill Zone</a></div>
+  <div class="made"><span><b>This is a sample website.</b> Want this for your CA / tax office — with due-date board, client documents and reminders?</span><a class="btn p sm" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20CA%20office%20ke%20liye%20aisi%20website%20aur%20automation%20chahiye." target="_blank" rel="noopener">Get it for my office</a></div>
+</div></footer>
+<a class="fab" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20CA%20office%20ke%20liye%20aisi%20website%20aur%20automation%20chahiye." target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>
+(function(){
+  var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],t=new Date();t.setHours(0,0,0,0);
+  function nextDay(d,lbl){var x=new Date(t.getFullYear(),t.getMonth(),d);if(x<t)x=new Date(t.getFullYear(),t.getMonth()+1,d);return [x,lbl];}
+  function nextOf(list,lbl){var c=null;for(var y=t.getFullYear();y<=t.getFullYear()+1;y++)list.forEach(function(md){var x=new Date(y,md[0],md[1]);if(x>=t&&(!c||x<c))c=x;});return [c,lbl];}
+  var L=[nextDay(7,'TDS / TCS deposit'),nextDay(11,'GSTR-1 (monthly)'),nextDay(20,'GSTR-3B (monthly)'),nextOf([[5,15],[8,15],[11,15],[2,15]],'Advance tax instalment'),nextOf([[6,31],[9,31],[0,31],[4,31]],'TDS quarterly return'),nextOf([[6,31]],'ITR (non-audit)')];
+  L.sort(function(a,b){return a[0]-b[0];});
+  document.getElementById('dl').innerHTML=L.slice(0,5).map(function(x){var days=Math.round((x[0]-t)/864e5);return '<div class="d"><span class="dt"><b>'+x[0].getDate()+'</b><small>'+M[x[0].getMonth()]+'</small></span><span>'+x[1]+'</span><em class="'+(days<=5?'hot':'')+'">'+(days===0?'today':days+' days')+'</em></div>';}).join('');
+  var mode='add';function rs(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){var a=+document.getElementById('amt').value||0,r=+document.getElementById('rate').value,base=mode==='add'?a:a*100/(100+r),g=base*r/100;document.getElementById('r1').textContent=rs(base);document.getElementById('r2').textContent=rs(g);document.getElementById('r3').textContent=rs(base+g);}
+  document.querySelectorAll('#mode button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#mode button').forEach(function(x){x.classList.toggle('on',x===b);});mode=b.getAttribute('data-m');calc();});});
+  ['amt','rate'].forEach(function(i){document.getElementById(i).addEventListener('input',calc);});calc();
+  var D={itr:['PAN and Aadhaar','Form 16 (salary) / business books','Bank statements (all accounts)','Interest certificates, Form 26AS / AIS','Investment proofs (80C, 80D) if old regime'],gst:['PAN of business / owner','Aadhaar and photo of owner','Shop rent agreement or electricity bill','Bank account proof (cancelled cheque)','Mobile number and email'],firm:['PAN and Aadhaar of all partners','Address proof of office','Partnership deed draft (we prepare)','Bank account opening documents','Business name — 2 options']};
+  function dk(k){document.getElementById('dlist').innerHTML=D[k].map(function(x){return '<li>'+x+'</li>';}).join('');}
+  document.querySelectorAll('#dk button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#dk button').forEach(function(x){x.classList.toggle('on',x===b);});dk(b.getAttribute('data-k'));});});dk('itr');
+  var f=document.getElementById('f');document.getElementById('drop').addEventListener('click',function(){f.click();});f.addEventListener('change',function(){document.querySelector('#drop b').textContent='📎 '+f.files.length+' file(s) chosen';});
+  document.getElementById('uf').addEventListener('submit',function(e){e.preventDefault();var o=document.getElementById('ok');o.innerHTML='✅ Received. Work: '+String(document.getElementById('w').value).replace(/[<>&"]/g,'')+'.<br><small>In the real website the files go to the CA office Telegram + Drive under your name, and you get a message when it is filed. (Demo — nothing was uploaded.)</small>';o.style.display='block';this.querySelector('button').disabled=true;});
+})();
+</script>
+</body>
+</html>

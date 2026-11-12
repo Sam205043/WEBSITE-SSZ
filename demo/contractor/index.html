@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shree Ram Constructions, Ara — Sample demo website</title>
+<meta name="description" content="Sample builder and contractor website made by Soft Skill Zone, Ara. Demo data only.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F3EF;--card:#fff;--line:#E3DED5;--ink:#1C1A17;--mut:#6B645A;--acc:#E8A317;--acc2:#C4880C;--dark:#22201C;--soft:#FBF3E2;--ok:#15803D}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}h1,h2,h3,.logo,.big{font-family:Archivo,Inter,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+.demo{background:#FEF3C7;color:#78350F;font-size:13px;font-weight:700;text-align:center;padding:7px 12px}.demo a{font-weight:800}
+header{position:sticky;top:0;z-index:20;background:rgba(34,32,28,.96);color:#fff;backdrop-filter:blur(8px)}
+.nav{display:flex;align-items:center;gap:14px;height:66px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:900;font-size:19px;line-height:1.05;letter-spacing:.01em}.logo small{display:block;font:600 11.5px Inter;color:#B9B2A6;letter-spacing:0}
+.logo i{width:40px;height:40px;border-radius:10px;background:var(--acc);display:grid;place-items:center;font-style:normal;font-size:20px}
+.nav nav{margin-left:auto;display:flex;gap:22px;font-size:14.5px;font-weight:600;color:#D6D0C4}.nav nav a{text-decoration:none}.nav nav a:hover{color:var(--acc)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:10px;border:0;font:700 15px Inter,sans-serif;text-decoration:none;cursor:pointer}
+.btn.p{background:var(--acc);color:#1C1A17}.btn.p:hover{background:var(--acc2)}.btn.g{background:transparent;color:inherit;border:1.5px solid rgba(255,255,255,.35)}.btn.d{background:var(--dark);color:#fff}.btn.sm{min-height:40px;padding:0 16px;font-size:14px}
+.hero{background:var(--dark);color:#fff;padding:66px 0 70px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(232,163,23,.07) 0 22px,transparent 22px 44px);pointer-events:none}
+.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;position:relative}
+.kick{color:var(--acc);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(36px,5.6vw,62px);line-height:1.02;margin:10px 0 16px;font-weight:900;letter-spacing:-.01em}h1 em{font-style:normal;color:var(--acc)}
+.lead{color:#D6D0C4;font-size:18px;max-width:540px;margin:0 0 24px}.cta{display:flex;gap:12px;flex-wrap:wrap}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.nums div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px}.nums b{display:block;font:900 34px Archivo;color:var(--acc)}.nums span{font-size:13.5px;color:#D6D0C4}
+.nums .wide{grid-column:1/-1;display:flex;gap:14px;align-items:center}.nums .wide i{font-style:normal;font-size:30px}
+section{padding:60px 0}.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+h2{font-size:clamp(28px,3.8vw,42px);margin:6px 0 0;line-height:1.1;font-weight:800}.sub{color:var(--mut);max-width:520px;margin:6px 0 0}
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+.svc .ic{width:48px;height:48px;border-radius:12px;background:var(--soft);display:grid;place-items:center;font-size:24px;margin-bottom:10px}.svc h3{margin:0 0 4px;font-size:18px}.svc p{margin:0;color:var(--mut);font-size:14.5px}
+.est{display:grid;grid-template-columns:1fr 1fr;gap:26px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:30px}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.fld label{font-size:13px;color:var(--mut);font-weight:700}
+input,select{background:#FBFAF7;border:1.5px solid var(--line);color:var(--ink);border-radius:10px;min-height:48px;padding:0 14px;font:600 16px Inter;width:100%}input:focus,select:focus{outline:none;border-color:var(--acc);background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.q3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.q3 button{min-height:62px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:700 14px Inter;cursor:pointer;color:var(--ink);line-height:1.25}.q3 button small{display:block;font-weight:600;color:var(--mut);font-size:12px}.q3 button.on{border-color:var(--acc);background:var(--soft)}
+.tot{background:var(--dark);color:#fff;border-radius:18px;padding:22px}.tot .big{font-size:42px;font-weight:900;color:var(--acc);line-height:1.1}.tot .sub{color:#B9B2A6}
+.bar{display:flex;height:14px;border-radius:99px;overflow:hidden;margin:16px 0 10px}.bar i{display:block}
+.leg{display:grid;gap:6px;font-size:14px}.leg div{display:flex;justify-content:space-between}.leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:var(--c)}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;counter-reset:s}
+.step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative}.step::before{counter-increment:s;content:counter(s);width:34px;height:34px;border-radius:50%;background:var(--acc);display:grid;place-items:center;font:900 16px Archivo;margin-bottom:10px}
+.step h3{margin:0 0 4px;font-size:16px}.step p{margin:0;color:var(--mut);font-size:13.5px}
+.proj{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pj{border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+.pj .pic{height:150px;display:grid;place-items:center;font-size:60px;position:relative}
+.pj .pic span{position:absolute;left:12px;top:12px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px}
+.pj .bd{padding:14px 16px}.pj h3{margin:0;font-size:16px}.pj p{margin:2px 0 0;color:var(--mut);font-size:13.5px}
+.app{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;align-items:center}
+.chk{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}.chk li{display:flex;gap:10px}.chk li::before{content:"✓";flex:none;width:24px;height:24px;border-radius:50%;background:#DCFCE7;color:var(--ok);display:grid;place-items:center;font-weight:800;font-size:13px}
+.shots{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.shots img{width:200px;flex:none;border-radius:20px;border:6px solid #fff;box-shadow:0 10px 30px -18px rgba(0,0,0,.4);scroll-snap-align:start}
+.visit{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;background:var(--dark);color:#fff;border-radius:24px;padding:30px}.visit .sub{color:#D6D0C4}.visit .fld label{color:#D6D0C4}.visit .chk li::before{background:rgba(232,163,23,.2);color:var(--acc)}
+.ok{display:none;background:#ECFDF5;color:#065F46;border-radius:12px;padding:14px;margin-top:10px;font-size:14.5px}
+footer{border-top:1px solid var(--line);padding:30px 0 90px;color:var(--mut);font-size:14px}footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.made{background:var(--soft);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:22px;color:var(--ink);flex-basis:100%}
+.fab{position:fixed;right:16px;bottom:16px;z-index:30;width:58px;height:58px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.25);text-decoration:none;font-size:28px}
+.disc{font-size:12.5px;color:var(--mut);margin-top:10px}
+@media (max-width:980px){.hero .wrap,.est,.app,.visit{grid-template-columns:1fr}.svc,.proj{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.nav nav{display:none}.hero{padding:44px 0}}
+@media (max-width:560px){.svc,.proj{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.est,.visit{padding:22px}.q3 button{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="demo">Sample demo website — company name, projects and rates are dummy. <a href="../../pages/business.html">Get this for your business →</a></div>
+<header><div class="wrap nav">
+  <a class="logo" href="#"><i>🏗️</i><span>SHREE RAM<small>Constructions · Ara</small></span></a>
+  <nav><a href="#services">Services</a><a href="#estimate">Cost estimate</a><a href="#process">How we work</a><a href="#projects">Projects</a></nav>
+  <a class="btn p sm" href="#visit">Free site visit</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div>
+    <div class="kick">House · Shop · Government civil work</div>
+    <h1>Build your home<br><em>without tension.</em></h1>
+    <p class="lead">Fixed rate per sq ft, written agreement and photo updates of your site every week on your phone. You always know where your money went.</p>
+    <div class="cta"><a class="btn p" href="#estimate">Get cost estimate</a><a class="btn g" href="#visit">Book free site visit</a></div>
+  </div>
+  <div class="nums">
+    <div><b>85+</b><span>houses built</span></div><div><b>14</b><span>govt. projects</span></div><div><b>12 yrs</b><span>in Bhojpur</span></div>
+    <div class="wide"><i>📸</i><span><b style="font-size:18px;color:#fff;display:inline">Weekly photo update</b><br>Site photos, work done and money spent — on your Telegram / WhatsApp.</span></div>
+  </div>
+</div></section>
+
+<section id="services"><div class="wrap">
+  <div class="sh"><div><div class="kick">Services</div><h2>From map to keys</h2></div><p class="sub">One team for everything — no running between mistri, supplier and engineer.</p></div>
+  <div class="svc">
+    <div class="card"><div class="ic">🏠</div><h3>House construction</h3><p>Turnkey G, G+1, G+2 homes with material and labour.</p></div>
+    <div class="card"><div class="ic">📐</div><h3>Map &amp; estimate</h3><p>2D plan, 3D view, Vastu and full cost breakup.</p></div>
+    <div class="card"><div class="ic">🔨</div><h3>Renovation</h3><p>New floor, bathroom, kitchen, tiles and painting.</p></div>
+    <div class="card"><div class="ic">🏛️</div><h3>Government works</h3><p>Roads, buildings and boundary walls under tender.</p></div>
+    <div class="card"><div class="ic">🏪</div><h3>Shops &amp; godowns</h3><p>Commercial buildings with shutters and RCC roof.</p></div>
+    <div class="card"><div class="ic">🎨</div><h3>Interior</h3><p>Modular kitchen, wardrobes, false ceiling.</p></div>
+  </div>
+</div></section>
+
+<section id="estimate" style="padding-top:0"><div class="wrap">
+  <div class="est">
+    <div><div class="kick">Cost estimator</div><h2 style="margin-bottom:14px">What will my house cost?</h2>
+      <div class="row2"><div class="fld"><label for="ar">Plot built-up area (sq ft per floor)</label><input id="ar" type="number" inputmode="numeric" value="1200"></div><div class="fld"><label for="fl">Floors</label><select id="fl"><option value="1">Ground only</option><option value="2" selected>G + 1</option><option value="3">G + 2</option></select></div></div>
+      <div class="fld"><label>Quality</label></div>
+      <div class="q3" id="q3"><button type="button" data-r="1650">Basic<small>₹1,650 / sq ft</small></button><button type="button" class="on" data-r="1950">Standard<small>₹1,950 / sq ft</small></button><button type="button" data-r="2400">Premium<small>₹2,400 / sq ft</small></button></div>
+      <p class="disc" style="margin:0">Sample rates for this demo. Final rate after site visit and map.</p></div>
+    <div class="tot"><div class="sub" style="margin:0">Approx. total cost</div><div class="big" id="tv">₹46.8 lakh</div><div class="sub" id="ts" style="margin:4px 0 0">2,400 sq ft · Standard</div>
+      <div class="bar" id="bar"></div><div class="leg" id="leg"></div>
+      <a class="btn p" style="width:100%;margin-top:16px" href="#visit">Get exact quotation</a></div>
+  </div>
+</div></section>
+
+<section id="process" style="padding-top:0"><div class="wrap">
+  <div class="sh"><div><div class="kick">How we work</div><h2>5 clear steps</h2></div></div>
+  <div class="steps">
+    <div class="step"><h3>Free site visit</h3><p>Engineer checks the plot and soil.</p></div>
+    <div class="step"><h3>Map + estimate</h3><p>Plan and full cost — item by item.</p></div>
+    <div class="step"><h3>Agreement</h3><p>Rate, time and payment stages on paper.</p></div>
+    <div class="step"><h3>Work + updates</h3><p>Weekly photos and spend report on phone.</p></div>
+    <div class="step"><h3>Handover</h3><p>Keys, final bill and 1-year support.</p></div>
+  </div>
+</div></section>
+
+<section id="projects" style="padding-top:0"><div class="wrap">
+  <div class="sh"><div><div class="kick">Projects</div><h2>Recent work</h2></div><p class="sub">Sample projects for this demo website.</p></div>
+  <div class="proj">
+    <div class="pj"><div class="pic" style="background:linear-gradient(135deg,#FDE7B0,#F5C46B)">🏡<span>House · G+1</span></div><div class="bd"><h3>Family home, Nawada</h3><p>2,400 sq ft · 9 months · handed over 2025</p></div></div>
+    <div class="pj"><div class="pic" style="background:linear-gradient(135deg,#D9E8F5,#9CC1E3)">🏛️<span>Govt work</span></div><div class="bd"><h3>Community hall, Koilwar</h3><p>Tender work · RCC + boundary wall</p></div></div>
+    <div class="pj"><div class="pic" style="background:linear-gradient(135deg,#E4EFD9,#B6D39A)">🏪<span>Commercial</span></div><div class="bd"><h3>Shop complex, Station Road</h3><p>8 shops · G+2 · 2024</p></div></div>
+    <div class="pj"><div class="pic" style="background:linear-gradient(135deg,#F3DCDC,#E3A9A9)">🛁<span>Renovation</span></div><div class="bd"><h3>Bathroom + kitchen, Babu Bazar</h3><p>3 weeks · tiles and plumbing</p></div></div>
+    <div class="pj"><div class="pic" style="background:linear-gradient(135deg,#E8E2F4,#C2B3E3)">🏘️<span>House · G+2</span></div><div class="bd"><h3>Rental building, Jagdeopur</h3><p>3,300 sq ft · 6 flats</p></div></div>
+    <div class="pj"><div class="pic" style="background:linear-gradient(135deg,#E2E2E2,#BDBDBD)">🛣️<span>Govt work</span></div><div class="bd"><h3>PCC road, Udwantnagar</h3><p>3 km · tender work</p></div></div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap app">
+  <div><div class="kick">Behind the website</div><h2>Every site on the owner's phone</h2>
+    <ul class="chk"><li>Labour attendance site-wise — who came, who didn't</li><li>Material received and supplier dues</li><li>Money in vs money out for every site</li><li>Tenders, EMD and last dates — with reminders</li></ul></div>
+  <div class="shots"><img src="../../images/demos/contractor-1.jpg" alt="Owner dashboard" loading="lazy"><img src="../../images/demos/contractor-3.jpg" alt="Accounts" loading="lazy"><img src="../../images/demos/contractor-4.jpg" alt="Tenders" loading="lazy"></div>
+</div></section>
+
+<section id="visit" style="padding-top:0"><div class="wrap">
+  <div class="visit">
+    <div><div class="kick">Free site visit</div><h2>Our engineer comes to your plot</h2><p class="sub">No charge. Bring your land papers if you have them.</p>
+      <ul class="chk"><li>Plot measurement and soil check</li><li>Rough estimate on the spot</li><li>Map and quotation in 3 days</li></ul></div>
+    <form id="vf">
+      <div class="row2"><div class="fld"><label for="n">Your name</label><input id="n" required></div><div class="fld"><label for="ph">Mobile</label><input id="ph" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit number"></div></div>
+      <div class="row2"><div class="fld"><label for="w">Work</label><select id="w"><option>New house</option><option>Renovation</option><option>Shop / commercial</option><option>Interior</option></select></div><div class="fld"><label for="loc">Plot location</label><input id="loc" placeholder="e.g. Nawada, Ara"></div></div>
+      <button class="btn p" style="width:100%" type="submit">Book free site visit</button>
+      <div class="ok" id="ok" role="status"></div>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© Shree Ram Constructions (sample) · Ara · Demo contact: Soft Skill Zone 62028 56897</div>
+  <div>Made by <a href="../../pages/business.html">Soft Skill Zone</a></div>
+  <div class="made"><span><b>This is a sample website.</b> Want this for your construction business — with labour attendance, site accounts and tender tracking?</span><a class="btn d sm" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20construction%20business%20ke%20liye%20aisi%20website%20aur%20automation%20chahiye." target="_blank" rel="noopener">Get it for my business</a></div>
+</div></footer>
+<a class="fab" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20construction%20business%20ke%20liye%20aisi%20website%20aur%20automation%20chahiye." target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>
+(function(){
+  var rate=1950,Q={1650:'Basic',1950:'Standard',2400:'Premium'};
+  var P=[['Cement, steel, bricks, sand',52,'#E8A317'],['Labour',23,'#6B645A'],['Electrical + plumbing',10,'#2563EB'],['Tiles, doors, paint',15,'#15803D']];
+  function lakh(n){return n>=1e7?'₹'+(n/1e7).toFixed(2)+' crore':'₹'+(n/1e5).toFixed(1)+' lakh';}
+  function est(){var a=+document.getElementById('ar').value||0,f=+document.getElementById('fl').value,t=a*f*rate;
+    document.getElementById('tv').textContent=lakh(t);document.getElementById('ts').textContent=(a*f).toLocaleString('en-IN')+' sq ft · '+Q[rate];
+    document.getElementById('bar').innerHTML=P.map(function(p){return '<i style="width:'+p[1]+'%;background:'+p[2]+'"></i>';}).join('');
+    document.getElementById('leg').innerHTML=P.map(function(p){return '<div><span style="--c:'+p[2]+'">'+p[0]+'</span><b>'+lakh(t*p[1]/100)+'</b></div>';}).join('');}
+  document.querySelectorAll('#q3 button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#q3 button').forEach(function(x){x.classList.toggle('on',x===b);});rate=+b.getAttribute('data-r');est();});});
+  ['ar','fl'].forEach(function(i){document.getElementById(i).addEventListener('input',est);});est();
+  document.getElementById('vf').addEventListener('submit',function(e){e.preventDefault();var o=document.getElementById('ok');o.innerHTML='✅ Site visit request received. Our engineer will call you today.<br><small>In the real website the owner gets it on Telegram + Google Sheet with a follow-up reminder. (Demo — nothing was sent.)</small>';o.style.display='block';this.querySelector('button').disabled=true;});
+})();
+</script>
+</body>
+</html>

@@ -16,7 +16,7 @@
    hai — ye page sirf dekhne ke liye hai.
 
    Fee pichhe ka niyam (Rule B, Nova aur Excel dashboard jaisa hi):
-     kist = website ka hi niyam — admission par 10% (100 ke round figure, kam se
+     EMI = website ka hi niyam — admission par 10% (100 ke round figure, kam se
      kam 500), baaki barabar mahine-mahine (Duration_Months - 1) EMI mein, max 9.
      Duration har student ki apni hai (Sheet ka Duration_Months column).
      pichhe = ab tak aana chahiye - ab tak mila   (sirf Active, baaki > 0)
@@ -292,7 +292,7 @@ function showStudent(id) {
         line("Net fee", money(r.net)),
         line("Mila", money(r.paid)),
         line("Baaki", money(r.bal)),
-        r.plan ? line("Kist", `${money(r.plan.first)} admission + ${r.plan.n} × ${money(r.plan.base)} (${s.Duration_Months || 12} mahine)`) : null,
+        r.plan ? line("EMI", `${money(r.plan.first)} admission + ${r.plan.n} × ${money(r.plan.base)} (${s.Duration_Months || 12} mahine)`) : null,
         r.behind > 0 ? line("Installment pichhe", `${money(r.behind)} · ${r.since} din se`) : null,
         line("Status", s.Status),
         s.Notes ? line("Note", s.Notes) : null),

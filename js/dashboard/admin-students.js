@@ -121,7 +121,7 @@ function openStudent(s) {
       </p>
       <div class="adm-row">
         <div class="field" style="margin:0">
-          <label class="field__label" style="font-size:.76rem">Kitni kisten</label>
+          <label class="field__label" style="font-size:.76rem">Kitni EMI</label>
           <input class="input-ssz" name="planCount" type="number" min="1" max="24" value="1">
         </div>
         <div class="field" style="margin:0">

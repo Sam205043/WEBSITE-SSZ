@@ -638,7 +638,7 @@ function showAdmitted(box, s, email) {
           <strong data-paid>${money(rupeesOf(s.paidFee))}</strong><span
             data-due style="color:var(--text-muted)">${rupeesOf(s.pendingFee) > 0 ? ` · bakaya ${money(rupeesOf(s.pendingFee))}` : ""}</span>
           ${rupeesOf(s.paidFee) === 0 ? `<br><span data-pay-wait style="font-size:.78rem;color:var(--text-muted)">Aapka payment darj ho raha hai — rakam yahin apne aap aa jaayegi.</span>` : ""}</div>
-        ${s.nextDueDate ? `<div><span style="color:var(--text-muted)">Agli kist</span><br><strong>${s.nextDueDate}</strong></div>` : ""}
+        ${s.nextDueDate ? `<div><span style="color:var(--text-muted)">Agli EMI</span><br><strong>${s.nextDueDate}</strong></div>` : ""}
       </div>
 
       <a class="btn-ssz btn-primary-ssz btn-lg-ssz" style="width:100%;justify-content:center"

@@ -170,7 +170,7 @@ function amountDialog(pending) {
     return;
   }
 
-  const kist = nextInstalment(pending);
+  const emiAmt = nextInstalment(pending);
 
   /* Kam se kam ₹100 — rukawat ke liye nahi, sirf ₹1,000 ki jagah ₹1 wale typo
      aur ₹5-₹10 wale payment se receipt bhar jaane se bachne ke liye. Bakaya
@@ -189,13 +189,13 @@ function amountDialog(pending) {
     <div class="field">
       <label class="field__label" for="payAmt">Kitna pay karna hai? (Rs.) <span class="req">*</span></label>
       <input class="input-ssz" id="payAmt" type="number" min="${minPay}" step="1" inputmode="numeric"
-             max="${pending}" placeholder="Jaise: 1000" value="${kist > 0 ? kist : ""}">
+             max="${pending}" placeholder="Jaise: 1000" value="${emiAmt > 0 ? emiAmt : ""}">
       <p class="field__hint" id="payWords"
          style="font-size:.76rem;color:var(--text-muted);margin:.4rem 0 0"></p>
     </div>
     <div class="cluster" style="gap:.5rem;flex-wrap:wrap;margin-top:.25rem">
-      ${kist > 0 && kist < pending ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
-        data-amt="${kist}">Agli EMI ${money(kist)}</button>` : ""}
+      ${emiAmt > 0 && emiAmt < pending ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
+        data-amt="${emiAmt}">Agli EMI ${money(emiAmt)}</button>` : ""}
       <button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
         data-amt="${pending}">Poora bakaya ${money(pending)}</button>
     </div>`;

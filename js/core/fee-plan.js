@@ -55,7 +55,7 @@ export function planDateStr(date) {
  *
  * Paisa poora-poora baanta jaata hai: bachi hui rakam pehli EMI me jud
  * jaati hai, taaki jod hamesha total fee ke barabar rahe. (₹10,000 ki 3
- * kisten = 3334 + 3333 + 3333, na ki 3333.33 teen baar.)
+ * EMI = 3334 + 3333 + 3333, na ki 3333.33 teen baar.)
  *
  * @param {number} totalFee
  * @param {number} count      kitni EMI

@@ -1732,7 +1732,7 @@ exports.feeReminders = onSchedule(
           `<p style="margin:0 0 14px;font-size:14px;line-height:1.6">Namaste <strong>${esc(s.fullName || "")}</strong>,
             ye sirf ek yaad dilana hai — aapki agli EMI ${esc(when)} deni hai.</p>`,
           table([
-            ...(no ? [row("Kist", `No. ${no}`)] : []),
+            ...(no ? [row("EMI", `No. ${no}`)] : []),
             row("Rakam", inr(amount)),
             row("Tareekh", dueStr),
             row("Kul bakaya", inr(s.pendingFee))

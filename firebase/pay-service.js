@@ -52,7 +52,7 @@ async function getCallable(name) {
  * na juda (session purana pad gaya), to email se kaam chal jaata hai aur
  * student ka payment atakta nahi.
  *
- * @param {"admission"|"student"} kind  admission ka pehla payment, ya baad ki kist
+ * @param {"admission"|"student"} kind  admission ka pehla payment, ya baad ki EMI
  * @param {string} id                   admission ka id, ya Student ID
  * @param {number} [amount]             kitna bhejna hai (function iski hadd lagata hai)
  * @param {string} [email]              wahi email jo us record me likha hai

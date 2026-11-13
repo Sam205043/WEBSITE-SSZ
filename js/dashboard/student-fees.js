@@ -135,8 +135,8 @@ function payBox() {
   $("#btnPay").addEventListener("click", () => amountDialog(pending));
 }
 
-/* Abhi kitni kist baaki hai — jitna paisa aa chuka hai use plan me se ghata
-   kar pehli aisi kist dhoondhte hain jo poori nahi hui. Yahi rakam dialog me
+/* Abhi kitni EMI baaki hai — jitna paisa aa chuka hai use plan me se ghata
+   kar pehli aisi EMI dhoondhte hain jo poori nahi hui. Yahi rakam dialog me
    pehle se bhari rehti hai, kyunki 90% students utna hi bharte hain. */
 function nextInstalment(pending) {
   const plan = Array.isArray(student.feePlan) ? student.feePlan : [];
@@ -146,7 +146,7 @@ function nextInstalment(pending) {
     if (left >= amt) { left -= amt; continue; }
     return Math.min(pending, amt - left);
   }
-  /* Plan hai hi nahi (purane students, jinka admission kist-plan aane se
+  /* Plan hai hi nahi (purane students, jinka admission EMI-plan aane se
      pehle hua tha) — to hum apni taraf se koi rakam nahi thopte. 0 ka matlab
      hai: khaana khaali rahega aur student khud likhega. */
   return 0;
@@ -156,8 +156,8 @@ function nextInstalment(pending) {
    Kitna bharna hai — ye student tay karta hai, hum nahi.
 
    Pehle button seedha poore bakaye (₹10,000) ka link bana deta tha. Wo galat
-   tha: fees mahine-mahine kist me aati hai, ek saath poori dene ki umeed
-   rakhna hi galat hai. Ab dialog khulta hai jisme agli kist pehle se bhari
+   tha: fees mahine-mahine EMI me aati hai, ek saath poori dene ki umeed
+   rakhna hi galat hai. Ab dialog khulta hai jisme agli EMI pehle se bhari
    hai, par student use badal sakta hai.
 
    Hadd server par bhi lagti hai — function Firestore se asli bakaya padh kar
@@ -195,7 +195,7 @@ function amountDialog(pending) {
     </div>
     <div class="cluster" style="gap:.5rem;flex-wrap:wrap;margin-top:.25rem">
       ${kist > 0 && kist < pending ? `<button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
-        data-amt="${kist}">Agli kist ${money(kist)}</button>` : ""}
+        data-amt="${kist}">Agli EMI ${money(kist)}</button>` : ""}
       <button type="button" class="btn-ssz btn-secondary-ssz btn-sm-ssz"
         data-amt="${pending}">Poora bakaya ${money(pending)}</button>
     </div>`;

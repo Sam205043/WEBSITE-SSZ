@@ -177,7 +177,7 @@ async function markRead(a) {
 /* --------------------------------------------------------------------------
    Approve ke saath do cheezein apne aap
    --------------------------------------------------------------------------
-   Pehle approve sirf Student ID banata tha. Batch aur kist plan admin ko
+   Pehle approve sirf Student ID banata tha. Batch aur EMI plan admin ko
    haath se dena padta tha — aur batch dena bhool jaana sabse mehngi galti
    thi: student login to kar leta tha par use EK BHI class nahi dikhti thi,
    aur use lagta tha website hi kharab hai.
@@ -214,10 +214,10 @@ async function pickBatch(courseId, pref) {
 }
 
 /**
- * Kist plan: 10% abhi, baaki barabar mahine-mahine.
+ * EMI plan: 10% abhi, baaki barabar mahine-mahine.
  *
- * Pehli kist gol number me hoti hai (₹818 jaisi rakam koi yaad nahi rakhta).
- * Kiston ki ginti course ki lambai se bandhi hai — fees course khatam hone
+ * Pehli EMI gol number me hoti hai (₹818 jaisi rakam koi yaad nahi rakhta).
+ * EMI ki ginti course ki lambai se bandhi hai — fees course khatam hone
  * se pehle poori ho jani chahiye, warna bakaya lene ke liye student ko
  * dhoondhna padta hai.
  */
@@ -338,7 +338,7 @@ async function approve(a, modal) {
        wo bhi us folder ko nahi padh sakta. */
     const photoURL = a.photoURL || await resolveUrl(a.photoPath);
 
-    /* Batch aur kist plan ab yahin ban jaate hain — admin ko yaad nahi
+    /* Batch aur EMI plan ab yahin ban jaate hain — admin ko yaad nahi
        rakhna padta. Batch na mile to khaali rehta hai aur toast bata deta
        hai, taaki chup-chaap galti na chhup jaye. */
     const batch = await pickBatch(a.courseId, a.batchPref);

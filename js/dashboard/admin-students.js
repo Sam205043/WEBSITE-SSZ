@@ -116,7 +116,7 @@ function openStudent(s) {
     <div class="field">
       <label class="field__label">Fees ka schedule</label>
       <p class="field__hint" style="font-size:.76rem;color:var(--text-muted);margin:0 0 .6rem">
-        Kitni kisto me deni hai aur pehli kist kab tak. Iske bina system ye nahi bata
+        Kitni EMI me deni hai aur pehli EMI kab tak. Iske bina system ye nahi bata
         paata ki kis par kab tak kitna baaki hai — aur reminder bhi nahi nikalte.
       </p>
       <div class="adm-row">
@@ -125,7 +125,7 @@ function openStudent(s) {
           <input class="input-ssz" name="planCount" type="number" min="1" max="24" value="1">
         </div>
         <div class="field" style="margin:0">
-          <label class="field__label" style="font-size:.76rem">Pehli kist kab tak</label>
+          <label class="field__label" style="font-size:.76rem">Pehli EMI kab tak</label>
           <input class="input-ssz" name="planFirst" type="date">
         </div>
         <div class="field" style="margin:0">
@@ -146,7 +146,7 @@ function openStudent(s) {
   body.appendChild(form);
 
   /* ---------------- Fees ka schedule ----------------
-     Plan sirf yahan banta hai; "abhi kaunsi kist baaki hai" kahin save nahi
+     Plan sirf yahan banta hai; "abhi kaunsi EMI baaki hai" kahin save nahi
      hota — wo paidFee se har baar khud nikal aata hai (js/core/fee-plan.js).
      Isliye payment jama hote hi schedule apne aap sahi ho jaata hai. */
   let plan = Array.isArray(s.feePlan) ? [...s.feePlan] : [];
@@ -172,13 +172,13 @@ function openStudent(s) {
               fontWeight: isCurrent ? "600" : "400"
             }
           },
-            el("span", {}, `Kist ${inst.no}`),
+            el("span", {}, `EMI ${inst.no}`),
             el("span", {}, formatDate(planDate(inst.dueDate))),
             el("span", {}, money(inst.amount)));
         })),
       el("p", { style: { margin: ".4rem 0 0", fontSize: ".76rem", color: "var(--text-muted)" } },
-        due ? `Abhi kist ${due.no} chal rahi hai — ${money(due.remaining)} baaki.`
-            : "Saari kisten jama ho chuki hain."));
+        due ? `Abhi EMI ${due.no} chal rahi hai — ${money(due.remaining)} baaki.`
+            : "Saari EMI jama ho chuki hain."));
   };
 
   const firstInput = form.elements.planFirst;
@@ -198,7 +198,7 @@ function openStudent(s) {
       firstInput.value,
       form.elements.planGap.value
     );
-    if (!next.length) return toast.warning("Pehle total fee aur pehli kist ki tareekh sahi karein.");
+    if (!next.length) return toast.warning("Pehle total fee aur pehli EMI ki tareekh sahi karein.");
     plan = next;
     showPlan();
     toast.info("Schedule ban gaya — niche Save dabana na bhoolein.");

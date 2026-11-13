@@ -8,7 +8,7 @@
      [ { no: 1, amount: 3000, dueDate: "2026-08-10" },
        { no: 2, amount: 3500, dueDate: "2026-09-10" }, ... ]
 
-   Kaunsi kist "abhi baaki hai" ye ALAG se nahi rakhte — wo `paidFee` se khud
+   Kaunsi EMI "abhi baaki hai" ye ALAG se nahi rakhte — wo `paidFee` se khud
    nikal aati hai. Isliye jab bhi koi payment jama hota hai, plan apne aap
    sahi ho jaata hai; do jagah ka hisaab kabhi aapas me nahi bigadta.
    ========================================================================== */
@@ -26,8 +26,8 @@ export function planDate(str) {
  *
  * JavaScript ka apna `setMonth` 31 January me 1 mahina jode to 31 February
  * banata hai, jo hota hi nahi, isliye wo 3 March par chhalak jaata hai.
- * Nateeja: February wali kist banti hi nahi thi, aur agli saari tareekhein
- * 31 se khisak kar 3 ho jaati thin. Kabhi-kabhi to do kisten ek hi mahine
+ * Nateeja: February wali EMI banti hi nahi thi, aur agli saari tareekhein
+ * 31 se khisak kar 3 ho jaati thin. Kabhi-kabhi to do EMI ek hi mahine
  * me aa girti thin.
  *
  * Yahan din ko us mahine ke aakhri din tak seemit kar dete hain:
@@ -51,22 +51,22 @@ export function planDateStr(date) {
 }
 
 /**
- * Barabar kiston me fees baant deta hai.
+ * Barabar EMI me fees baant deta hai.
  *
- * Paisa poora-poora baanta jaata hai: bachi hui rakam pehli kist me jud
+ * Paisa poora-poora baanta jaata hai: bachi hui rakam pehli EMI me jud
  * jaati hai, taaki jod hamesha total fee ke barabar rahe. (₹10,000 ki 3
  * kisten = 3334 + 3333 + 3333, na ki 3333.33 teen baar.)
  *
  * @param {number} totalFee
- * @param {number} count      kitni kisten
+ * @param {number} count      kitni EMI
  * @param {string} firstDue   "YYYY-MM-DD"
- * @param {number} gapMonths  do kiston ke beech kitne mahine (default 1)
- * @param {number} offsetMonths  pehli kist `firstDue` se kitne mahine baad
+ * @param {number} gapMonths  do EMI ke beech kitne mahine (default 1)
+ * @param {number} offsetMonths  pehli EMI `firstDue` se kitne mahine baad
  *   ho. Admission wala plan isse istemaal karta hai: anchor (mahine ka din)
  *   admission ki asli tareekh rehti hai, sirf shuruaat ek mahina aage se
  *   hoti hai — warna 31 se 28 par khisak kar wahin atak jaata tha.
  *
- * Har tareekh hamesha `start` se nikalti hai, pichhli kist se nahi — isliye
+ * Har tareekh hamesha `start` se nikalti hai, pichhli EMI se nahi — isliye
  * chhote mahine ka asar aage tak nahi khinchta.
  */
 export function buildPlan(totalFee, count, firstDue, gapMonths = 1, offsetMonths = 0) {
@@ -90,7 +90,7 @@ export function buildPlan(totalFee, count, firstDue, gapMonths = 1, offsetMonths
 }
 
 /**
- * Abhi kaunsi kist chal rahi hai — yaani pehli aisi kist jiska paisa poora
+ * Abhi kaunsi EMI chal rahi hai — yaani pehli aisi EMI jiska paisa poora
  * nahi aaya. Poori fees jama ho chuki ho to null.
  *
  * @returns {{no:number, dueDate:Date, dueDateStr:string, remaining:number,
@@ -105,7 +105,7 @@ export function currentDue(student, today = new Date()) {
 
   for (const inst of plan) {
     running += Math.max(0, Number(inst.amount) || 0);
-    if (paid >= running) continue;              // ye kist pat chuki hai
+    if (paid >= running) continue;              // ye EMI pat chuki hai
 
     const due = planDate(inst.dueDate);
     if (!due) continue;
@@ -115,11 +115,11 @@ export function currentDue(student, today = new Date()) {
       no: inst.no,
       dueDate: due,
       dueDateStr: inst.dueDate,
-      remaining: running - paid,                // is kist me se kitna baaki
+      remaining: running - paid,                // is EMI me se kitna baaki
       overdueDays: Math.max(0, Math.round((midToday - due) / dayMs))
     };
   }
-  return null;                                   // sab kisten pat gayin
+  return null;                                   // sab EMI pat gayin
 }
 
 /**

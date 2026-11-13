@@ -71,7 +71,7 @@ function tiles() {
    Ye students bakaya wali list me kabhi nahi aate (unka bakaya 0 hai), aur
    pendingFee bhi kuchh nahi batata. Isliye inhe alag se dikhate hain: rakam
    institute ke paas hai, aur ispar faisla aapko lena hai — wapas karni hai,
-   ya agle course/kist me jodni hai.
+   ya agle course/EMI me jodni hai.
    -------------------------------------------------------------------------- */
 function paintOverpaid(list) {
   const host = $("#overpaidSection");
@@ -180,7 +180,7 @@ function checkAmount(amount) {
   if (!Number.isFinite(n) || n <= 0) {
     return "Amount sahi nahi hai — 0 se zyada koi number likhein.";
   }
-  /* Paise (dashamlav) jaan-boojh kar mana hain. Receipt, bakaya aur kist
+  /* Paise (dashamlav) jaan-boojh kar mana hain. Receipt, bakaya aur EMI
      sab poore rupaye me chalte hain; 1500.75 aage jaakar 1500.7499999 jaisi
      ginti banata hai aur milaan bigadta hai. */
   if (!Number.isInteger(n)) {
@@ -236,7 +236,7 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
 
      2) DUE DATE PURANE DATA SE BANTI THI — page khulte waqt wale record se.
         Beech me student ne online paisa de diya ho to due date PEECHHE
-        chali jaati thi, us kist par jo wo de chuka hai.
+        chali jaati thi, us EMI par jo wo de chuka hai.
 
      3) RECEIPT PEHLE, STUDENT BAAD ME — aur beech me kuchh fail ho jaye to
         koi rollback nahi. Aap dobara try karte, aur DOOSRI receipt ban
@@ -286,7 +286,7 @@ async function saveCollection({ student, amount, payMode, remarks, existingFeeId
       overpaidFee: total ? Math.max(0, paidNow - total) : 0
     };
     /* nextDueDate par do alag haalat hain:
-         plan HAI  -> jo nikla wahi likho, null bhi (matlab: koi kist baaki nahi)
+         plan HAI  -> jo nikla wahi likho, null bhi (matlab: koi EMI baaki nahi)
          plan NAHI -> kuchh mat likho (yahan null ka matlab "pata nahi" hai) */
     const plan = Array.isArray(cur.feePlan) ? cur.feePlan : [];
     if (plan.length) patch.nextDueDate = nextDueFrom({ ...cur, feePlan: plan, paidFee: paidNow });
@@ -632,8 +632,8 @@ function paintDue() {
     const sub = state === "unplanned"
       ? "Fees ka schedule nahi bana — Students page se bana dein"
       : (due.overdueDays > 0
-          ? `${due.overdueDays} din se bakaya · kist ${due.no} · due thi ${formatDate(due.dueDate)}`
-          : `Aaj due hai · kist ${due.no}`);
+          ? `${due.overdueDays} din se bakaya · EMI ${due.no} · due thi ${formatDate(due.dueDate)}`
+          : `Aaj due hai · EMI ${due.no}`);
 
     return el("div", { class: "card-ssz", style: { borderLeft: `3px solid var(--${state === "overdue" ? "danger" : "warning"})` } },
       el("div", { class: "card-ssz__body", style: { display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.25rem" } },

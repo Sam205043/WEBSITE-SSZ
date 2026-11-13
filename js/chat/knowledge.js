@@ -48,7 +48,7 @@ const SPELLING = [
   [/\bkya\b|क्या/g, "kya"],
   [/\bcorse\b|\bcors\b|\bcourc\w*\b|कोर्स/g, "course"],
   [/\badmis+ion\b|\badmisn\b|दाखिला|एडमिशन/g, "admission"],
-  [/\bkist\b|\bkisht\b|किस्त|\binstal+ment\b|\binstalment\b/g, "installment"],
+  [/\bkist\b|\bkisht\b|\bemi\b|किस्त|\binstal+ment\b|\binstalment\b/g, "installment"],
   [/\bhazri\b|\bhaziri\b|हाजिरी|उपस्थिति/g, "attendance"],
   [/\bpramaa?n\s*patra\b|प्रमाण\s*पत्र|सर्टिफिकेट/g, "certificate"],
   [/\bnauk[ai]?ri\b|नौकरी|\bjob\b|\bkaam\b|काम/g, "job"],
@@ -224,9 +224,9 @@ const PUBLIC_INTENTS = [
       text: [
         "Haan, fees installment me di ja sakti hai.",
         "",
-        "Admission ke waqt aapki fees ki kist bana di jaati hai — kitni kist, har kist kitne ki, aur kis tareekh tak. Wo poora schedule aapke student dashboard me dikhta rehta hai, isliye kabhi confusion nahi hoti ki kitna baaki hai.",
+        "Admission ke waqt aapki fees ki EMI bana di jaati hai — kitni EMI, har EMI kitne ki, aur kis tareekh tak. Wo poora schedule aapke student dashboard me dikhta rehta hai, isliye kabhi confusion nahi hoti ki kitna baaki hai.",
         "",
-        "Kist ki tareekh paas aane par notification bhi aa jaata hai."
+        "EMI ki tareekh paas aane par notification bhi aa jaata hai."
       ].join("\n"),
       chips: ["Fees kaise jama karein?", "Admission kaise lein?"]
     })
@@ -481,8 +481,8 @@ const STUDENT_INTENTS = [
        record ke baare me poochhne par hi aata ho. "due" aur "pending" jaise
        akele shabd hata diye — wo aam sawaalon me bhi aate the aur naye
        aane wale ko bewajah login par bhej dete the. */
-    keys: ["meri fees", "mera bakaya", "kitna baaki", "baki fees", "meri kist",
-           "kist kab", "next installment", "kitna dena", "mera pending"],
+    keys: ["meri fees", "mera bakaya", "kitna baaki", "baki fees", "meri installment",
+           "installment kab", "next installment", "kitna dena", "mera pending"],
     answer: async (ctx) => {
       const s = ctx.student;
       if (!s) return null;
@@ -505,12 +505,12 @@ const STUDENT_INTENTS = [
           const { currentDue } = await import("../core/fee-plan.js");
           const { formatDate } = await import("../core/utils.js");
           const due = currentDue(s);
-          /* currentDue `remaining` deta hai (is kist me se kitna baaki),
+          /* currentDue `remaining` deta hai (is EMI me se kitna baaki),
              `amount` nahi — aur dueDate ek Date object hai, string nahi.
              Isliye yahan wahi field padhte hain jo sach me aate hain. */
           if (due) {
-            lines.push("", `**Kist ${due.no}:** ${money(due.remaining)} — ${formatDate(due.dueDate)} tak`);
-            if (due.overdueDays > 0) lines.push(`Ye kist **${due.overdueDays} din** se baaki hai.`);
+            lines.push("", `**EMI ${due.no}:** ${money(due.remaining)} — ${formatDate(due.dueDate)} tak`);
+            if (due.overdueDays > 0) lines.push(`Ye EMI **${due.overdueDays} din** se baaki hai.`);
           }
         } catch { /* plan nahi bana to sirf pending dikha dete hain */ }
       }

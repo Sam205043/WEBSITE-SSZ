@@ -470,7 +470,7 @@ export const INTERVIEW_QA = [
   { t: "GST & Tax", q: "TAN kya hai?", a: "Tax Deduction Account Number — TDS kaatne walon ke liye zaroori 10 akshar-ank ka number." },
   { t: "GST & Tax", q: "TDS return kab bharna hota hai?", a: "Har tinmahi — aam taur par tinmahi khatam hone ke agle mahine ki 31 tareekh tak." },
   { t: "GST & Tax", q: "Form 16 aur 16A me farq?", a: "16 salary par kate TDS ke liye, 16A salary ke alawa (jaise contract, byaaj) par kate TDS ke liye." },
-  { t: "GST & Tax", q: "Advance Tax kya hai?", a: "Saal ke aakhir me ek saath dene ke bajaye, kist me pehle se tax bharna — 10,000 se zyada tax bane to zaroori." },
+  { t: "GST & Tax", q: "Advance Tax kya hai?", a: "Saal ke aakhir me ek saath dene ke bajaye, saal bhar hisson me pehle se tax bharna — 10,000 se zyada tax bane to zaroori." },
   { t: "GST & Tax", q: "Old aur New tax regime me farq?", a: "Old me chhoot (80C, HRA) milti hai par dar zyada. New me chhoot kam par dar kam. Jo kam tax banaye wahi chunein." },
   { t: "GST & Tax", q: "Section 80C me kya aata hai?", a: "LIC, PPF, ELSS, bachhon ki fees, home loan ka principal — Old regime me 1.5 lakh tak ki chhoot." },
   { t: "GST & Tax", q: "Ek GST accountant ka roz ka kaam kya hota hai?", a: "Bill entry, purchase-sale ka milaan, GSTR-2B se ITC check karna, aur samay par return bharna." },

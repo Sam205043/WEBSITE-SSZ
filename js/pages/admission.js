@@ -418,7 +418,7 @@ function uploadWatchdog() {
 
    Ab paisa yahin liya jaata hai. Aur fayda sirf itna nahi ki student ruk
    jaata hai — paisa aate hi Cloud Function apne aap Student ID banata hai,
-   batch deta hai, kist plan banata hai aur admin ko batata hai. Admin ko
+   batch deta hai, EMI plan banata hai aur admin ko batata hai. Admin ko
    haath se approve karne ki zaroorat hi nahi padti.
 
    Rakam par hadd server par lagti hai (kam se kam 10%, gol number me),
@@ -449,7 +449,7 @@ function feeCard(appNo, course, email) {
       <h3 style="margin:0 0 .35rem;font-size:1.05rem">Ab pehli fees bhar dein</h3>
       <p style="font-size:.86rem;color:var(--text-muted);margin:0 0 1rem">
         Payment poora hote hi aapki <strong>Student ID apne aap ban jayegi</strong> —
-        batch aur kist plan ke saath. Kisi ke approve karne ka intezaar nahi karna padega.</p>
+        batch aur EMI plan ke saath. Kisi ke approve karne ka intezaar nahi karna padega.</p>
 
       <div class="field" style="margin-bottom:.5rem">
         <label class="field__label" for="admPayAmt">Kitna abhi bhar rahe hain? (Rs.)</label>
@@ -470,7 +470,7 @@ function feeCard(appNo, course, email) {
         style="width:100%">Fee bharein</button>
 
       <p class="field__hint" style="margin:.9rem 0 0;font-size:.78rem">
-        Kul course fee ${money(total)}. Baaki amount har mahine kist me de sakte hain —
+        Kul course fee ${money(total)}. Baaki amount har mahine EMI me de sakte hain —
         plan aapke dashboard me apne aap ban jayega.
         Cash dena ho to institute aakar bhi de sakte hain; tab admin khud aapka
         admission confirm kar dega.</p>

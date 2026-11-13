@@ -114,7 +114,7 @@ const MAIL_SECRETS = [BREVO_USER, BREVO_KEY];
    module import nahi kar sakta, isliye yahan dobara likhni padi.
 
    >>> Fees ya duration badlein to DONO jagah badalna — warna Student ID ka
-   >>> code ya kist ka plan galat banega. <<<
+   >>> code ya EMI ka plan galat banega. <<<
    -------------------------------------------------------------------------- */
 const COURSES = {
   /* 17 Oct 2026 — nayi course list. `fee` = ONLINE class ka daam (website
@@ -190,7 +190,7 @@ function courseFeeOf(courseId, now = Date.now()) {
   return rupees(c.fee) + rupees(c.admissionFee);
 }
 
-/* Admission ke waqt kam se kam itna hissa — baaki kisten ban jaati hain. */
+/* Admission ke waqt kam se kam itna hissa — baaki EMI ban jaati hain. */
 const MIN_SHARE = 0.10;
 
 /* ==========================================================================
@@ -344,8 +344,8 @@ async function sendMail(key, { to, subject, html, text }) {
       ka naam bhi saal se banta hai (`students-2025-DCA`), wo purane saal ka
       counter aage badha deta — matlab agle din ki ginti bhi bigadti.
 
-   2) Kist plan ki due dates. Raat 12:00 se 5:30 IST ke beech bana plan har
-      kist ko ek din pehle ki tareekh de deta tha.
+   2) EMI plan ki due dates. Raat 12:00 se 5:30 IST ke beech bana plan har
+      EMI ko ek din pehle ki tareekh de deta tha.
 
    Ilaaj seedha hai: samay ko 5:30 aage khiska kar UTC wale hisse padho.
    `istDayRange()` neeche pehle se yahi karta hai — ab poori file ek hi
@@ -367,7 +367,7 @@ const istYear = () => new Date(Date.now() + IST_OFFSET_MS).getUTCFullYear();
  *
  * JavaScript ka `setMonth` 31 January me 1 mahina jode to "31 February"
  * banata hai, jo hota hi nahi, isliye wo 3 March par chhalak jaata hai.
- * Nateeja: February wali kist banti hi nahi thi, aur baaki tareekhein 31
+ * Nateeja: February wali EMI banti hi nahi thi, aur baaki tareekhein 31
  * se khisak kar 3 ho jaati thin. Yahan din ko us mahine ke aakhri din tak
  * seemit kar dete hain: 31 Jan + 1 = 28 Feb, 31 Mar + 1 = 30 Apr.
  *
@@ -395,9 +395,9 @@ async function nextSequence(name, start = 1) {
 }
 
 /**
- * Kist plan — website ke admin panel jaisa hi hisaab, taaki dono jagah ek
+ * EMI plan — website ke admin panel jaisa hi hisaab, taaki dono jagah ek
  * hi jawab bane: 10% (gol number me) abhi, baaki barabar mahine-mahine.
- * Kiston ki ginti course ki lambai se bandhi hai, taaki fees course khatam
+ * EMI ki ginti course ki lambai se bandhi hai, taaki fees course khatam
  * hone se pehle poori ho jaye.
  */
 function buildFeePlan(totalFee, durationMonths, from = new Date()) {
@@ -420,7 +420,7 @@ function buildFeePlan(totalFee, durationMonths, from = new Date()) {
   return plan;
 }
 
-/** Pehli aisi kist jiska paisa poora nahi aaya — student dashboard isi se "agli due date" dikhata hai. */
+/** Pehli aisi EMI jiska paisa poora nahi aaya — student dashboard isi se "agli due date" dikhata hai. */
 function nextDueDate(plan, paidFee) {
   let left = rupees(paidFee);
   for (const k of plan) {
@@ -692,7 +692,7 @@ exports.createPaymentLink = onCall(
        Ab: paisa aate hi webhook student ka record bana deta hai aur
        admission par uski ID likh deta hai. Wo ID dikhte hi hum aage ka poora
        hisaab student ke record se karte hain — jaise webhook khud karta hai.
-       Kist ki hadd bhi tab ₹100 ho jaati hai, kyunki 10% to aa hi chuka.
+       EMI ki hadd bhi tab ₹100 ho jaati hai, kyunki 10% to aa hi chuka.
 
        Ek chhoti khidki phir bhi bachti hai: paisa dene ke baad, webhook
        pahunchne se pehle ke kuchh second. Us beech dono link poore bakaye ke
@@ -746,16 +746,16 @@ exports.createPaymentLink = onCall(
 
     /* Do alag hadd, do alag wajah.
 
-       Admission par 10% isliye ki usi payment par Student ID, batch aur kist
+       Admission par 10% isliye ki usi payment par Student ID, batch aur EMI
        plan ban jaate hain — ₹1 me ye sab de dena galat hoga.
 
-       Baad ki kist par hadd sirf ₹100 hai, aur wo rokne ke liye nahi hai.
+       Baad ki EMI par hadd sirf ₹100 hai, aur wo rokne ke liye nahi hai.
        Paisa aane me jitni rukawat kam, utna achha — jo student aaj ₹300 de
        sakta hai use rokne se institute ko ₹300 milte hi nahi. Ye ₹100 to
        bas do cheezon ke liye hai: ₹1,000 ki jagah ₹1 wala typo, aur ₹5-₹10
        wale payment se receipt ki ginti bhar jaana.
 
-       Dono halat me `due` se zyada kabhi nahi — aakhri kist chhoti bachi ho
+       Dono halat me `due` se zyada kabhi nahi — aakhri EMI chhoti bachi ho
        to utni hi maangi jaati hai, ₹100 ki hadd wahan apne aap hat jaati hai. */
     const min = feeKind === "admission"
       ? Math.min(due, Math.max(500, Math.ceil((total * MIN_SHARE) / 100) * 100))
@@ -1210,7 +1210,7 @@ async function onAdmissionPaid(admissionId, amount, paymentId) {
 
   /* "Aapka admission ho gaya" wali mail — receipt se ALAG.
 
-     Ye ek hi baar jaati hai, chaahe student aage kitni bhi kist bhare, kyunki
+     Ye ek hi baar jaati hai, chaahe student aage kitni bhi EMI bhare, kyunki
      iska naam Student ID se banta hai. Isme wo teen cheezein hain jo student
      baar-baar poochhta hai: uski ID, uska batch, aur agla kadam. */
   try {
@@ -1352,7 +1352,7 @@ async function claimStudentId(admissionId) {
 }
 
 /* --------------------------------------------------------------------------
-   Fees darj karna — pehli kist ho ya baad ki, dono yahin se
+   Fees darj karna — pehli EMI ho ya baad ki, dono yahin se
    -------------------------------------------------------------------------- */
 async function onStudentPaid(studentId, amount, paymentId) {
   const stuRef = db.collection("students").doc(studentId);
@@ -1495,7 +1495,7 @@ async function onStudentPaid(studentId, amount, paymentId) {
         message: `${result.name || studentId} ke khaate me kul fees ` +
           `₹${rupees(result.totalFee).toLocaleString("en-IN")} se ` +
           `₹${extra.toLocaleString("en-IN")} zyada jama ho gaya hai. ` +
-          "Ye rakam wapas karni hai ya agle course/kist me jodni hai — faisla aapka.",
+          "Ye rakam wapas karni hai ya agle course/EMI me jodni hai — faisla aapka.",
         isRead: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
@@ -1531,7 +1531,7 @@ async function onStudentPaid(studentId, amount, paymentId) {
           left > 0 ? row("Ab bakaya", inr(left)) : row("Bakaya", "Kuch nahi — poori fees jama")
         ]),
         left > 0
-          ? `<p style="margin:0 0 18px;font-size:13px;color:#6b7280;line-height:1.6">Agli kist dashboard me dikh jaayegi.</p>`
+          ? `<p style="margin:0 0 18px;font-size:13px;color:#6b7280;line-height:1.6">Agli EMI dashboard me dikh jaayegi.</p>`
           : `<p style="margin:0 0 18px;font-size:13px;color:#6b7280;line-height:1.6">Aapki poori fees jama ho gayi — dhanyavaad!</p>`,
         button(SITE, "Dashboard kholein")
       ].join(""))
@@ -1645,16 +1645,16 @@ exports.gradeMcq = onCall({ cors: true }, async (req) => {
 });
 
 /* ==========================================================================
-   feeReminders — kist ki tareekh se pehle ek yaad dilana
+   feeReminders — EMI ki tareekh se pehle ek yaad dilana
    --------------------------------------------------------------------------
    Roz subah 9 baje (Ara ke waqt se) chalta hai.
 
-   KITNI BAAR — ek kist par zyada se zyada DO mail: teen din pehle, aur usi
+   KITNI BAAR — ek EMI par zyada se zyada DO mail: teen din pehle, aur usi
    din. Iske baad chup. Roz-roz "fees do" bhejna student ko sirf naaraz
    karta hai, aur mail spam me chali jaati hai; ek shaant yaad dilana kaam
    kar jaata hai.
 
-   DOBARA NAHI — har mail ka naam me student ki ID, kist ki tareekh aur
+   DOBARA NAHI — har mail ka naam me student ki ID, EMI ki tareekh aur
    "kitne din pehle" tinon hote hain. Isliye function roz chale to bhi wahi
    mail dobara nahi jaati (dekhein `sendMail`).
 
@@ -1706,7 +1706,7 @@ exports.feeReminders = onSchedule(
       );
       if (!REMIND_DAYS.includes(days)) continue;
 
-      /* Kist ki rakam — plan me se wo pehli kist jo abhi poori nahi hui. */
+      /* EMI ki rakam — plan me se wo pehli EMI jo abhi poori nahi hui. */
       const plan = Array.isArray(s.feePlan) ? s.feePlan : [];
       let left = rupees(s.paidFee), instalment = 0, no = 0;
       for (const k of plan) {
@@ -1720,17 +1720,17 @@ exports.feeReminders = onSchedule(
       const ok = await sendMail(`due_${doc.id}_${dueStr}_${days}`, {
         to: s.email,
         subject: days === 0
-          ? `Aapki kist aaj due hai — ${inr(amount)}`
-          : `Kist ki yaad — ${inr(amount)}, ${days} din baad`,
+          ? `Aapki EMI aaj due hai — ${inr(amount)}`
+          : `EMI ki yaad — ${inr(amount)}, ${days} din baad`,
         text:
           `Namaste ${s.fullName || ""},\n\n` +
-          `Aapki ${no ? `kist ${no} ` : ""}${inr(amount)} ki tareekh ${when} (${dueStr}) hai.\n` +
+          `Aapki ${no ? `EMI ${no} ` : ""}${inr(amount)} ki tareekh ${when} (${dueStr}) hai.\n` +
           `Kul bakaya: ${inr(s.pendingFee)}\n\n` +
           `Dashboard se online bhar sakte hain, ya institute aakar de sakte hain: ${SITE}\n\n` +
           `Koi dikkat ho to bata dijiye — hum raasta nikaal lenge.\n\n— Soft Skill Zone Institute`,
-        html: wrap(days === 0 ? "Aapki kist aaj due hai" : "Kist ki yaad", [
+        html: wrap(days === 0 ? "Aapki EMI aaj due hai" : "EMI ki yaad", [
           `<p style="margin:0 0 14px;font-size:14px;line-height:1.6">Namaste <strong>${esc(s.fullName || "")}</strong>,
-            ye sirf ek yaad dilana hai — aapki agli kist ${esc(when)} deni hai.</p>`,
+            ye sirf ek yaad dilana hai — aapki agli EMI ${esc(when)} deni hai.</p>`,
           table([
             ...(no ? [row("Kist", `No. ${no}`)] : []),
             row("Rakam", inr(amount)),
@@ -1747,7 +1747,7 @@ exports.feeReminders = onSchedule(
       if (ok) sent++;
     }
 
-    logger.info("kist reminder chale", { dekhe: looked, bheje: sent });
+    logger.info("EMI reminder chale", { dekhe: looked, bheje: sent });
   }
 );
 
@@ -1906,7 +1906,7 @@ exports.publishRecording = onRequest(
    --------------------------------------------------------------------------
    Payment ke baad admission page yahi poochhta rehta hai. Jaise hi webhook
    Student ID bana deta hai, page us par card badal kar ID, batch aur agli
-   kist dikha deta hai.
+   EMI dikha deta hai.
 
    Iske bina student payment karke khaali page par baitha rehta tha — usse
    pata hi nahi chalta tha ki uska admission ho chuka hai. Wahi jagah thi

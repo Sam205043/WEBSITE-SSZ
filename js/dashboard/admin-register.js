@@ -17,7 +17,7 @@
 
    Fee pichhe ka niyam (Rule B, Nova aur Excel dashboard jaisa hi):
      kist = website ka hi niyam — admission par 10% (100 ke round figure, kam se
-     kam 500), baaki barabar mahine-mahine (Duration_Months - 1) kist mein, max 9.
+     kam 500), baaki barabar mahine-mahine (Duration_Months - 1) EMI mein, max 9.
      Duration har student ki apni hai (Sheet ka Duration_Months column).
      pichhe = ab tak aana chahiye - ab tak mila   (sirf Active, baaki > 0)
      pichhe = ab tak aana chahiye - ab tak mila   (sirf Active, baaki > 0)
@@ -31,7 +31,7 @@ import { initAdminShell } from "./admin-shell.js";
 import toast from "../core/toast.js";
 
 const API = "https://script.google.com/macros/s/AKfycbzAyU3lMxRnHEam8sEuy8jJ1uWhhSMcSF5uRBI7sqG00JetyhHg3a-NatPignmTrjOrXQ/exec";
-/** Kist plan — functions/index.js ke buildFeePlan aur Nova ke plan() jaisa */
+/** EMI plan — functions/index.js ke buildFeePlan aur Nova ke plan() jaisa */
 function feePlan(net, months) {
   const total = Math.max(0, Math.round(net));
   if (!total) return null;

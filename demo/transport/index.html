@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maa Durga Transport, Ara — Sample demo website</title>
+<meta name="description" content="Sample transport and goods carrier website made by Soft Skill Zone, Ara. Demo data only.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F4F1;--card:#fff;--line:#E4DED6;--ink:#1A1816;--mut:#6B6459;--acc:#C2410C;--acc2:#9A3412;--amb:#F59E0B;--dark:#1F1C19;--soft:#FDF1E7;--ok:#15803D}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}h1,h2,h3,.logo,.big{font-family:Archivo,Inter,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+.demo{background:#FEF3C7;color:#78350F;font-size:13px;font-weight:700;text-align:center;padding:7px 12px}.demo a{font-weight:800}
+header{position:sticky;top:0;z-index:20;background:rgba(31,28,25,.96);color:#fff;backdrop-filter:blur(8px)}
+.nav{display:flex;align-items:center;gap:14px;height:66px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:900;font-size:19px;line-height:1.05;letter-spacing:.01em}.logo small{display:block;font:600 11.5px Inter;color:#B5ADA2;letter-spacing:0}
+.logo i{width:40px;height:40px;border-radius:10px;background:var(--acc);display:grid;place-items:center;font-style:normal;font-size:20px}
+.nav nav{margin-left:auto;display:flex;gap:22px;font-size:14.5px;font-weight:600;color:#D4CDC2}.nav nav a{text-decoration:none}.nav nav a:hover{color:var(--amb)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:10px;border:0;font:700 15px Inter,sans-serif;text-decoration:none;cursor:pointer}
+.btn.p{background:var(--acc);color:#fff}.btn.p:hover{background:var(--acc2)}.btn.g{background:transparent;color:inherit;border:1.5px solid rgba(255,255,255,.35)}.btn.d{background:var(--dark);color:#fff}.btn.sm{min-height:40px;padding:0 16px;font-size:14px}
+.hero{background:var(--dark);color:#fff;padding:60px 0 64px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(245,158,11,.10) 0 46px,transparent 46px 92px);opacity:.5;pointer-events:none}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;position:relative}
+.kick{color:var(--amb);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.03;margin:10px 0 16px;font-weight:900;letter-spacing:-.01em}h1 em{font-style:normal;color:var(--amb)}
+.lead{color:#D4CDC2;font-size:18px;max-width:540px;margin:0 0 24px}.cta{display:flex;gap:12px;flex-wrap:wrap}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.nums div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px}.nums b{display:block;font:900 32px Archivo;color:var(--amb)}.nums span{font-size:13.5px;color:#D4CDC2}
+.nums .wide{grid-column:1/-1;display:flex;gap:14px;align-items:center}.nums .wide i{font-style:normal;font-size:30px}
+section{padding:58px 0}.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+h2{font-size:clamp(27px,3.7vw,40px);margin:6px 0 0;line-height:1.1;font-weight:800}.sub{color:var(--mut);max-width:520px;margin:6px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+/* track */
+.track{display:grid;grid-template-columns:1fr 1fr;gap:26px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:30px}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.fld label{font-size:13px;color:var(--mut);font-weight:700}
+input,select{background:#FBFAF7;border:1.5px solid var(--line);color:var(--ink);border-radius:10px;min-height:48px;padding:0 14px;font:600 16px Inter;width:100%}input:focus,select:focus{outline:none;border-color:var(--acc);background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 12px}
+.chips button{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font:700 13px Inter;cursor:pointer;color:var(--mut)}
+.chips button:hover{border-color:var(--acc);color:var(--acc)}
+.res{background:var(--dark);color:#fff;border-radius:18px;padding:22px;min-height:100%}
+.res .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}
+.res .rt{font:900 22px Archivo;color:#fff}.res .mt{color:#B5ADA2;font-size:13.5px}
+.pill{background:rgba(245,158,11,.18);color:var(--amb);font:800 12px Inter;padding:5px 11px;border-radius:99px;flex:none}
+.tl{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:0}
+.tl li{display:grid;grid-template-columns:24px 1fr;gap:12px;padding-bottom:16px;position:relative}
+.tl li:last-child{padding-bottom:0}
+.tl li::before{content:"";width:14px;height:14px;border-radius:50%;border:3px solid #4A443C;background:var(--dark);margin-top:5px;margin-left:5px;z-index:1}
+.tl li::after{content:"";position:absolute;left:11px;top:22px;bottom:-2px;width:2px;background:#3A352F}
+.tl li:last-child::after{display:none}
+.tl li.on::before{border-color:var(--ok);background:var(--ok)}
+.tl li.now::before{border-color:var(--amb);background:var(--amb);box-shadow:0 0 0 5px rgba(245,158,11,.22)}
+.tl b{display:block;font-size:15px;font-weight:700}.tl span{font-size:13px;color:#B5ADA2}
+.tl li.off b{color:#8C857A;font-weight:600}
+/* routes */
+.rt3{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.rc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.rc b{font:800 17px Archivo;display:block}.rc .d{color:var(--mut);font-size:13.5px;margin-top:2px}
+.rc .t{margin-top:10px;font-size:13px;font-weight:700;color:var(--acc);background:var(--soft);display:inline-block;padding:4px 10px;border-radius:99px}
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.svc .ic{width:48px;height:48px;border-radius:12px;background:var(--soft);display:grid;place-items:center;font-size:24px;margin-bottom:10px}.svc h3{margin:0 0 4px;font-size:18px}.svc p{margin:0;color:var(--mut);font-size:14.5px}
+/* estimate */
+.est{display:grid;grid-template-columns:1fr 1fr;gap:26px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:30px}
+.tot{background:var(--dark);color:#fff;border-radius:18px;padding:22px}.tot .big{font-size:40px;font-weight:900;color:var(--amb);line-height:1.1}.tot .sub{color:#B5ADA2}
+.leg{display:grid;gap:7px;font-size:14px;margin-top:14px}.leg div{display:flex;justify-content:space-between;border-bottom:1px dashed #3A352F;padding-bottom:6px}.leg div:last-child{border:0;font-weight:800}
+.q3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.q3 button{min-height:58px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:700 14px Inter;cursor:pointer;color:var(--ink);line-height:1.25}.q3 button small{display:block;font-weight:600;color:var(--mut);font-size:12px}.q3 button.on{border-color:var(--acc);background:var(--soft)}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;counter-reset:s}
+.step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative}.step::before{counter-increment:s;content:counter(s);width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font:900 16px Archivo;margin-bottom:10px}
+.step h3{margin:0 0 4px;font-size:16px}.step p{margin:0;color:var(--mut);font-size:13.5px}
+.app{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;align-items:center}
+.chk{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}.chk li{display:flex;gap:10px}.chk li::before{content:"✓";flex:none;width:24px;height:24px;border-radius:50%;background:#DCFCE7;color:var(--ok);display:grid;place-items:center;font-weight:800;font-size:13px}
+.shots{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.shots img{width:200px;flex:none;border-radius:20px;border:6px solid #fff;box-shadow:0 10px 30px -18px rgba(0,0,0,.4);scroll-snap-align:start}
+.visit{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;background:var(--dark);color:#fff;border-radius:24px;padding:30px}.visit .sub{color:#D4CDC2}.visit .fld label{color:#D4CDC2}.visit .chk li::before{background:rgba(245,158,11,.2);color:var(--amb)}
+.ok{display:none;background:#ECFDF5;color:#065F46;border-radius:12px;padding:14px;margin-top:10px;font-size:14.5px}
+footer{border-top:1px solid var(--line);padding:30px 0 90px;color:var(--mut);font-size:14px}footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.made{background:var(--soft);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:22px;color:var(--ink);flex-basis:100%}
+.fab{position:fixed;right:16px;bottom:16px;z-index:30;width:58px;height:58px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.25);text-decoration:none;font-size:28px}
+.disc{font-size:12.5px;color:var(--mut);margin-top:10px}
+@media (max-width:980px){.hero .wrap,.track,.est,.app,.visit{grid-template-columns:1fr}.svc{grid-template-columns:1fr 1fr}.rt3{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.nav nav{display:none}.hero{padding:42px 0}}
+@media (max-width:560px){.svc,.rt3{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.track,.est,.visit{padding:22px}.q3 button{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="demo">Sample demo website — company name, routes and rates are dummy. <a href="../../pages/business.html">Get this for your business →</a></div>
+<header><div class="wrap nav">
+  <a class="logo" href="#"><i>🚚</i><span>MAA DURGA<small>Transport · Ara</small></span></a>
+  <nav><a href="#track">Track</a><a href="#routes">Routes</a><a href="#rate">Freight rate</a><a href="#services">Services</a></nav>
+  <a class="btn p sm" href="#book">Book a load</a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div>
+    <div class="kick">Daily service · Bihar · Jharkhand · Bengal · UP</div>
+    <h1>Your goods,<br><em>always trackable.</em></h1>
+    <p class="lead">Full load and part load from Ara. Every bilty gets a QR and a tracking link — see where your goods are without calling the office even once.</p>
+    <div class="cta"><a class="btn p" href="#track">Track my goods</a><a class="btn g" href="#book">Book a load</a></div>
+  </div>
+  <div class="nums">
+    <div><b>8</b><span>daily routes</span></div><div><b>14</b><span>own vehicles</span></div><div><b>18 yrs</b><span>in Bhojpur</span></div>
+    <div class="wide"><i>📍</i><span><b style="font-size:18px;color:#fff;display:inline">Live status on your phone</b><br>Booked → loaded → on the way → arrived → delivered. No login, no app.</span></div>
+  </div>
+</div></section>
+
+<section id="track"><div class="wrap">
+  <div class="track">
+    <div><div class="kick">Track</div><h2 style="margin-bottom:12px">Where are my goods?</h2>
+      <p class="sub" style="margin:0 0 16px">Type the bilty (LR) number printed on your receipt, or scan the QR on it.</p>
+      <div class="fld"><label for="lr">Bilty / LR number</label><input id="lr" value="L27844" autocomplete="off" placeholder="e.g. L27844"></div>
+      <div class="chips"><span style="font-size:13px;color:var(--mut);font-weight:700;align-self:center">Try:</span><button type="button" data-lr="L27844">L27844</button><button type="button" data-lr="L27861">L27861</button><button type="button" data-lr="L27802">L27802</button></div>
+      <button class="btn p" style="width:100%" id="go" type="button">Track</button>
+      <p class="disc" style="margin-top:12px">Demo data. On the real website this comes live from the transport's own system, updated by the booking counter, the driver and the godown.</p></div>
+    <div class="res" id="res"></div>
+  </div>
+</div></section>
+
+<section id="routes" style="padding-top:0"><div class="wrap">
+  <div class="sh"><div><div class="kick">Routes</div><h2>Daily and alternate-day service</h2></div><p class="sub">Part load (per nag) and full load both. Sample timings for this demo.</p></div>
+  <div class="rt3">
+    <div class="rc"><b>Ara ⇄ Patna</b><div class="d">Daily · 2 trips a day</div><div class="t">Same day delivery</div></div>
+    <div class="rc"><b>Ara ⇄ Buxar</b><div class="d">Mon · Wed · Fri</div><div class="t">Same day delivery</div></div>
+    <div class="rc"><b>Ara ⇄ Sasaram</b><div class="d">Tue · Thu · Sat</div><div class="t">Same day delivery</div></div>
+    <div class="rc"><b>Ara ⇄ Chhapra</b><div class="d">Mon · Thu · Sat</div><div class="t">Same day delivery</div></div>
+    <div class="rc"><b>Ara ⇄ Varanasi</b><div class="d">Mon · Thu</div><div class="t">Next day</div></div>
+    <div class="rc"><b>Ara ⇄ Muzaffarpur</b><div class="d">Tue · Sat</div><div class="t">Next day</div></div>
+    <div class="rc"><b>Ara ⇄ Ranchi</b><div class="d">Wed · Sat</div><div class="t">2 days</div></div>
+    <div class="rc"><b>Ara ⇄ Kolkata</b><div class="d">Tue · Fri</div><div class="t">2 days</div></div>
+  </div>
+</div></section>
+
+<section id="rate" style="padding-top:0"><div class="wrap">
+  <div class="est">
+    <div><div class="kick">Freight calculator</div><h2 style="margin-bottom:14px">What will it cost to send?</h2>
+      <div class="row2"><div class="fld"><label for="to">Destination</label><select id="to">
+        <option value="60">Patna</option><option value="75">Buxar</option><option value="100">Sasaram</option><option value="55">Chhapra</option><option value="190">Varanasi</option><option value="130">Muzaffarpur</option><option value="380">Ranchi</option><option value="600">Kolkata</option></select></div>
+        <div class="fld"><label for="nag">Nag (packets)</label><input id="nag" type="number" inputmode="numeric" value="20" min="1"></div></div>
+      <div class="fld"><label for="wt">Total weight (quintal)</label><input id="wt" type="number" inputmode="decimal" value="16" min="0.5" step="0.5"></div>
+      <div class="fld"><label>Payment</label></div>
+      <div class="q3" id="q3"><button type="button" class="on" data-p="paid">Paid<small>now, at booking</small></button><button type="button" data-p="topay">To-pay<small>on delivery</small></button><button type="button" data-p="udhaar">Khata<small>monthly account</small></button></div>
+      <p class="disc" style="margin:0">Sample rates for this demo. Actual freight depends on goods type, season and vehicle.</p></div>
+    <div class="tot"><div class="sub" style="margin:0">Approx. freight</div><div class="big" id="tv">₹1,310</div><div class="sub" id="ts" style="margin:4px 0 0">Patna · 20 nag · 16 qtl</div>
+      <div class="leg" id="leg"></div>
+      <a class="btn p" style="width:100%;margin-top:16px" href="#book">Book this load</a></div>
+  </div>
+</div></section>
+
+<section id="services" style="padding-top:0"><div class="wrap">
+  <div class="sh"><div><div class="kick">Services</div><h2>More than just a truck</h2></div></div>
+  <div class="svc">
+    <div class="card"><div class="ic">📦</div><h3>Part load</h3><p>Even 1 nag goes. Shared vehicle, per-nag freight.</p></div>
+    <div class="card"><div class="ic">🚛</div><h3>Full load</h3><p>Pickup to 16-tyre — your whole vehicle, direct delivery.</p></div>
+    <div class="card"><div class="ic">🏠</div><h3>Godown storage</h3><p>Arrived goods kept safe. First 3 days free.</p></div>
+    <div class="card"><div class="ic">🚪</div><h3>Door delivery</h3><p>Shop ya godown tak — extra hamali ke saath.</p></div>
+    <div class="card"><div class="ic">💵</div><h3>To-pay &amp; khata</h3><p>Pay at booking, on delivery, or monthly account.</p></div>
+    <div class="card"><div class="ic">🧾</div><h3>Bilty &amp; GST papers</h3><p>Printed bilty with QR, e-way bill support.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="sh"><div><div class="kick">How it works</div><h2>5 simple steps</h2></div></div>
+  <div class="steps">
+    <div class="step"><h3>Bring the goods</h3><p>Or call — we pick up from your shop in Ara.</p></div>
+    <div class="step"><h3>Bilty + QR</h3><p>Printed receipt with a tracking QR, in 40 seconds.</p></div>
+    <div class="step"><h3>Loading</h3><p>Goods go on the vehicle for your route.</p></div>
+    <div class="step"><h3>Track</h3><p>You and the receiver both see the live status.</p></div>
+    <div class="step"><h3>Delivery</h3><p>Receiver takes the goods, you get a confirmation.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap app">
+  <div><div class="kick">Behind the website</div><h2>The whole transport on the owner's phone</h2>
+    <ul class="chk"><li>Every bilty — booked, loaded, on the way, delivered</li><li>Godown goods with automatic storage charge after 3 days</li><li>Party khata, to-pay money and driver's cash</li><li>Insurance, PUC, fitness and DL expiry reminders</li></ul></div>
+  <div class="shots"><img src="../../images/demos/transport-1.jpg" alt="Owner dashboard" loading="lazy"><img src="../../images/demos/transport-2.jpg" alt="Bilty list" loading="lazy"><img src="../../images/demos/transport-3.jpg" alt="Godown" loading="lazy"><img src="../../images/demos/transport-4.jpg" alt="Party accounts" loading="lazy"></div>
+</div></section>
+
+<section id="book" style="padding-top:0"><div class="wrap">
+  <div class="visit">
+    <div><div class="kick">Booking enquiry</div><h2>Tell us what to send</h2><p class="sub">We call back with the exact freight and the next vehicle timing.</p>
+      <ul class="chk"><li>Free pickup inside Ara town</li><li>Bilty with tracking QR</li><li>Monthly khata for regular parties</li></ul></div>
+    <form id="vf">
+      <div class="row2"><div class="fld"><label for="n">Your name / firm</label><input id="n" required></div><div class="fld"><label for="ph">Mobile</label><input id="ph" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit number"></div></div>
+      <div class="row2"><div class="fld"><label for="d">Where to send</label><select id="d"><option>Patna</option><option>Buxar</option><option>Sasaram</option><option>Chhapra</option><option>Varanasi</option><option>Muzaffarpur</option><option>Ranchi</option><option>Kolkata</option><option>Other</option></select></div>
+      <div class="fld"><label for="g">Goods</label><input id="g" placeholder="e.g. 20 nag kapda"></div></div>
+      <button class="btn p" style="width:100%" type="submit">Send booking enquiry</button>
+      <div class="ok" id="ok" role="status"></div>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© Maa Durga Transport (sample) · Bazar Samiti Road, Ara · Demo contact: Soft Skill Zone 62028 56897</div>
+  <div>Made by <a href="../../pages/business.html">Soft Skill Zone</a></div>
+  <div class="made"><span><b>This is a sample website.</b> Want this for your transport — with bilty, QR tracking, godown and party khata?</span><a class="btn d sm" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20transport%20business%20ke%20liye%20aisi%20website%20aur%20automation%20chahiye." target="_blank" rel="noopener">Get it for my business</a></div>
+</div></footer>
+<a class="fab" href="https://wa.me/916202856897?text=Namaste%2C%20mujhe%20apne%20transport%20business%20ke%20liye%20aisi%20website%20aur%20automation%20chahiye." target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>
+(function(){
+  /* ---- tracking demo ---- */
+  var DB={
+    L27844:{f:'Patna',t:'Ara',g:'Stationery',nag:20,st:2,veh:'Ashok Leyland 1616',d:['Fri, 13 Nov','Fri, 13 Nov','left Fri, 13 Nov 15:30','approx. Fri, 13 Nov','pending']},
+    L27861:{f:'Ara',t:'Kolkata',g:'Medicine',nag:21,st:1,veh:'Tata 1109',d:['Sat, 14 Nov','Sat, 14 Nov 11:10','not started','approx. Mon, 16 Nov','pending']},
+    L27802:{f:'Buxar',t:'Ara',g:'Hardware',nag:14,st:4,veh:'Eicher Pro 1110',d:['Wed, 11 Nov','Wed, 11 Nov','left Wed, 11 Nov 09:40','Wed, 11 Nov 14:05','Thu, 12 Nov 10:20']}
+  };
+  var LBL=['Bilty made','Loaded on vehicle','On the way','Reached destination','Delivered'];
+  var STN=['Booked','Loaded','In transit','Arrived','Delivered'];
+  function render(id){
+    var k=(id||'').toUpperCase().replace(/\s/g,''), b=DB[k], R=document.getElementById('res');
+    if(!b){ R.innerHTML='<div class="hd"><div><div class="rt">Not found</div><div class="mt">Bilty '+(k||'—')+'</div></div></div><p class="mt" style="margin-top:14px">Please check the number on your receipt, or call the office. In this demo only L27844, L27861 and L27802 work.</p>'; return; }
+    var h='<div class="hd"><div><div class="rt">'+b.f+' → '+b.t+'</div><div class="mt">Bilty '+k+' · '+b.g+' · '+b.nag+' nag</div></div><span class="pill">'+STN[b.st]+'</span></div>';
+    h+='<ul class="tl">'+LBL.map(function(l,i){
+      var cls=i<b.st?'on':(i===b.st?'now':'off');
+      var sub=i===1&&b.st>=1?b.veh:b.d[i];
+      return '<li class="'+cls+'"><div><b>'+l+'</b><span>'+sub+'</span></div></li>';
+    }).join('')+'</ul>';
+    h+='<div style="margin-top:18px;border-top:1px solid #3A352F;padding-top:14px" class="mt">Something to ask? Call the office — <b style="color:#fff">62028 56897</b></div>';
+    R.innerHTML=h;
+  }
+  document.getElementById('go').addEventListener('click',function(){render(document.getElementById('lr').value);});
+  document.getElementById('lr').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render(this.value);}});
+  document.querySelectorAll('.chips button').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-lr');document.getElementById('lr').value=v;render(v);});});
+  render('L27844');
+
+  /* ---- freight calculator ---- */
+  var pay='paid';
+  function rs(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var base=+document.getElementById('to').value,
+        nag=Math.max(1,+document.getElementById('nag').value||1),
+        wt=Math.max(.5,+document.getElementById('wt').value||.5),
+        name=document.getElementById('to').selectedOptions[0].text;
+    var freight=Math.round((base*wt*0.8+nag*18)/10)*10,
+        hamali=nag*10,
+        doc=30,
+        total=freight+hamali+doc;
+    document.getElementById('tv').textContent=rs(total);
+    document.getElementById('ts').textContent=name+' · '+nag+' nag · '+wt+' qtl';
+    var rows=[['Freight',rs(freight)],['Hamali ('+nag+' nag)',rs(hamali)],['Bilty / docket',rs(doc)]];
+    rows.push([pay==='paid'?'Pay now at booking':pay==='topay'?'To-pay — receiver pays':'Goes to your monthly khata',rs(total)]);
+    document.getElementById('leg').innerHTML=rows.map(function(r){return '<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>';}).join('');
+  }
+  document.querySelectorAll('#q3 button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#q3 button').forEach(function(x){x.classList.toggle('on',x===b);});pay=b.getAttribute('data-p');calc();});});
+  ['to','nag','wt'].forEach(function(i){document.getElementById(i).addEventListener('input',calc);});
+  calc();
+
+  /* ---- booking form ---- */
+  document.getElementById('vf').addEventListener('submit',function(e){e.preventDefault();var o=document.getElementById('ok');
+    o.innerHTML='✅ Booking enquiry received. The office will call you shortly.<br><small>In the real website the owner gets it on Telegram + Google Sheet with a follow-up reminder. (Demo — nothing was sent.)</small>';
+    o.style.display='block';this.querySelector('button').disabled=true;});
+})();
+</script>
+</body>
+</html>
